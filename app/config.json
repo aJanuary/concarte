@@ -1,0 +1,8 @@
+{
+  "levels": [
+    {
+      "name": "Ground floor",
+      "src": "/floor0.png"
+    }
+  ]
+}
