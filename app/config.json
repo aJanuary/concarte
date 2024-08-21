@@ -2,7 +2,49 @@
   "levels": [
     {
       "name": "Ground floor",
-      "src": "/floor0.png"
+      "src": "/floor0.png",
+      "rooms": [
+        {
+          "id": "silent-room",
+          "label": "Silent room",
+          "aliases": ["Jackfield Boardroom"],
+          "position": { "x": 229, "y": 537 }
+        }, {
+          "id": "pattingham",
+          "label": "Pattingham",
+          "aliases": ["Programme"],
+          "position": { "x": 313, "y": 520 }
+        }, {
+          "id": "ops-help-desk",
+          "label": "Ops Help Desk",
+          "aliases": ["Beckbury 1", "Beckbury 2"],
+          "position": { "x": 317, "y": 708 }
+        }, {
+          "id": "newsletter",
+          "label": "Newsletter",
+          "aliases": ["Beckbury 3"],
+          "position": { "x": 393, "y": 708 }
+        }, {
+          "id": "quiet-activities",
+          "label": "Quiet activities",
+          "aliases": ["Beckbury 4"],
+          "position": { "x": 440, "y": 708 }
+        }, {
+          "id": "drinks-kiosk",
+          "label": "Drinks kiosk",
+          "position": { "x": 684, "y": 625 }
+        }, {
+          "id": "games",
+          "label": "Games",
+          "aliases": ["Ryton"],
+          "position": { "x": 910, "y": 537 }
+        }, {
+          "id": "toilets",
+          "label": "Toilets",
+          "aliases": ["Male toilets", "Female toilets", "Accessible toilets", "Disabled toilets"],
+          "position": { "x": 1000, "y": 374 }
+        }
+      ]
     }
   ]
 }
