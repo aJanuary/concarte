@@ -14,7 +14,7 @@ import { Config, Level, Room } from './common_types';
 interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   config: Config;
   selectedRoom?: Room;
-  onRoomSelected?: (room: Room) => void;
+  onRoomSelected?: (room?: Room) => void;
 }
 
 function decodeAllImages(levels: Level[]) {
@@ -114,16 +114,22 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
         const feature = map.forEachFeatureAtPixel(e.pixel, f => f);
         if (feature) {
           onRoomSelected && onRoomSelected(feature.get('room'));
+        } else {
+          onRoomSelected && onRoomSelected(undefined);
         }
       });
     });
   }, []);
 
-  const xs = selectedRoom!.area.map(coords => coords[0]);
-  const x = Math.min(...xs);
-  const y = height - Math.max(...selectedRoom!.area.map (coords => coords[1])) - 5;
-  overlay.current.setPosition([x, y]);
-  overlay.current.getElement()!.innerText = selectedRoom?.label || '';
+  if (selectedRoom) {
+    const xs = selectedRoom!.area.map(coords => coords[0]);
+    const x = Math.min(...xs);
+    const y = height - Math.max(...selectedRoom!.area.map (coords => coords[1])) - 5;
+    overlay.current.setPosition([x, y]);
+    overlay.current.getElement()!.innerText = selectedRoom?.label || '';
+  } else {
+    overlay.current.setPosition(undefined);
+  }
 
   return (
     <>

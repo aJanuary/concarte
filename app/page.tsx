@@ -17,9 +17,14 @@ export default function Home({ params }: { params: { room: string } }) {
   }
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>(room);
 
-  const onRoomSelected = (room: Room) => {
-    history.replaceState(null, '', `/${room.id}`);
-    setSelectedRoom(room);
+  const onRoomSelected = (room?: Room) => {
+    if (!room) {
+      setSelectedRoom(undefined);
+      window.history.replaceState(null, '', '/');
+    } else {
+      history.replaceState(null, '', `/${room.id}`);
+      setSelectedRoom(room);
+    }
   };
 
   return (
