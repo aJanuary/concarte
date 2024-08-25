@@ -9,7 +9,7 @@ import Static from 'ol/source/ImageStatic.js';
 import VectorSource from 'ol/source/Vector';
 import { Fill, Stroke, Style } from 'ol/style';
 import React, { useCallback, useRef, useState } from 'react';
-import { Config, Level, Room } from './common_types';
+import { Config, Map as tMap, Room } from './common_types';
 
 interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   config: Config;
@@ -17,13 +17,11 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   onRoomSelected?: (room?: Room) => void;
 }
 
-function decodeAllImages(levels: Level[]) {
-  return Promise.all(levels.map(async level => {
-    const img = new Image();
-    img.src = level.src;
-    await img.decode();
-    return img;
-  }));
+async function decodeAllImages(map: tMap) {
+  const img = new Image();
+  img.src = map.src;
+  await img.decode();
+  return img;
 }
 
 export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}: MapProps) {
@@ -43,9 +41,9 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
   }));
   
   const ref = useCallback((node: HTMLDivElement) => {
-    decodeAllImages(config.levels).then(imgs => {
-      const width = Math.max(...imgs.map(img => img.naturalWidth));
-      const height = Math.max(...imgs.map(img => img.naturalHeight));
+    decodeAllImages(config.map).then(img => {
+      const width = img.naturalWidth;
+      const height = img.naturalHeight;
       setHeight(height);
 
       const extent = [0, 0, width, height];
@@ -57,13 +55,13 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
       
       const imageLayer = new ImageLayer({
         source: new Static({
-          url: config.levels[0].src,
+          url: config.map.src,
           projection: projection,
           imageExtent: extent,
         }),
       });
 
-      const markers = config.levels[0].rooms.map(room => {
+      const markers = config.map.rooms.map(room => {
         return new Feature({
           geometry: new Polygon([room.area.map(coords => [coords[0], height - coords[1]])]),
           room

@@ -11,7 +11,7 @@ export default function Home({ params }: { params: { room: string } }) {
   if (typeof window !== 'undefined') {
     const path = window.location.pathname;
     const roomId = path.slice(1);
-    room = config.levels.flatMap(level => level.rooms).find(room => room.id === roomId);
+    room = config.map.rooms.find(room => room.id === roomId);
   } else {
     room = undefined;
   }

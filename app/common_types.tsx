@@ -5,12 +5,11 @@ export interface Room {
   area: number[][];
 }
 
-export interface Level {
-  name: string;
+export interface Map {
   src: string;
   rooms: Room[];
 }
 
 export interface Config {
-  levels: Level[];
+  map: Map;
 }

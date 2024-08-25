@@ -24,9 +24,9 @@ export default function RoomSelect({ config, onRoomSelected }: RoomSelectProps) 
 
   let results;
   if (query === '') {
-    results = config.levels.flatMap(level => level.rooms);
+    results = config.map.rooms;
   } else {
-    results = config.levels.flatMap(level => level.rooms).filter(room => {
+    results = config.map.rooms.filter(room => {
       return room.label.toLowerCase().includes(query.toLowerCase()) ||
         room.aliases?.some(alias => alias.toLowerCase().includes(query.toLowerCase()));
     });
