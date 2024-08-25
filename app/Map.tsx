@@ -93,7 +93,11 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
         }),
         overlays: [overlay.current],
       });
-      map.getView().fit(extent);
+      if (localStorage.getItem('map-extent')) {
+        map.getView().fit(JSON.parse(localStorage.getItem('map-extent')!));
+      } else {
+        map.getView().fit(extent);
+      }
       overlay.current.setPosition([width / 2, height / 2]);
 
       let selected: FeatureLike | undefined = undefined;
@@ -115,6 +119,9 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
         } else {
           onRoomSelected && onRoomSelected(undefined);
         }
+      });
+      map.on('moveend', e => {
+        localStorage.setItem('map-extent', JSON.stringify(map.getView().calculateExtent()));
       });
     });
   }, []);
