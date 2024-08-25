@@ -2,7 +2,7 @@ export interface Room {
   id: string;
   label: string;
   aliases?: string[];
-  position: { x: number, y: number };
+  area: number[][];
 }
 
 export interface Level {

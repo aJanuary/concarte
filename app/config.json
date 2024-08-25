@@ -8,41 +8,81 @@
           "id": "silent-room",
           "label": "Silent room",
           "aliases": ["Jackfield Boardroom"],
-          "position": { "x": 229, "y": 537 }
+          "area": [
+            [202, 512],
+            [255, 512],
+            [255, 563],
+            [202, 563]
+          ]
         }, {
           "id": "pattingham",
           "label": "Pattingham",
           "aliases": ["Programme"],
-          "position": { "x": 313, "y": 520 }
+          "area": [
+            [262, 483],
+            [363, 483],
+            [363, 563],
+            [262, 563]
+          ]
         }, {
           "id": "ops-help-desk",
           "label": "Ops Help Desk",
           "aliases": ["Beckbury 1", "Beckbury 2"],
-          "position": { "x": 317, "y": 708 }
+          "area": [
+            [270, 668],
+            [363, 668],
+            [363, 741],
+            [270, 741]
+          ]
         }, {
           "id": "newsletter",
           "label": "Newsletter",
           "aliases": ["Beckbury 3"],
-          "position": { "x": 393, "y": 708 }
+          "area": [
+            [371, 668],
+            [414, 668],
+            [414, 741],
+            [371, 741]
+          ]
         }, {
           "id": "quiet-activities",
           "label": "Quiet activities",
           "aliases": ["Beckbury 4"],
-          "position": { "x": 440, "y": 708 }
+          "area": [
+            [422, 668],
+            [462, 668],
+            [462, 741],
+            [422, 741]
+          ]
         }, {
           "id": "drinks-kiosk",
           "label": "Drinks kiosk",
-          "position": { "x": 684, "y": 625 }
+          "area": [
+            [661, 594],
+            [710, 594],
+            [710, 649],
+            [661, 649]
+          ]
         }, {
           "id": "games",
           "label": "Games",
           "aliases": ["Ryton"],
-          "position": { "x": 910, "y": 537 }
+          "area": [
+            [884, 513],
+            [942, 513],
+            [942, 563],
+            [884, 563]
+          ]
         }, {
           "id": "toilets",
           "label": "Toilets",
           "aliases": ["Male toilets", "Female toilets", "Accessible toilets", "Disabled toilets"],
-          "position": { "x": 1000, "y": 374 }
+          "area": [
+            [852, 357],
+            [1055, 357],
+            [1055, 395],
+            [852, 395]
+          ]
         }
       ]
     }

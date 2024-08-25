@@ -2,11 +2,12 @@ import React from 'react';
 import Link from 'next/link';
 import { Room, Config } from './common_types';
 
-interface RoomSelectProps extends React.HTMLAttributes<HTMLDivElement> {
+interface RoomSelectProps {
   config: Config;
+  onRoomSelected?: (room: Room) => void;
 }
 
-export default function RoomSelect({ config }: RoomSelectProps) {
+export default function RoomSelect({ config, onRoomSelected }: RoomSelectProps) {
   const [focused, setFocused] = React.useState(false);
   const onFocus = () => setFocused(true);
   const onDismiss = (e: React.MouseEvent<HTMLElement>) => {
@@ -16,14 +17,11 @@ export default function RoomSelect({ config }: RoomSelectProps) {
   };
 
   const onRoomClick = (room: Room) => {
-    console.log(room);
-    history.replaceState({}, '', `/${room.id}`);
     setFocused(false);
+    onRoomSelected && onRoomSelected(room);
   };
 
   // TODO: Implement a search function
-  // TODO: Implement a click handler to pan the map to the selected room
-  // TODO: Allow keyboard selection of results
 
   return <div className={`transition absolute top-0 w-screen ${focused ? 'h-screen bg-white' : 'bg-transparent'}`}  onFocus={onFocus} onClick={onDismiss} >
     <div className="px-4 py-2">
