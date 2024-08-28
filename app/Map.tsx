@@ -15,6 +15,7 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   config: Config;
   selectedRoom?: Room;
   onRoomSelected?: (room?: Room) => void;
+  onInfoSelected?: () => void;
 }
 
 async function decodeAllImages(map: tMap) {
@@ -24,32 +25,35 @@ async function decodeAllImages(map: tMap) {
   return img;
 }
 
-export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}: MapProps) {
+// TODO: This global state is a massive hack. But I haven't figured out how to
+// properly bridge the gap between the OL map and React.
+let lastSelected: FeatureLike | undefined = undefined;
+
+export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelected, ...divProps}: MapProps) {
   const [height, setHeight] = useState(0);
+  const [map, setMap] = useState<olMap | null>(null);
 
-  const overlay = useRef<Overlay | null>(null);
-  if (overlay.current === null && typeof document !== 'undefined') {
-    const popup = document.createElement('div');
-    popup.className = 'relative bg-popup-background text-popup-text p-2 rounded drop-shadow-lg';
+  const selectedStyle = new Style({
+    stroke: new Stroke({
+      color: config.theme.accent,
+      width: 4,
+    }),
+    fill: new Fill({
+      color: 'rgba(0, 0, 0, 0)',
+    }),
+  });
 
-    const arrow = document.createElement('div');
-    arrow.className = 'popup-arrow border-popup-background drop-shadow-lg';
-    popup.appendChild(arrow);
+  const unselectedStyle = new Style({
+    stroke: new Stroke({
+      color: config.theme.accent,
+      width: 2,
+      lineDash: [.1, 5]
+    }),
+    fill: new Fill({
+      color: 'rgba(0, 0, 0, 0)',
+    }),
+  });
 
-    const popupContent = document.createElement('span');
-    popupContent.innerText = selectedRoom?.label || '';
-    popup.appendChild(popupContent);
-  
-    overlay.current = new Overlay({
-      element: popup,
-      autoPan: {
-        animation: {
-          duration: 250,
-        },
-      },
-    });
-  }
-  
   const ref = useCallback((node: HTMLDivElement) => {
     decodeAllImages(config.map).then(img => {
       const width = img.naturalWidth;
@@ -83,16 +87,7 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
       });
       const markersLayer = new VectorLayer({
         source: markerSource,
-        style: new Style({
-          stroke: new Stroke({
-            color: config.theme.accent,
-            width: 2,
-            lineDash: [.1, 5]
-          }),
-          fill: new Fill({
-            color: 'rgba(0, 0, 0, 0)',
-          }),
-        })
+        style: unselectedStyle,
       });
   
       const map = new olMap({
@@ -101,14 +96,12 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
         view: new View({
           projection: projection
         }),
-        overlays: [overlay.current!],
       });
       if (localStorage.getItem('map-extent')) {
         map.getView().fit(JSON.parse(localStorage.getItem('map-extent')!));
       } else {
         map.getView().fit(extent);
       }
-      overlay.current && overlay.current.setPosition([width / 2, height / 2]);
 
       let selected: FeatureLike | undefined = undefined;
       map.on('pointermove', e => {
@@ -126,25 +119,37 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
         const feature = map.forEachFeatureAtPixel(e.pixel, f => f);
         if (feature) {
           onRoomSelected && onRoomSelected(feature.get('room'));
+          if (lastSelected) {
+            lastSelected.setStyle(unselectedStyle);
+          }
+          feature.setStyle(selectedStyle);
+          lastSelected = feature;
         } else {
           onRoomSelected && onRoomSelected(undefined);
+          if (lastSelected) {
+            lastSelected.setStyle(unselectedStyle);
+          }
+          lastSelected = undefined;
         }
       });
       map.on('moveend', e => {
         localStorage.setItem('map-extent', JSON.stringify(map.getView().calculateExtent()));
       });
+
+      setMap(map);
     });
   }, []);
 
-  if (overlay.current) {
-    if (selectedRoom) {
-      const xs = selectedRoom!.area.map(coords => coords[0]);
-      const x = Math.min(...xs);
-      const y = height - Math.max(...selectedRoom!.area.map (coords => coords[1])) - 5;
-      overlay.current.setPosition([x, y]);
-      overlay.current.getElement()!.getElementsByTagName('span')[0].innerText = selectedRoom?.label || '';
-    } else {
-      overlay.current.setPosition(undefined);
+  if (map && selectedRoom) {
+    if (lastSelected) {
+      lastSelected.setStyle(unselectedStyle);
+    }
+    const selected = map.getLayers().getArray()[1].getSource().getFeatures().find(f => f.get('room') === selectedRoom);
+    console.log(selected);
+    if (selected) {
+      console.log("Setting style to " + selectedStyle);
+      selected.setStyle(selectedStyle);
+      lastSelected = selected;
     }
   }
 

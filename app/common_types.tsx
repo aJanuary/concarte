@@ -2,6 +2,7 @@ export interface Room {
   id: string;
   label: string;
   aliases?: string[];
+  description?: string;
   area: number[][];
 }
 
