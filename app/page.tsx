@@ -5,16 +5,11 @@ import Map from './Map';
 import RoomSelect from './RoomSelect';
 import { Room } from './common_types';
 import config from './config.json';
+import { usePathname } from 'next/navigation'
 
 export default function Home({ params }: { params: { room: string } }) {
-  let room;
-  if (typeof window !== 'undefined') {
-    const path = window.location.pathname;
-    const roomId = path.slice(1);
-    room = config.map.rooms.find(room => room.id === roomId);
-  } else {
-    room = undefined;
-  }
+  const pathname = usePathname().slice(1);
+  const room = config.map.rooms.find(room => room.id === pathname);
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>(room);
 
   const onRoomSelected = (room?: Room) => {
