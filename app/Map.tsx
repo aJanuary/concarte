@@ -25,20 +25,23 @@ async function decodeAllImages(map: tMap) {
 }
 
 export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}: MapProps) {
-  const popup = document.createElement('div');
-  popup.className = 'bg-slate-800 text-white p-2 rounded shadow';
-  popup.innerText = selectedRoom?.label || '';
-
   const [height, setHeight] = useState(0);
 
-  const overlay = useRef(new Overlay({
-    element: popup,
-    autoPan: {
-      animation: {
-        duration: 250,
+  const overlay = useRef<Overlay | null>(null);
+  if (overlay.current === null && typeof document !== 'undefined') {
+    const popup = document.createElement('div');
+    popup.className = 'bg-slate-800 text-white p-2 rounded shadow';
+    popup.innerText = selectedRoom?.label || '';
+  
+    overlay.current = new Overlay({
+      element: popup,
+      autoPan: {
+        animation: {
+          duration: 250,
+        },
       },
-    },
-  }));
+    });
+  }
   
   const ref = useCallback((node: HTMLDivElement) => {
     decodeAllImages(config.map).then(img => {
@@ -91,14 +94,14 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
         view: new View({
           projection: projection
         }),
-        overlays: [overlay.current],
+        overlays: [overlay.current!],
       });
       if (localStorage.getItem('map-extent')) {
         map.getView().fit(JSON.parse(localStorage.getItem('map-extent')!));
       } else {
         map.getView().fit(extent);
       }
-      overlay.current.setPosition([width / 2, height / 2]);
+      overlay.current && overlay.current.setPosition([width / 2, height / 2]);
 
       let selected: FeatureLike | undefined = undefined;
       map.on('pointermove', e => {
@@ -126,14 +129,16 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
     });
   }, []);
 
-  if (selectedRoom) {
-    const xs = selectedRoom!.area.map(coords => coords[0]);
-    const x = Math.min(...xs);
-    const y = height - Math.max(...selectedRoom!.area.map (coords => coords[1])) - 5;
-    overlay.current.setPosition([x, y]);
-    overlay.current.getElement()!.innerText = selectedRoom?.label || '';
-  } else {
-    overlay.current.setPosition(undefined);
+  if (overlay.current) {
+    if (selectedRoom) {
+      const xs = selectedRoom!.area.map(coords => coords[0]);
+      const x = Math.min(...xs);
+      const y = height - Math.max(...selectedRoom!.area.map (coords => coords[1])) - 5;
+      overlay.current.setPosition([x, y]);
+      overlay.current.getElement()!.innerText = selectedRoom?.label || '';
+    } else {
+      overlay.current.setPosition(undefined);
+    }
   }
 
   return (
