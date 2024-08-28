@@ -6,3 +6,15 @@
   top: auto !important;
   bottom: 10px;
 }
+
+.popup-arrow {
+  position: absolute;
+  top: -5px;
+  left: 8px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom-width: 5px;
+  border-bottom-style: solid;
+  width: 0;
+  height: 0;
+}

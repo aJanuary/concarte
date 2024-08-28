@@ -30,8 +30,15 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
   const overlay = useRef<Overlay | null>(null);
   if (overlay.current === null && typeof document !== 'undefined') {
     const popup = document.createElement('div');
-    popup.className = 'bg-popup-background text-popup-text p-2 rounded shadow';
-    popup.innerText = selectedRoom?.label || '';
+    popup.className = 'relative bg-popup-background text-popup-text p-2 rounded drop-shadow-lg';
+
+    const arrow = document.createElement('div');
+    arrow.className = 'popup-arrow border-popup-background drop-shadow-lg';
+    popup.appendChild(arrow);
+
+    const popupContent = document.createElement('span');
+    popupContent.innerText = selectedRoom?.label || '';
+    popup.appendChild(popupContent);
   
     overlay.current = new Overlay({
       element: popup,
@@ -135,7 +142,7 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
       const x = Math.min(...xs);
       const y = height - Math.max(...selectedRoom!.area.map (coords => coords[1])) - 5;
       overlay.current.setPosition([x, y]);
-      overlay.current.getElement()!.innerText = selectedRoom?.label || '';
+      overlay.current.getElement()!.getElementsByTagName('span')[0].innerText = selectedRoom?.label || '';
     } else {
       overlay.current.setPosition(undefined);
     }
