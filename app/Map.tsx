@@ -27,7 +27,7 @@ async function decodeAllImages(map: tMap) {
 
 // TODO: This global state is a massive hack. But I haven't figured out how to
 // properly bridge the gap between the OL map and React.
-let lastSelected: FeatureLike | undefined = undefined;
+let lastSelected: Feature | undefined = undefined;
 
 export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelected, ...divProps}: MapProps) {
   const [height, setHeight] = useState(0);
@@ -116,7 +116,7 @@ export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelect
         }
       });
       map.on('click', e => {
-        const feature = map.forEachFeatureAtPixel(e.pixel, f => f);
+        const feature: Feature = map.forEachFeatureAtPixel(e.pixel, f => f) as Feature;
         if (feature) {
           onRoomSelected && onRoomSelected(feature.get('room'));
           if (lastSelected) {
@@ -144,10 +144,10 @@ export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelect
     if (lastSelected) {
       lastSelected.setStyle(unselectedStyle);
     }
-    const selected = map.getLayers().getArray()[1].getSource().getFeatures().find(f => f.get('room') === selectedRoom);
+    const vectorLayer = map.getLayers().getArray()[1] as VectorLayer;
+    const selected = vectorLayer.getSource()!.getFeatures().find((f: { get: (arg0: string) => Room; }) => f.get('room') === selectedRoom);
     console.log(selected);
     if (selected) {
-      console.log("Setting style to " + selectedStyle);
       selected.setStyle(selectedStyle);
       lastSelected = selected;
     }
