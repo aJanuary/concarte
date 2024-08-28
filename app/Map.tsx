@@ -30,7 +30,7 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
   const overlay = useRef<Overlay | null>(null);
   if (overlay.current === null && typeof document !== 'undefined') {
     const popup = document.createElement('div');
-    popup.className = 'bg-slate-800 text-white p-2 rounded shadow';
+    popup.className = 'bg-popup-background text-popup-text p-2 rounded shadow';
     popup.innerText = selectedRoom?.label || '';
   
     overlay.current = new Overlay({
@@ -78,7 +78,7 @@ export default function Map({ config, selectedRoom, onRoomSelected, ...divProps}
         source: markerSource,
         style: new Style({
           stroke: new Stroke({
-            color: 'rgb(0, 0, 255)',
+            color: config.theme.accent,
             width: 2,
             lineDash: [.1, 5]
           }),

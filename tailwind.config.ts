@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import AppConfig from "./app/config.json";
 
 const config: Config = {
   content: [
@@ -7,8 +8,7 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {
-    },
+    colors: AppConfig.theme,
   },
   plugins: [],
 };

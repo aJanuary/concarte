@@ -1,4 +1,14 @@
 {
+  "theme": {
+    "background": "white",
+    "highlight-background": "rgb(241 245 249)",
+    "border": "rgb(226 232 240)",
+    "primary-text": "rgb(43, 43, 43)",
+    "secondary-text": "rgb(100 116 139)",
+    "accent": "#087232",
+    "popup-background": "rgb(30 41 59)",
+    "popup-text": "white"
+  },
   "map": {
     "src": "/map.png",
     "rooms": [
