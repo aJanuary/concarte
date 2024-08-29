@@ -29,8 +29,13 @@ async function decodeAllImages(map: tMap) {
 // properly bridge the gap between the OL map and React.
 let lastSelected: Feature | undefined = undefined;
 
-export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelected, ...divProps}: MapProps) {
-  const [height, setHeight] = useState(0);
+export default function Map({
+  config,
+  selectedRoom,
+  onRoomSelected,
+  onInfoSelected,
+  ...divProps
+}: MapProps) {
   const [map, setMap] = useState<olMap | null>(null);
 
   const selectedStyle = new Style({
@@ -47,7 +52,7 @@ export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelect
     stroke: new Stroke({
       color: config.theme.accent,
       width: 2,
-      lineDash: [.1, 5]
+      lineDash: [0.1, 5],
     }),
     fill: new Fill({
       color: 'rgba(0, 0, 0, 0)',
@@ -55,10 +60,9 @@ export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelect
   });
 
   const ref = useCallback((node: HTMLDivElement) => {
-    decodeAllImages(config.map).then(img => {
+    decodeAllImages(config.map).then((img) => {
       const width = img.naturalWidth;
       const height = img.naturalHeight;
-      setHeight(height);
 
       const extent = [0, 0, width, height];
       const projection = new Projection({
@@ -66,7 +70,7 @@ export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelect
         units: 'pixels',
         extent: extent,
       });
-      
+
       const imageLayer = new ImageLayer({
         source: new Static({
           url: config.map.src,
@@ -75,26 +79,28 @@ export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelect
         }),
       });
 
-      const markers = config.map.rooms.map(room => {
+      const markers = config.map.rooms.map((room) => {
         return new Feature({
-          geometry: new Polygon([room.area.map(coords => [coords[0], height - coords[1]])]),
-          room
+          geometry: new Polygon([
+            room.area.map((coords) => [coords[0], height - coords[1]]),
+          ]),
+          room,
         });
       });
       const markerSource = new VectorSource({
         features: markers,
-        wrapX: false
+        wrapX: false,
       });
       const markersLayer = new VectorLayer({
         source: markerSource,
         style: unselectedStyle,
       });
-  
+
       const map = new olMap({
         target: node,
         layers: [imageLayer, markersLayer],
         view: new View({
-          projection: projection
+          projection: projection,
         }),
       });
       if (localStorage.getItem('map-extent')) {
@@ -104,19 +110,22 @@ export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelect
       }
 
       let selected: FeatureLike | undefined = undefined;
-      map.on('pointermove', e => {
+      map.on('pointermove', (e) => {
         if (selected) {
           selected = undefined;
         }
-        selected = map.forEachFeatureAtPixel(e.pixel, f => f);
+        selected = map.forEachFeatureAtPixel(e.pixel, (f) => f);
         if (selected) {
           node.style.cursor = 'pointer';
         } else {
           node.style.cursor = '';
         }
       });
-      map.on('click', e => {
-        const feature: Feature = map.forEachFeatureAtPixel(e.pixel, f => f) as Feature;
+      map.on('click', (e) => {
+        const feature: Feature = map.forEachFeatureAtPixel(
+          e.pixel,
+          (f) => f
+        ) as Feature;
         if (feature) {
           onRoomSelected && onRoomSelected(feature.get('room'));
           if (lastSelected) {
@@ -132,8 +141,11 @@ export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelect
           lastSelected = undefined;
         }
       });
-      map.on('moveend', e => {
-        localStorage.setItem('map-extent', JSON.stringify(map.getView().calculateExtent()));
+      map.on('moveend', (e) => {
+        localStorage.setItem(
+          'map-extent',
+          JSON.stringify(map.getView().calculateExtent())
+        );
       });
 
       setMap(map);
@@ -145,7 +157,12 @@ export default function Map({ config, selectedRoom, onRoomSelected, onInfoSelect
       lastSelected.setStyle(unselectedStyle);
     }
     const vectorLayer = map.getLayers().getArray()[1] as VectorLayer;
-    const selected = vectorLayer.getSource()!.getFeatures().find((f: { get: (arg0: string) => Room; }) => f.get('room') === selectedRoom);
+    const selected = vectorLayer
+      .getSource()!
+      .getFeatures()
+      .find(
+        (f: { get: (arg0: string) => Room }) => f.get('room') === selectedRoom
+      );
     console.log(selected);
     if (selected) {
       selected.setStyle(selectedStyle);
