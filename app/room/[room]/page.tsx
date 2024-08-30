@@ -1,4 +1,4 @@
-import Home from "../../page";
+import App from "../../App";
 import config from "../../config";
 
 export function generateStaticParams() {
@@ -12,5 +12,5 @@ export default function Room({
 }: {
   params: { room: string };
 }) {
-  return <Home roomId={room} />;
+  return <App roomId={room} />;
 }
