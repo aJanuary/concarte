@@ -12,7 +12,10 @@ export default function Home({ params }: { params: { room: string } }) {
   const pathname = usePathname().slice(1);
   const room = config.map.rooms.find(room => room.id === pathname);
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>(room);
-  const [infoPanelExpanded, setInfoPanelExpanded] = useState(false);
+
+  const [infoPanelExpanded, setInfoPanelExpanded] = useState(() => {
+    return Boolean(localStorage.getItem('infoPanelExpanded'));
+  });
 
   const onRoomSelected = (room?: Room) => {
     if (!room) {
@@ -24,11 +27,16 @@ export default function Home({ params }: { params: { room: string } }) {
     }
   };
 
+  const onInfoPanelExpandChange = (expanded: boolean) => {
+    setInfoPanelExpanded(expanded);
+    localStorage.setItem('infoPanelExpanded', expanded ? 'true' : '');
+  }
+
   return (
     <main>
       <Map className="w-screen h-screen" config={config} selectedRoom={selectedRoom} onRoomSelected={onRoomSelected} />
       <RoomSelect config={config} onRoomSelected={onRoomSelected} />
-      { selectedRoom && <InfoPanel room={selectedRoom} expanded={infoPanelExpanded} onInfoPanelExpandChange={setInfoPanelExpanded} /> }
+      { selectedRoom && <InfoPanel room={selectedRoom} expanded={infoPanelExpanded} onInfoPanelExpandChange={onInfoPanelExpandChange} /> }
     </main>
   );
 }
