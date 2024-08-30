@@ -16,7 +16,7 @@ export default function RoomSelect({
   config,
   onRoomSelected,
 }: RoomSelectProps) {
-  const t = useTranslations("RoomSelect");
+  const t = useTranslations("room-select");
   const [focused, setFocused] = React.useState(false);
   const onFocus = () => setFocused(true);
   const onDismiss = (e: React.MouseEvent<HTMLElement>) => {

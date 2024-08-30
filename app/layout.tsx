@@ -15,7 +15,7 @@ export async function generateMetadata() {
   const locale = await getLocale();
   const messages =
     (await getMessages()) as IntlConfig<IntlMessages>["messages"];
-  const t = createTranslator({ locale, messages, namespace: "Page" });
+  const t = createTranslator({ locale, messages, namespace: "page" });
 
   return {
     title: t("title", { eventName: config.eventName }),

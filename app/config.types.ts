@@ -10,6 +10,22 @@ export interface Config {
   locale: string;
 
   /**
+   * Description of the event. Displayed in the about page.
+   *
+   * Supports markdown.
+   *
+   * Will be trimmed and dedented before being displayed.
+   */
+  description: string;
+
+  /**
+   * Attributions for any graphics or other resources that need attribution.
+   *
+   * Supports markdown.
+   */
+  attributions?: string[];
+
+  /**
    * The colors to use for the theme.
    */
   theme: {

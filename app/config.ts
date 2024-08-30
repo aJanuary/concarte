@@ -3,6 +3,20 @@ import { Config } from "./config.types";
 const config: Config = {
   eventName: "DemoCon",
   locale: "en",
+  description: `
+    An interactive map of the DemoCon venue.
+
+    This is an example of how you can use ConCarte to create an interactive
+    map of your event. This map is for a fictional event called DemoCon, and
+    includes various rooms and areas that you might find at a convention.
+
+    In the real world, this would be a brief description of your event, and
+    would include a link to your website.
+  `,
+  attributions: [
+    // Used in the favicon
+    "Direction signs icon by [Delapouite](https://delapouite.com/) under [CC BY 3.0](http://creativecommons.org/licenses/by/3.0/)",
+  ],
   theme: {
     background: "white",
     "highlight-background": "rgb(241 245 249)",

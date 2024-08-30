@@ -43,13 +43,11 @@ export default function App({ roomId }: { roomId?: string }) {
         onRoomSelected={onRoomSelected}
       />
       <RoomSelect config={config} onRoomSelected={onRoomSelected} />
-      {selectedRoom && (
-        <InfoPanel
-          room={selectedRoom}
-          expanded={infoPanelExpanded}
-          onInfoPanelExpandChange={onInfoPanelExpandChange}
-        />
-      )}
+      <InfoPanel
+        room={selectedRoom}
+        expanded={infoPanelExpanded}
+        onInfoPanelExpandChange={onInfoPanelExpandChange}
+      />
     </main>
   );
 }
