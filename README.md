@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Concarte
 
-## Getting Started
+Concarte lets you turn a static images of your venue map into an interactive map
+that can be panned, zoomed and searched.
 
-First, run the development server:
+It is designed for use at small to medium sized conventions.
+
+## Features
+
+- **Interactive map**: Users can pan and zoom the map.
+- **Search**: Users can search for rooms and booths.
+- **Customizable**: You can customize the map with your own images and data.
+- **Open source**: The project is open source and free to use.
+- **Self-hosted**: You can host the map on your own server.
+- **Static pages**: The output is static pages, making it easy to host.
+- **No tracking**: The map does not track users.
+- **No dependencies**: The map does not depend on any third-party services.
+- **No ads**: The map does not show ads.
+
+### Roadmap
+
+We don't have an official roadmap, as we are a small team working on this
+as a side project. However, we would like to add the following features:
+
+- **Responsive**: The map works on desktop and mobile devices.
+- **Accessible**: The map is accessible to screen readers and keyboard users.
+- **Offline support**: The map works offline after the first visit.
+
+## Building
+
+### Development
+
+Run the development server:
 
 ```bash
-npm run dev
-# or
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the
+result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Production
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Run the production build:
 
-## Learn More
+````bash
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+yarn build
+````
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The output will be in the `out` directory. This can be hosted on any static file
+server. It does require the URLs to be rewritten to remove the `.html`
+extension.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+#### Example nginx config
 
-## Deploy on Vercel
+```nginx
+server {
+  listen 80;
+  server_name example.com;
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+  root /var/www/out;
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+  location / {
+    try_files $uri $uri.html $uri/ =404;
+  }
+
+  error_page 404 /404.html;
+  location = /404.html {
+    internal;
+  }
+}
+```
+
+## Configuring
+
+The project is configured using `/app/config.ts`. See `/app/config.types.ts` for
+documentation on the configuration options.
+
+## Contributing
+
+We welcome contributions to the project.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for more information.
