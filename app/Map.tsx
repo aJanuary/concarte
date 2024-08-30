@@ -1,5 +1,6 @@
 import { Feature, MapBrowserEvent, Map as olMap, View } from 'ol';
 import { Polygon } from 'ol/geom';
+import { defaults } from 'ol/interaction';
 import ImageLayer from 'ol/layer/Image.js';
 import VectorLayer from 'ol/layer/Vector';
 import 'ol/ol.css';
@@ -107,6 +108,7 @@ export default function Map({
 
       const map = new olMap({
         target: mapDiv,
+        interactions: defaults({altShiftDragRotate:false, pinchRotate:false}),
         layers: [imageLayer, markersLayer],
         view: new View({
           projection: projection,
