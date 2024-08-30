@@ -1,5 +1,10 @@
 export interface Config {
   /**
+   * Name of the event. Displayed in titles and about pages.
+   */
+  eventName: string;
+
+  /**
    * The colors to use for the theme.
    */
   theme: {
