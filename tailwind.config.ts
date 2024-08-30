@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-import AppConfig from "./app/config.json";
+import AppConfig from "./app/config";
 
 const config: Config = {
   content: [

@@ -5,7 +5,7 @@ import Map from './Map';
 import RoomSelect from './RoomSelect';
 import InfoPanel from './InfoPanel';
 import { Room } from './common_types';
-import config from './config.json';
+import config from './config';
 import { usePathname } from 'next/navigation'
 
 export default function Home() {
