@@ -6,11 +6,9 @@ import RoomSelect from "./RoomSelect";
 import InfoPanel from "./InfoPanel";
 import { Room } from "./common_types";
 import config from "./config";
-import { usePathname } from "next/navigation";
 
-export default function Home() {
-  const pathname = usePathname().slice(1);
-  const room = config.map.rooms.find((room) => room.id === pathname);
+export default function Home({ roomId }: { roomId?: string }) {
+  const room = config.map.rooms.find((room) => room.id === roomId);
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>(room);
 
   const [infoPanelExpanded, setInfoPanelExpanded] = useState(() => {
