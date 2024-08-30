@@ -1,6 +1,6 @@
-# Concarte
+# ConCarte
 
-Concarte lets you turn a static images of your venue map into an interactive map
+ConCarte lets you turn a static images of your venue map into an interactive map
 that can be panned, zoomed and searched.
 
 It is designed for use at small to medium sized conventions.
