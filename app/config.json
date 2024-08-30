@@ -39,7 +39,7 @@
         "id": "ops-help-desk",
         "label": "Ops Help Desk",
         "aliases": ["Beckbury 1", "Beckbury 2"],
-        "description": "If you need help with anything, this is the place to go. We can help with lost property, lost people, and any other issues you might have. This is also where the volunteers desk is.\n\n### Opening hours:\n\nFriday: 9:30am - 11:00pm\n\nSaturday: 9:30am-11pm\n\nSunday: 9:30am-midnight\n\nMonday: 9:30am-11pm",
+        "description": "If you need help with anything, this is the place to go. We can help with lost property, lost people, and any other issues you might have. This is also where the volunteers desk is.\n\n# Opening hours:\n\nFriday: 9:30am - 11:00pm\n\nSaturday: 9:30am-11pm\n\nSunday: 9:30am-midnight\n\nMonday: 9:30am-11pm",
         "area": [
           [270, 655],
           [363, 655],
@@ -123,7 +123,7 @@
         "id": "e1",
         "label": "E1",
         "aliases": ["Entrance 1", "Car park"],
-        "description": "### Opening times\n\nFriday: 9:30am - 11:00pm\n\nSaturday: 9:30am-11pm\n\nSunday: 9:30am-midnight\n\nMonday: 9:30am-11pm",
+        "description": "# Opening times\n\nFriday: 9:30am - 11:00pm\n\nSaturday: 9:30am-11pm\n\nSunday: 9:30am-midnight\n\nMonday: 9:30am-11pm",
         "area": [
           [1008, 690],
           [1170, 690],
@@ -134,7 +134,7 @@
         "id": "e2",
         "label": "E2",
         "aliases": ["Entrance 2"],
-        "description": "### Opening times\n\nFriday: 9:30am - 11:00pm\n\nSaturday: 9:30am-11pm\n\nSunday: 9:30am-midnight\n\nMonday: 9:30am-11pm",
+        "description": "# Opening times\n\nFriday: 9:30am - 11:00pm\n\nSaturday: 9:30am-11pm\n\nSunday: 9:30am-midnight\n\nMonday: 9:30am-11pm",
         "area": [
           [470, 654],
           [632, 654],
@@ -155,7 +155,7 @@
         "id": "e4",
         "label": "E4",
         "aliases": ["Entrance 4", "Hotels"],
-        "description": "### Opening times\n\nFriday: 9:30am - 11:00pm\n\nSaturday: 9:30am-11pm\n\nSunday: 9:30am-midnight\n\nMonday: 9:30am-11pm",
+        "description": "# Opening times\n\nFriday: 9:30am - 11:00pm\n\nSaturday: 9:30am-11pm\n\nSunday: 9:30am-midnight\n\nMonday: 9:30am-11pm",
         "area": [
           [1008, 35],
           [1170, 35],
@@ -177,7 +177,7 @@
       }, {
         "id": "dealers",
         "label": "Dealers & Fan Tables",
-        "description": "A selection of dealers and fan tables will be available for you to browse. Please note that some dealers may only accept cash.\n\n### Opening times\n\nFriday: 2pm-7pm\n\nSaturday: 10am-6pm\n\nSunday: 10am-6pm\n\nMonday: 10am-2pm",
+        "description": "A selection of dealers and fan tables will be available for you to browse. Please note that some dealers may only accept cash.\n\n# Opening times\n\nFriday: 2pm-7pm\n\nSaturday: 10am-6pm\n\nSunday: 10am-6pm\n\nMonday: 10am-2pm",
         "area": [
           [1465, 363],
           [1576, 363],
@@ -199,7 +199,7 @@
       }, {
         "id": "art-show",
         "label": "Art show",
-        "description": "The art show will be open from 10am-6pm each day. Please note that some pieces may be for sale.\n\n### Opening times\n\nFriday: Preview 4pm-5pm, sales open 5pm-7pm\n\nSaturday: 10am-6pm\n\nSunday: 10am-5pm (collection of purchased art, 4pm-6:30pm)",
+        "description": "The art show will be open from 10am-6pm each day. Please note that some pieces may be for sale.\n\n# Opening times\n\nFriday: Preview 4pm-5pm, sales open 5pm-7pm\n\nSaturday: 10am-6pm\n\nSunday: 10am-5pm (collection of purchased art, 4pm-6:30pm)",
         "area": [
           [1639, 363],
           [1752, 363],
