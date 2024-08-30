@@ -1,15 +1,15 @@
-import { Feature, MapBrowserEvent, Map as olMap, View } from 'ol';
-import { Polygon } from 'ol/geom';
-import { defaults } from 'ol/interaction';
-import ImageLayer from 'ol/layer/Image.js';
-import VectorLayer from 'ol/layer/Vector';
-import 'ol/ol.css';
-import Projection from 'ol/proj/Projection.js';
-import Static from 'ol/source/ImageStatic.js';
-import VectorSource from 'ol/source/Vector';
-import { Fill, Stroke, Style } from 'ol/style';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Config, Map as tMap, Room } from './common_types';
+import { Feature, MapBrowserEvent, Map as olMap, View } from "ol";
+import { Polygon } from "ol/geom";
+import { defaults } from "ol/interaction";
+import ImageLayer from "ol/layer/Image.js";
+import VectorLayer from "ol/layer/Vector";
+import "ol/ol.css";
+import Projection from "ol/proj/Projection.js";
+import Static from "ol/source/ImageStatic.js";
+import VectorSource from "ol/source/Vector";
+import { Fill, Stroke, Style } from "ol/style";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Config, Map as tMap, Room } from "./common_types";
 
 interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   config: Config;
@@ -44,10 +44,10 @@ export default function Map({
           width: 4,
         }),
         fill: new Fill({
-          color: 'rgba(0, 0, 0, 0)',
+          color: "rgba(0, 0, 0, 0)",
         }),
       }),
-    [config.theme.accent]
+    [config.theme.accent],
   );
 
   const unselectedStyle = useMemo(
@@ -59,10 +59,10 @@ export default function Map({
           lineDash: [0.1, 5],
         }),
         fill: new Fill({
-          color: 'rgba(0, 0, 0, 0)',
+          color: "rgba(0, 0, 0, 0)",
         }),
       }),
-    [config.theme.accent]
+    [config.theme.accent],
   );
 
   useEffect(() => {
@@ -76,8 +76,8 @@ export default function Map({
 
       const extent = [0, 0, width, height];
       const projection = new Projection({
-        code: 'image',
-        units: 'pixels',
+        code: "image",
+        units: "pixels",
         extent: extent,
       });
 
@@ -108,33 +108,40 @@ export default function Map({
 
       const map = new olMap({
         target: mapDiv,
-        interactions: defaults({altShiftDragRotate:false, pinchRotate:false}),
+        interactions: defaults({
+          altShiftDragRotate: false,
+          pinchRotate: false,
+        }),
         layers: [imageLayer, markersLayer],
         view: new View({
           projection: projection,
         }),
       });
 
-      if (typeof localStorage !== 'undefined' && localStorage.getItem('map-extent')) {
-        map.getView().fit(JSON.parse(localStorage.getItem('map-extent')!));
+      if (
+        typeof localStorage !== "undefined" &&
+        localStorage.getItem("map-extent")
+      ) {
+        map.getView().fit(JSON.parse(localStorage.getItem("map-extent")!));
       } else {
         map.getView().fit(extent);
       }
 
-      map.on('pointermove', (e) => {
+      map.on("pointermove", (e) => {
         const selectable = map.forEachFeatureAtPixel(e.pixel, (f) => f);
         if (selectable) {
-          mapDiv.style.cursor = 'pointer';
+          mapDiv.style.cursor = "pointer";
         } else {
-          mapDiv.style.cursor = '';
+          mapDiv.style.cursor = "";
         }
       });
 
-      map.on('moveend', (e) => {
-        typeof localStorage !== 'undefined' && localStorage.setItem(
-          'map-extent',
-          JSON.stringify(map.getView().calculateExtent())
-        );
+      map.on("moveend", (e) => {
+        typeof localStorage !== "undefined" &&
+          localStorage.setItem(
+            "map-extent",
+            JSON.stringify(map.getView().calculateExtent()),
+          );
       });
 
       setMap(map);
@@ -149,17 +156,17 @@ export default function Map({
 
       const feature: Feature = map.forEachFeatureAtPixel(
         e.pixel,
-        (f) => f
+        (f) => f,
       ) as Feature;
       if (feature) {
-        onRoomSelected && onRoomSelected(feature.get('room'));
+        onRoomSelected && onRoomSelected(feature.get("room"));
         setSelectedFeature(feature);
       } else {
         onRoomSelected && onRoomSelected(undefined);
         setSelectedFeature(null);
       }
     },
-    [map, onRoomSelected]
+    [map, onRoomSelected],
   );
 
   useEffect(() => {
@@ -167,10 +174,10 @@ export default function Map({
       return;
     }
 
-    map.on('click', onMapClick);
+    map.on("click", onMapClick);
 
     return function cleanup() {
-      map.un('click', onMapClick);
+      map.un("click", onMapClick);
     };
   }, [map, onMapClick]);
 
@@ -184,7 +191,7 @@ export default function Map({
       .getSource()!
       .getFeatures()
       .find(
-        (f: { get: (arg0: string) => Room }) => f.get('room') === selectedRoom
+        (f: { get: (arg0: string) => Room }) => f.get("room") === selectedRoom,
       );
     if (selected != null) {
       setSelectedFeature(selected);
