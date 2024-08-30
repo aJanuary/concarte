@@ -14,7 +14,7 @@ export default function Home() {
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>(room);
 
   const [infoPanelExpanded, setInfoPanelExpanded] = useState(() => {
-    return Boolean(localStorage.getItem('infoPanelExpanded'));
+    return Boolean(typeof localStorage !== 'undefined' && localStorage.getItem('infoPanelExpanded'));
   });
 
   const onRoomSelected = (room?: Room) => {
@@ -29,7 +29,7 @@ export default function Home() {
 
   const onInfoPanelExpandChange = (expanded: boolean) => {
     setInfoPanelExpanded(expanded);
-    localStorage.setItem('infoPanelExpanded', expanded ? 'true' : '');
+    typeof localStorage !== 'undefined' && localStorage.setItem('infoPanelExpanded', expanded ? 'true' : '');
   }
 
   return (

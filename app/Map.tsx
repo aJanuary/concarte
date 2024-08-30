@@ -115,7 +115,7 @@ export default function Map({
         }),
       });
 
-      if (localStorage.getItem('map-extent')) {
+      if (typeof localStorage !== 'undefined' && localStorage.getItem('map-extent')) {
         map.getView().fit(JSON.parse(localStorage.getItem('map-extent')!));
       } else {
         map.getView().fit(extent);
@@ -131,7 +131,7 @@ export default function Map({
       });
 
       map.on('moveend', (e) => {
-        localStorage.setItem(
+        typeof localStorage !== 'undefined' && localStorage.setItem(
           'map-extent',
           JSON.stringify(map.getView().calculateExtent())
         );
