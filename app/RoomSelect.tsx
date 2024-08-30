@@ -5,6 +5,7 @@ import {
 } from "@heroicons/react/24/solid";
 import Fuse from "fuse.js";
 import { Room, Config } from "./config.types";
+import { useTranslations } from "next-intl";
 
 interface RoomSelectProps {
   config: Config;
@@ -15,6 +16,7 @@ export default function RoomSelect({
   config,
   onRoomSelected,
 }: RoomSelectProps) {
+  const t = useTranslations("RoomSelect");
   const [focused, setFocused] = React.useState(false);
   const onFocus = () => setFocused(true);
   const onDismiss = (e: React.MouseEvent<HTMLElement>) => {
@@ -70,7 +72,7 @@ export default function RoomSelect({
           className="w-full rounded-full border border-border bg-background p-2 pl-12 text-primary-text placeholder-secondary-text"
           tabIndex={2}
           type="text"
-          placeholder="Search for a room..."
+          placeholder={t("search-placeholder")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />

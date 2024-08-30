@@ -2,6 +2,7 @@ import { Config } from "./config.types";
 
 const config: Config = {
   eventName: "DemoCon",
+  locale: "en",
   theme: {
     background: "white",
     "highlight-background": "rgb(241 245 249)",

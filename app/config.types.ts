@@ -5,6 +5,11 @@ export interface Config {
   eventName: string;
 
   /**
+   * Locale the content is in. Should be a 2-letter ISO 639-1 code.
+   */
+  locale: string;
+
+  /**
    * The colors to use for the theme.
    */
   theme: {
