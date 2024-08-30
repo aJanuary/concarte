@@ -1,6 +1,6 @@
-import { Room } from "./common_types";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
 import Markdown from "react-markdown";
+import { Room } from "./config.types";
 
 interface InfoPanelProps {
   room: Room;

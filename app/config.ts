@@ -1,68 +1,17 @@
-const config = {
+import { Config } from "./config.types";
+
+const config: Config = {
   theme: {
-    // Background of the whole page. Should match the background of the map.
     background: "white",
-
-    // Background of the rooms in the room list when hovered.
     "highlight-background": "rgb(241 245 249)",
-
-    // Border of the search box, and the lines in-between items in the room list.
     border: "rgb(226 232 240)",
-
-    // Text color for the majority of the text.
     "primary-text": "rgb(43, 43, 43)",
-
-    // Text color for secondary text, such as aliases.
     "secondary-text": "rgb(100 116 139)",
-
-    // Accent color used for links and room borders.
     accent: "rgb(8,114,50)",
-
-    // Disabled button color.
     disabled: "#cbd5e1",
   },
   map: {
-    // Path of the map image.
-    // Should be as high resolution as possible.
     src: "/map.png",
-
-    // List of rooms to display on the map, and allow searching for.
-    // Rooms are of the form:
-    /*
-      {
-        // Unique identifier of the room. Appears in the URL.
-        id: "a-room",
-    
-        // Label for the room. Appears in the room list and in the info panel.
-        label: "A room",
-    
-        // Aliases for the room. Appears in the room list and in the info
-        // panel.
-        // The search box will match these aliases.
-        aliases: ["Another name for the room"],
-    
-        // Description of the room. Appears in the info panel.
-        // Markdown is supported.
-        // Will be trimmed and dedented before being displayed.
-        description: `
-          This is an example of a description for a room.
-
-          It can contain multiple paragraphs.
-        `,
-    
-        // Points that describe the area on the map that the room covers.
-        // Each point is an array of two numbers, the x and y coordinates of
-        // the point on the map.
-        // In the image co-oordinates. The origin is the top left corner of the
-        // image.
-        area: [
-          [202, 499],
-          [255, 499],
-          [255, 550],
-          [202, 550]
-        ]
-      }
-    */
     rooms: [
       {
         id: "silent-room",

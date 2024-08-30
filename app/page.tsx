@@ -4,8 +4,8 @@ import { useState } from "react";
 import Map from "./Map";
 import RoomSelect from "./RoomSelect";
 import InfoPanel from "./InfoPanel";
-import { Room } from "./common_types";
 import config from "./config";
+import { Room } from "./config.types";
 
 export default function Home({ roomId }: { roomId?: string }) {
   const room = config.map.rooms.find((room) => room.id === roomId);

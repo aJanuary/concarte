@@ -9,7 +9,7 @@ import Static from "ol/source/ImageStatic.js";
 import VectorSource from "ol/source/Vector";
 import { Fill, Stroke, Style } from "ol/style";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Config, Map as tMap, Room } from "./common_types";
+import { Room, Config } from "./config.types";
 
 interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   config: Config;
@@ -18,9 +18,9 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   onInfoSelected?: () => void;
 }
 
-async function decodeAllImages(map: tMap) {
+async function decodeAllImages(src: string) {
   const img = new Image();
-  img.src = map.src;
+  img.src = src;
   await img.decode();
   return img;
 }
@@ -70,7 +70,7 @@ export default function Map({
       return;
     }
 
-    decodeAllImages(config.map).then((img) => {
+    decodeAllImages(config.map.src).then((img) => {
       const width = img.naturalWidth;
       const height = img.naturalHeight;
 

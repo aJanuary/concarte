@@ -1,10 +1,10 @@
 import React from "react";
-import { Room, Config } from "./common_types";
 import {
   ChevronLeftIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
 import Fuse from "fuse.js";
+import { Room, Config } from "./config.types";
 
 interface RoomSelectProps {
   config: Config;
