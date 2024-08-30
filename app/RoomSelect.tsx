@@ -1,6 +1,7 @@
 import React from 'react';
 import { Room, Config } from './common_types';
 import { ChevronLeftIcon, MagnifyingGlassIcon } from '@heroicons/react/24/solid'
+import Fuse from 'fuse.js'
 
 interface RoomSelectProps {
   config: Config;
@@ -27,10 +28,12 @@ export default function RoomSelect({ config, onRoomSelected }: RoomSelectProps) 
   if (query === '') {
     results = config.map.rooms.sort((a, b) => a.label.localeCompare(b.label));
   } else {
-    results = config.map.rooms.filter(room => {
-      return room.label.toLowerCase().includes(query.toLowerCase()) ||
-        room.aliases?.some(alias => alias.toLowerCase().includes(query.toLowerCase()));
-    }).sort((a, b) => a.label.localeCompare(b.label));
+    const fuse = new Fuse(config.map.rooms, {
+      keys: ['label', 'aliases'],
+      ignoreLocation: true,
+    });
+
+    results = fuse.search(query).map(result => result.item);
   }
 
   let icon;
