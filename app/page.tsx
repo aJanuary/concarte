@@ -23,7 +23,7 @@ export default function Home({ roomId }: { roomId?: string }) {
       setSelectedRoom(undefined);
       window.history.replaceState(null, "", "/");
     } else {
-      history.replaceState(null, "", `/${room.id}`);
+      history.replaceState(null, "", `/room/${room.id}`);
       setSelectedRoom(room);
     }
   };

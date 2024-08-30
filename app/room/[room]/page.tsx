@@ -1,5 +1,5 @@
-import Home from "../page";
-import config from "../config";
+import Home from "../../page";
+import config from "../../config";
 
 export function generateStaticParams() {
   return config.map.rooms.map((room) => {

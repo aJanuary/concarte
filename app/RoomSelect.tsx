@@ -84,7 +84,7 @@ export default function RoomSelect({
             <li key={room.id}>
               <a
                 className="block cursor-pointer border-b-2 border-border p-2 hover:bg-highlight-background"
-                href={`/${room.id}`}
+                href={`/room/${room.id}`}
                 tabIndex={i + 3}
                 onClick={(e) => {
                   e.preventDefault();
