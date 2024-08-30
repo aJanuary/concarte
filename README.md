@@ -43,11 +43,9 @@ result.
 
 Run the production build:
 
-````bash
-
 ```bash
 yarn build
-````
+```
 
 The output will be in the `out` directory. This can be hosted on any static file
 server. It does require the URLs to be rewritten to remove the `.html`
