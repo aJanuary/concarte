@@ -52,7 +52,7 @@ const config: Config = {
         label: "Pattingham",
         aliases: ["Programme"],
         description: `
-          [Programme schedule](https://guide.eastercon2024.co.uk/pattingham)
+          [Programme schedule](https://guide.example.co.uk/pattingham)
         `,
         area: [
           [262, 470],
@@ -94,7 +94,7 @@ const config: Config = {
         description: `
           Office for the newsletter team. If you want to submit something to the
           newsletter, email
-          [newsletter@eastercon2024.org](mailto:newsletter@eastercon2024.org).
+          [newsletter@example.org](mailto:newsletter@example.org).
         `,
         area: [
           [371, 655],
@@ -272,7 +272,7 @@ const config: Config = {
         label: "Ironbridge",
         aliases: ["Programme"],
         description: `
-          [Programme schedule](https://guide.eastercon2024.co.uk/ironbridge)
+          [Programme schedule](https://guide.example.co.uk/ironbridge)
         `,
         area: [
           [1321, 363],
@@ -381,7 +381,7 @@ const config: Config = {
         label: "Wenlock",
         aliases: ["Programme"],
         description: `
-          [Programme schedule](https://guide.eastercon2024.co.uk/wenlock)
+          [Programme schedule](https://guide.example.co.uk/wenlock)
         `,
         area: [
           [1685, 674],
@@ -420,7 +420,7 @@ const config: Config = {
         label: "Coalport",
         aliases: ["Programme"],
         description: `
-          [Programme schedule](https://guide.eastercon2024.co.uk/coalport)
+          [Programme schedule](https://guide.example.co.uk/coalport)
         `,
         area: [
           [1875, 434],
@@ -450,7 +450,7 @@ const config: Config = {
         label: "Atcham",
         aliases: ["Programme"],
         description: `
-          [Programme schedule](https://guide.eastercon2024.co.uk/atcham)
+          [Programme schedule](https://guide.example.co.uk/atcham)
         `,
         area: [
           [2296, 363],
