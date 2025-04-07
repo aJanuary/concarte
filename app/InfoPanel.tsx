@@ -1,4 +1,8 @@
-import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/solid";
+import {
+  ChevronUpIcon,
+  ChevronDownIcon,
+  ViewfinderCircleIcon,
+} from "@heroicons/react/24/solid";
 import Markdown from "react-markdown";
 import { Room } from "./config.types";
 import { useTranslations } from "next-intl";
@@ -7,20 +11,30 @@ import { dedent } from "./text-utils";
 interface InfoPanelProps {
   room?: Room;
   expanded: boolean;
+  focusedRoom?: Room;
   onInfoPanelExpandChange?: (expanded: boolean) => void;
+  onZoomClick?: (room: Room) => void;
 }
 
 export default function InfoPanel({
   room,
   expanded,
+  focusedRoom,
   onInfoPanelExpandChange,
+  onZoomClick,
 }: InfoPanelProps) {
   let panel = <></>;
   if (room) {
-    const onPanelClick = () => {
+    const handlePanelClick = () => {
       if (room.description) {
         onInfoPanelExpandChange && onInfoPanelExpandChange(!expanded);
       }
+    };
+
+    const handleZoomClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (!onZoomClick) return;
+      e.stopPropagation();
+      onZoomClick(room);
     };
 
     let icon;
@@ -35,13 +49,21 @@ export default function InfoPanel({
     }
 
     panel = (
-      <div className="relative text-left bg-background p-4 pt-6 shadow-top">
+      <div className="relative bg-background p-4 pt-6 text-left shadow-top">
         <header
           className={`${expanded && room.description ? "border-1 border-b border-border pb-2" : ""} ${room.description ? "cursor-pointer" : ""}`}
-          onClick={onPanelClick}
+          onClick={handlePanelClick}
         >
           <p className="absolute left-0 right-0 top-0">{icon}</p>
-          <h1 className="text-xl">{room.label}</h1>
+          <h1 className="text-xl">
+            <button
+              className="mr-2 align-text-bottom"
+              onClick={handleZoomClick}
+            >
+              <ViewfinderCircleIcon className="m-auto size-6" />
+            </button>
+            {room.label}
+          </h1>
           <h2 className="text-secondary-text">{room.aliases?.join(", ")}</h2>
         </header>
         {expanded && room.description && (
@@ -67,7 +89,7 @@ export default function InfoPanel({
 
   return (
     <div className="absolute bottom-0 left-0 right-0 text-right">
-      <div className="inline-block bg-background shadow-xl rounded m-2 border border-border opacity-75 hover:opacity-100">
+      <div className="m-2 inline-block rounded border border-border bg-background opacity-75 shadow-xl hover:opacity-100">
         <a href="/about" className="inline-block p-2">
           {t("about.title")}
         </a>

@@ -14,8 +14,10 @@ import { Room, Config } from "./config.types";
 interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   config: Config;
   selectedRoom?: Room;
+  focusedRoom?: Room;
   onRoomSelected?: (room?: Room) => void;
   onInfoSelected?: () => void;
+  onPan?: () => void;
 }
 
 async function decodeAllImages(src: string) {
@@ -28,8 +30,10 @@ async function decodeAllImages(src: string) {
 export default function Map({
   config,
   selectedRoom,
+  focusedRoom,
   onRoomSelected,
   onInfoSelected,
+  onPan,
   ...divProps
 }: MapProps) {
   const [mapDiv, setMapDiv] = useState<HTMLDivElement | null>(null);
@@ -142,6 +146,7 @@ export default function Map({
             "map-extent",
             JSON.stringify(map.getView().calculateExtent()),
           );
+        onPan && onPan();
       });
 
       setMap(map);
@@ -196,7 +201,20 @@ export default function Map({
     if (selected != null) {
       setSelectedFeature(selected);
     }
-  }, [map, selectedRoom]);
+
+    const focused = vectorLayer
+      .getSource()!
+      .getFeatures()
+      .find(
+        (f: { get: (arg0: string) => Room }) => f.get("room") === focusedRoom,
+      );
+    if (focused != null) {
+      map.getView().fit(focused.getGeometry().getExtent(), {
+        duration: 100,
+        maxZoom: 3,
+      });
+    }
+  }, [map, selectedRoom, focusedRoom]);
 
   useEffect(() => {
     selectedFeature?.setStyle(selectedStyle);
