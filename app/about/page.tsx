@@ -3,9 +3,28 @@ import config from "../config";
 import Markdown from "react-markdown";
 import { dedent } from "../text-utils";
 import Link from "next/link";
+import type { Components } from "react-markdown";
 
 export default function About() {
   const t = useTranslations("about");
+
+  const markdownComponents: Components = {
+    a: ({ href, children, ...props }) => {
+      // Use Next.js Link for internal links, regular <a> for external
+      if (href && href.startsWith("/")) {
+        return (
+          <Link href={href} {...props}>
+            {children}
+          </Link>
+        );
+      }
+      return (
+        <a href={href} {...props}>
+          {children}
+        </a>
+      );
+    },
+  };
 
   let attributions = <></>;
   if (config.attributions) {
@@ -15,7 +34,7 @@ export default function About() {
         <ul className="list-disc">
           {config.attributions.map((attribution, i) => (
             <li key={i}>
-              <Markdown>{attribution}</Markdown>
+              <Markdown components={markdownComponents}>{attribution}</Markdown>
             </li>
           ))}
         </ul>
@@ -29,7 +48,9 @@ export default function About() {
         <Link href="/">← {t("back")}</Link>
       </p>
       <h1>{t("title")}</h1>
-      <Markdown>{dedent(config.description)}</Markdown>
+      <Markdown components={markdownComponents}>
+        {dedent(config.description)}
+      </Markdown>
       <p className="border-border border-t-2 pt-4">
         {t.rich("powered-by", {
           GitHubLink: () => (

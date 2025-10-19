@@ -16,13 +16,14 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Room, Config } from "./config.types";
+import { Config, Map as MapConfig, Room } from "./config.types";
 import { parseSVGPath } from "./svg-utils";
 
 type StringMap<V> = globalThis.Map<string, V>;
 
 interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   config: Config;
+  selectedMap: MapConfig;
   selectedRoom?: Room;
   focusedRoom?: Room;
   highlightedRooms?: Room[];
@@ -87,6 +88,7 @@ function parseArea(area: [number, number][] | string): [number, number][][] {
 
 export default function Map({
   config,
+  selectedMap,
   selectedRoom,
   focusedRoom,
   highlightedRooms,
@@ -156,12 +158,19 @@ export default function Map({
       return;
     }
 
+    let disposed = false;
+    let map: olMap | null = null;
+
     const overlayPromises = (config.overlays ?? []).map((overlay) =>
       loadMapImage(overlay.src).then((mapImage) => ({ overlay, mapImage })),
     );
 
-    Promise.all([loadMapImage(config.map.src), ...overlayPromises]).then(
+    Promise.all([loadMapImage(selectedMap.src), ...overlayPromises]).then(
       ([{ img, width, height }, ...overlayResults]) => {
+        if (disposed) {
+          return;
+        }
+
         const extent = [0, 0, width, height];
         const projection = new Projection({
           code: "image",
@@ -169,7 +178,7 @@ export default function Map({
           extent: extent,
         });
 
-        const isSvg = config.map.src.toLowerCase().endsWith(".svg");
+        const isSvg = selectedMap.src.toLowerCase().endsWith(".svg");
         const imageLayers: ImageLayer<any>[] = [];
         if (isSvg) {
           // Low-res layer: a pre-rasterized static image that's always
@@ -241,7 +250,7 @@ export default function Map({
           imageLayers.push(
             new ImageLayer({
               source: new Static({
-                url: config.map.src,
+                url: selectedMap.src,
                 projection: projection,
                 imageExtent: extent,
               }),
@@ -318,7 +327,7 @@ export default function Map({
         }
         overlayLayersRef.current = newOverlayLayersMap;
 
-        const markers = config.map.rooms.map((room) => {
+        const markers = selectedMap.rooms.map((room) => {
           const rings = parseArea(room.area);
           const polygons = rings.map((ring) => [
             ring.map((coord) => [coord[0], height - coord[1]]),
@@ -337,7 +346,7 @@ export default function Map({
           style: unselectedStyle,
         });
 
-        const map = new olMap({
+        map = new olMap({
           target: mapDiv,
           interactions: defaults({
             altShiftDragRotate: false,
@@ -351,15 +360,19 @@ export default function Map({
 
         if (
           typeof localStorage !== "undefined" &&
-          localStorage.getItem("map-extent")
+          localStorage.getItem(`map-extent-${selectedMap.id}`)
         ) {
-          map.getView().fit(JSON.parse(localStorage.getItem("map-extent")!));
+          map
+            .getView()
+            .fit(
+              JSON.parse(localStorage.getItem(`map-extent-${selectedMap.id}`)!),
+            );
         } else {
           map.getView().fit(extent);
         }
 
         map.on("pointermove", (e) => {
-          const selectable = map.forEachFeatureAtPixel(e.pixel, (f) => f);
+          const selectable = map!.forEachFeatureAtPixel(e.pixel, (f) => f);
           if (selectable) {
             mapDiv.style.cursor = "pointer";
           } else {
@@ -370,8 +383,8 @@ export default function Map({
         map.on("moveend", (e) => {
           typeof localStorage !== "undefined" &&
             localStorage.setItem(
-              "map-extent",
-              JSON.stringify(map.getView().calculateExtent()),
+              `map-extent-${selectedMap.id}`,
+              JSON.stringify(map!.getView().calculateExtent()),
             );
           onPanRef.current && onPanRef.current();
         });
@@ -379,8 +392,18 @@ export default function Map({
         setMap(map);
       },
     );
+
+    return function cleanup() {
+      disposed = true;
+      if (map != null) {
+        map.setTarget(undefined);
+        map.dispose();
+      }
+      setMap(null);
+      selectedFeatureRef.current = null;
+    };
   }, [
-    config.map,
+    selectedMap,
     config.overlays,
     config.theme.background,
     mapDiv,
@@ -461,7 +484,8 @@ export default function Map({
       .getSource()!
       .getFeatures()
       .find(
-        (f: { get: (arg0: string) => Room }) => f.get("room") === selectedRoom,
+        (f: { get: (arg0: string) => Room }) =>
+          f.get("room").id === selectedRoom?.id,
       );
     setSelectedFeature(selected ?? null);
 
@@ -469,7 +493,8 @@ export default function Map({
       .getSource()!
       .getFeatures()
       .find(
-        (f: { get: (arg0: string) => Room }) => f.get("room") === focusedRoom,
+        (f: { get: (arg0: string) => Room }) =>
+          f.get("room").id === focusedRoom?.id,
       );
     if (focused != null) {
       map.getView().fit(focused.getGeometry().getExtent(), {

@@ -4,9 +4,11 @@ import {
   ViewfinderCircleIcon,
 } from "@heroicons/react/24/solid";
 import Markdown from "react-markdown";
+import type { Components } from "react-markdown";
 import { Room } from "./config.types";
 import { useTranslations } from "next-intl";
 import { dedent } from "./text-utils";
+import Link from "next/link";
 
 interface InfoPanelProps {
   room?: Room;
@@ -86,6 +88,21 @@ export default function InfoPanel({
                 h3: "h5",
                 h4: "h6",
                 h5: "h6",
+                a: ({ href, children, ...props }) => {
+                  // Use Next.js Link for internal links, regular <a> for external
+                  if (href && href.startsWith("/")) {
+                    return (
+                      <Link href={href} {...props}>
+                        {children}
+                      </Link>
+                    );
+                  }
+                  return (
+                    <a href={href} {...props}>
+                      {children}
+                    </a>
+                  );
+                },
               }}
             >
               {dedent(room.description)}

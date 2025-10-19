@@ -1,4 +1,4 @@
-export interface Config {
+export type Config = {
   /**
    * Name of the event. Displayed in titles and about pages.
    */
@@ -77,17 +77,12 @@ export interface Config {
   overlays?: Overlay[];
 
   /**
-   * The map to display.
+   * Maps to use for the event.
+   * If there is more than one map, a floor selector will be shown.
+   * The first map in the list is the default map.
    */
-  map: {
-    /**
-     * Path of the map image.
-     * Should be as high resolution as possible.
-     */
-    src: string;
-    rooms: Room[];
-  };
-}
+  maps: Map[];
+};
 
 export interface Overlay {
   /** Unique identifier for the overlay. */
@@ -98,11 +93,32 @@ export interface Overlay {
   src: string;
 }
 
-export interface Map {}
-
-export interface Room {
+export type Map = {
   /**
-   * Unique identififer for the room. Appears in the URL.
+   * Unique identifier for the map. Appears in the URL.
+   */
+  id: string;
+
+  /**
+   * Label for the map. Appears in the floor selector if there are multiple maps.
+   */
+  label: string;
+
+  /**
+   * Path of the map image.
+   * Should be as high resolution as possible.
+   */
+  src: string;
+
+  /**
+   * List of rooms on the map.
+   */
+  rooms: Room[];
+};
+
+export type Room = {
+  /**
+   * Unique identifier for the room. Appears in the URL.
    */
   id: string;
 
@@ -153,4 +169,4 @@ export interface Room {
    * In the image co-ordinates; the origin is the top left corner of the image.
    */
   area: [number, number][] | string;
-}
+};
