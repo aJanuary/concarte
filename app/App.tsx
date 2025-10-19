@@ -1,13 +1,14 @@
 "use client";
 
-import { useSyncExternalStore, useState } from "react";
+import { useSyncExternalStore, useState, useEffect } from "react";
 import Map from "./Map";
 import RoomSelect from "./RoomSelect";
+import MapSelect from "./MapSelect";
 import FilterPills from "./FilterPills";
 import OverlayPills from "./OverlayPills";
 import InfoPanel from "./InfoPanel";
 import config from "./config";
-import { Room } from "./config.types";
+import { Map as MapConfig, Room } from "./config.types";
 
 // localStorage-backed stores using useSyncExternalStore. Defined at module
 // level for stable subscribe/getSnapshot references. Snapshots are cached so
@@ -73,8 +74,16 @@ const overlayStore = (() => {
   };
 })();
 
-export default function App({ roomId }: { roomId?: string }) {
-  const room = config.map.rooms.find((room) => room.id === roomId);
+export default function App({
+  mapId,
+  roomId,
+}: {
+  mapId?: string;
+  roomId?: string;
+}) {
+  const map = config.maps.find((m) => m.id === mapId) || config.maps[0];
+  const room = map.rooms.find((room) => room.id === roomId);
+  const [selectedMap, setSelectedMap] = useState<MapConfig>(map);
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>(room);
   const [focusedRoom, setFocusedRoom] = useState<Room | undefined>(undefined);
   const [highlightedRooms, setHighlightedRooms] = useState<Room[]>([]);
@@ -91,26 +100,38 @@ export default function App({ roomId }: { roomId?: string }) {
     infoPanelStore.getServerSnapshot,
   );
 
-  const onRoomSelected = (room?: Room) => {
+  useEffect(() => {
+    if (!mapId) {
+      window.history.replaceState(null, "", `/map/${selectedMap.id}`);
+    }
+  }, [mapId, selectedMap.id]);
+
+  const onRoomSelected = (map: MapConfig, room?: Room) => {
     setHighlightedRooms([]);
     setActivePill(null);
+    setSelectedMap(map);
     if (!room) {
       setSelectedRoom(undefined);
-      window.history.replaceState(null, "", "/");
+      window.history.replaceState(null, "", `/map/${map.id}`);
     } else {
-      history.replaceState(null, "", `/room/${room.id}`);
+      history.replaceState(null, "", `/map/${map.id}/room/${room.id}`);
       setSelectedRoom(room);
     }
   };
 
-  const onRoomSelectedFromMap = (room?: Room) => {
+  const onMapSelected = (map: MapConfig) => {
     setFocusedRoom(undefined);
-    onRoomSelected(room);
+    onRoomSelected(map, undefined);
   };
 
-  const onRoomSelectedFromDropdown = (room?: Room) => {
+  const onRoomSelectedFromMap = (room?: Room) => {
+    setFocusedRoom(undefined);
+    onRoomSelected(selectedMap, room);
+  };
+
+  const onRoomSelectedFromDropdown = (map: MapConfig, room?: Room) => {
     setFocusedRoom(room);
-    onRoomSelected(room);
+    onRoomSelected(map, room);
   };
 
   const onInfoPanelExpandChange = (expanded: boolean) => {
@@ -137,6 +158,7 @@ export default function App({ roomId }: { roomId?: string }) {
       <Map
         className="h-dvh w-dvw"
         config={config}
+        selectedMap={selectedMap}
         selectedRoom={selectedRoom}
         focusedRoom={focusedRoom}
         highlightedRooms={highlightedRooms}
@@ -145,7 +167,14 @@ export default function App({ roomId }: { roomId?: string }) {
         onPan={onPan}
       />
       <RoomSelect config={config} onRoomSelected={onRoomSelectedFromDropdown} />
-      <div className="absolute top-15 left-10 z-40 flex flex-wrap gap-2 px-4 pb-2 pointer-coarse:left-14">
+      <div className="absolute top-15 left-10 z-40 flex flex-wrap items-center gap-2 px-4 pb-2 pointer-coarse:left-14">
+        {config.maps.length > 1 && (
+          <MapSelect
+            config={config}
+            selectedMap={selectedMap}
+            onMapSelected={onMapSelected}
+          />
+        )}
         <OverlayPills
           config={config}
           activeOverlays={activeOverlays}
@@ -153,12 +182,13 @@ export default function App({ roomId }: { roomId?: string }) {
         />
         <FilterPills
           config={config}
+          selectedMap={selectedMap}
           activePill={activePill}
           onPillSelected={(pill, rooms) => {
             setActivePill(pill);
             setHighlightedRooms(rooms);
             setSelectedRoom(undefined);
-            window.history.replaceState(null, "", "/");
+            window.history.replaceState(null, "", `/map/${selectedMap.id}`);
           }}
         />
       </div>

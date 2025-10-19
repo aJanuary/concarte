@@ -1,51 +1,63 @@
-import React from "react";
+import { useState, useMemo, MouseEvent } from "react";
 import {
   ChevronLeftIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
 import Fuse from "fuse.js";
-import { Room, Config } from "./config.types";
+import { Map, Room, Config } from "./config.types";
 import { useTranslations } from "next-intl";
 
 interface RoomSelectProps {
   config: Config;
-  onRoomSelected?: (room: Room) => void;
+  onRoomSelected?: (map: Map, room: Room) => void;
 }
+
+type RoomWithMap = Room & { map: Map; mapLabel: string };
 
 export default function RoomSelect({
   config,
   onRoomSelected,
 }: RoomSelectProps) {
   const t = useTranslations("room-select");
-  const [focused, setFocused] = React.useState(false);
+  const [focused, setFocused] = useState(false);
   const onFocus = () => setFocused(true);
-  const onDismiss = (e: React.MouseEvent<HTMLElement>) => {
+  const onDismiss = (e: MouseEvent<HTMLElement>) => {
     if (e.target === e.currentTarget || e.currentTarget.tagName === "BUTTON") {
       setFocused(false);
     }
   };
-  const [query, setQuery] = React.useState("");
+  const [query, setQuery] = useState("");
 
-  const onRoomClick = (room: Room) => {
+  const onRoomClick = (room: RoomWithMap) => {
     setFocused(false);
     setQuery("");
-    onRoomSelected && onRoomSelected(room);
+    onRoomSelected && onRoomSelected(room.map, room);
   };
 
-  const searchableRooms = React.useMemo(
-    () =>
-      config.map.rooms
-        .filter((room) => room.searchable !== false)
-        .sort((a, b) => a.label.localeCompare(b.label)),
-    [config.map.rooms],
-  );
+  const allRooms = useMemo(() => {
+    return config.maps
+      .flatMap((map) => {
+        return map.rooms
+          .filter((room) => room.searchable !== false)
+          .map((room) => ({
+            ...room,
+            map: map,
+            mapLabel: map.label,
+          }));
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [config.maps]);
 
   let results;
   if (query === "") {
-    results = searchableRooms;
+    results = allRooms;
   } else {
-    const fuse = new Fuse(searchableRooms, {
-      keys: ["label", "aliases"],
+    let keys = ["label", "aliases"];
+    if (config.maps.length > 1) {
+      keys.push("mapLabel");
+    }
+    const fuse = new Fuse(allRooms, {
+      keys: keys,
       ignoreLocation: true,
     });
 
@@ -90,8 +102,15 @@ export default function RoomSelect({
         className={`absolute top-14 right-0 bottom-0 left-0 overflow-y-auto px-4 py-2 ${focused ? "" : "hidden"}`}
       >
         {results.map((room, i) => {
+          let secondaryText = [];
+          if (config.maps.length > 1) {
+            secondaryText.push(room.mapLabel);
+          }
+          if (room.aliases && room.aliases.length > 0) {
+            secondaryText = secondaryText.concat(room.aliases);
+          }
           return (
-            <li key={room.id}>
+            <li key={`${room.map.id}-${room.id}`}>
               <a
                 className="border-border hover:bg-highlight-background block cursor-pointer border-b-2 p-2"
                 href={`/room/${room.id}`}
@@ -102,9 +121,9 @@ export default function RoomSelect({
                 }}
               >
                 <p>{room.label}</p>
-                {room.aliases && (
+                {secondaryText.length > 0 && (
                   <p className="text-secondary-text">
-                    {room.aliases.join(", ")}
+                    {secondaryText.join(", ")}
                   </p>
                 )}
               </a>

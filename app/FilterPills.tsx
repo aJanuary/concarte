@@ -1,14 +1,16 @@
 import React from "react";
-import { Room, Config } from "./config.types";
+import { Map, Room, Config } from "./config.types";
 
 interface FilterPillsProps {
   config: Config;
+  selectedMap: Map;
   activePill: string | null;
   onPillSelected?: (pill: string | null, rooms: Room[]) => void;
 }
 
 export default function FilterPills({
   config,
+  selectedMap,
   activePill,
   onPillSelected,
 }: FilterPillsProps) {
@@ -21,7 +23,7 @@ export default function FilterPills({
       onPillSelected && onPillSelected(null, []);
     } else {
       const lowerPill = pill.toLowerCase();
-      const matching = config.map.rooms.filter((room) => {
+      const matching = selectedMap.rooms.filter((room) => {
         if (room.label.toLowerCase().includes(lowerPill)) {
           return true;
         }
