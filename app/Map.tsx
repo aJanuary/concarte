@@ -21,6 +21,14 @@ import { parseSVGPath } from "./svg-utils";
 
 type StringMap<V> = globalThis.Map<string, V>;
 
+// Height (in pixels) of the "Search for a room" bar overlaid on top of the
+// map, so the initial view can leave room for it instead of being covered.
+const SEARCH_BAR_HEIGHT = 64;
+
+// Bumping this invalidates previously saved pan/zoom positions (e.g. ones
+// saved before SEARCH_BAR_HEIGHT padding was added to the default view).
+const MAP_EXTENT_STORAGE_VERSION = 2;
+
 interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   config: Config;
   selectedMap: MapConfig;
@@ -79,9 +87,17 @@ async function loadMapImage(src: string): Promise<MapImage> {
   }
 }
 
-function parseArea(area: [number, number][] | string): [number, number][][] {
+function parseArea(area: Room["area"]): [number, number][][] {
   if (Array.isArray(area)) {
     return [area];
+  }
+  if (typeof area !== "string") {
+    // `{ ref }` areas are resolved into plain path strings by
+    // `pnpm generate:config`; this should be unreachable for anything
+    // imported from `generated/config`.
+    throw new Error(
+      `Unresolved area reference for room: ${JSON.stringify(area)}`,
+    );
   }
   return parseSVGPath(area);
 }
@@ -360,15 +376,32 @@ export default function Map({
 
         if (
           typeof localStorage !== "undefined" &&
-          localStorage.getItem(`map-extent-${selectedMap.id}`)
+          localStorage.getItem(
+            `map-extent-v${MAP_EXTENT_STORAGE_VERSION}-${selectedMap.id}`,
+          )
         ) {
           map
             .getView()
             .fit(
-              JSON.parse(localStorage.getItem(`map-extent-${selectedMap.id}`)!),
+              JSON.parse(
+                localStorage.getItem(
+                  `map-extent-v${MAP_EXTENT_STORAGE_VERSION}-${selectedMap.id}`,
+                )!,
+              ),
             );
         } else {
-          map.getView().fit(extent);
+          // Leave room at the top so the map isn't hidden behind the
+          // "Search for a room" bar, with a smaller matching buffer on the
+          // other three sides, while keeping the map centered in the
+          // remaining space.
+          map.getView().fit(extent, {
+            padding: [
+              SEARCH_BAR_HEIGHT,
+              SEARCH_BAR_HEIGHT / 2,
+              SEARCH_BAR_HEIGHT / 2,
+              SEARCH_BAR_HEIGHT / 2,
+            ],
+          });
         }
 
         map.on("pointermove", (e) => {
@@ -383,7 +416,7 @@ export default function Map({
         map.on("moveend", (e) => {
           typeof localStorage !== "undefined" &&
             localStorage.setItem(
-              `map-extent-${selectedMap.id}`,
+              `map-extent-v${MAP_EXTENT_STORAGE_VERSION}-${selectedMap.id}`,
               JSON.stringify(map!.getView().calculateExtent()),
             );
           onPanRef.current && onPanRef.current();
