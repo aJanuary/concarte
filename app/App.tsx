@@ -7,7 +7,7 @@ import MapSelect from "./MapSelect";
 import FilterPills from "./FilterPills";
 import OverlayPills from "./OverlayPills";
 import InfoPanel from "./InfoPanel";
-import config from "./config";
+import config from "@/generated/config";
 import { Map as MapConfig, Room } from "./config.types";
 
 // localStorage-backed stores using useSyncExternalStore. Defined at module

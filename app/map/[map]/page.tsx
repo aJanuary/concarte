@@ -1,5 +1,5 @@
 import App from "../../App";
-import config from "../../config";
+import config from "@/generated/config";
 
 export function generateStaticParams() {
   return config.maps.map((map) => {

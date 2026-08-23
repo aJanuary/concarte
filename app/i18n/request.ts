@@ -1,5 +1,5 @@
 import { getRequestConfig } from "next-intl/server";
-import config from "../config";
+import config from "@/generated/config";
 
 export default getRequestConfig(async () => {
   return {

@@ -165,8 +165,14 @@ export type Room = {
    * Can be either:
    * - A list of points in the form [x, y]
    * - An SVG path string (e.g., "M 0 0 L 100 100 L 100 0 Z")
+   * - A reference to an object in the map's SVG, by its `id` attribute.
+   *   Resolved at build time (see scripts/generate-config.ts) into a plain
+   *   path string, with the referenced object's own transform and all of
+   *   its ancestors' transforms baked in. Supports `<path>`, `<rect>`,
+   *   `<circle>`, `<ellipse>`, `<polygon>`, `<polyline>`, and `<g>` elements
+   *   (a group's descendants each become a sub-path of the area).
    *
    * In the image co-ordinates; the origin is the top left corner of the image.
    */
-  area: [number, number][] | string;
+  area: [number, number][] | string | { ref: string };
 };

@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import config from "../config";
+import config from "@/generated/config";
 import Markdown from "react-markdown";
 import { dedent } from "../text-utils";
 import Link from "next/link";
