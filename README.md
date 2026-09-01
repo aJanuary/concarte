@@ -28,6 +28,8 @@ as a side project. However, we would like to add the following features:
 
 ## Conventions using ConCarte
 
+- [LAcon V (Worldcon 2026)](https://map.lacon.org/)
+- [Eastercon 2026](https://map.eastercon2026.org/)
 - [Gaelcon 37](https://gaelcon37.conmaps.com/)
 - [Gamecon 2025](https://gamecon2025.conmaps.com/)
 - [Eastercon 2025](https://map.easterconbelfast.org/)
