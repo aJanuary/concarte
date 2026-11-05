@@ -81,7 +81,10 @@ export default function App({
   mapId?: string;
   roomId?: string;
 }) {
-  const map = config.maps.find((m) => m.id === mapId) || config.maps[0];
+  const map =
+    config.maps.find((m) => m.id === mapId) ||
+    config.maps.find((m) => m.id === config.defaultMap) ||
+    config.maps[0];
   const room = map.rooms.find((room) => room.id === roomId);
   const [selectedMap, setSelectedMap] = useState<MapConfig>(map);
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>(room);
