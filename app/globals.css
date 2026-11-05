@@ -3,7 +3,7 @@
 @import "../generated/theme.css";
 
 @theme {
-  --shadow-top: 0px 0 10px rgba(0, 0, 0, 0.8);
+  --shadow-top: 0 -4px 16px rgba(0, 0, 0, 0.18);
 }
 
 @utility prose-default {

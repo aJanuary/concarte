@@ -52,7 +52,7 @@ export default function InfoPanel({
 
     panel = (
       <div
-        className={`bg-background shadow-top pointer-events-auto relative p-4 text-left ${room.description ? "pt-10" : "pt-6"}`}
+        className={`bg-control-background shadow-top pointer-events-auto relative p-4 text-left ${room.description ? "pt-10" : "pt-6"}`}
       >
         <header
           className={`${expanded && room.description ? "border-border border-b pb-2" : ""} ${room.description ? "cursor-pointer" : ""}`}
@@ -131,7 +131,7 @@ export default function InfoPanel({
 
   return (
     <div className="pointer-events-none absolute right-0 bottom-0 left-0 text-right">
-      <div className="border-border bg-background m-2 inline-block rounded border opacity-75 shadow-xl hover:opacity-100">
+      <div className="border-border bg-control-background m-2 inline-block rounded border opacity-75 shadow-lg hover:opacity-100">
         <a href="/about" className="pointer-events-auto inline-block p-2">
           {t("about.title")}
         </a>

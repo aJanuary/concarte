@@ -14,7 +14,7 @@ export default function MapSelect({
     <div className="relative">
       <MapIcon className="text-secondary-text pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2" />
       <select
-        className="bg-background border-border text-primary-text rounded border py-2 pr-4 pl-8 text-sm"
+        className="bg-control-background border-border text-primary-text rounded border py-2 pr-4 pl-8 text-sm shadow-md"
         value={selectedMap.id}
         onChange={(e) => {
           const map = config.maps.find((m) => m.id === e.target.value);

@@ -35,6 +35,12 @@ export type Config = {
     background: string;
 
     /**
+     * Background of controls and panels that sit on top of the map, such as
+     * the search box, filter pills, and the info panel.
+     */
+    "control-background": string;
+
+    /**
      * Background of the rooms in the room list when hovered.
      */
     "highlight-background": string;
