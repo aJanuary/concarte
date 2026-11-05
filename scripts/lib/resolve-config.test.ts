@@ -9,6 +9,7 @@ function baseConfig(area: Config["maps"][0]["rooms"][0]["area"]): Config {
     description: "",
     theme: {
       background: "#fff",
+      "control-background": "#fff",
       "highlight-background": "#fff",
       border: "#fff",
       "primary-text": "#000",

@@ -89,7 +89,7 @@ export default function RoomSelect({
     >
       <div className="px-4 py-2">
         <input
-          className="border-border bg-background text-primary-text placeholder-secondary-text w-full rounded-full border p-2 pl-12"
+          className="border-border bg-control-background text-primary-text placeholder-secondary-text w-full rounded-full border p-2 pl-12 shadow-md"
           tabIndex={2}
           type="text"
           placeholder={t("search-placeholder")}

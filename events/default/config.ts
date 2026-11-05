@@ -18,9 +18,10 @@ const config: Config = {
     "Direction signs icon by [Delapouite](https://delapouite.com/) under [CC BY 3.0](http://creativecommons.org/licenses/by/3.0/)",
   ],
   theme: {
-    background: "white",
-    "highlight-background": "rgb(241 245 249)",
-    border: "rgb(226 232 240)",
+    background: "#eeece6",
+    "control-background": "white",
+    "highlight-background": "#e3e0d8",
+    border: "#d6d2c8",
     "primary-text": "rgb(43, 43, 43)",
     "secondary-text": "rgb(100 116 139)",
     accent: "rgb(8,114,50)",
