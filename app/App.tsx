@@ -176,7 +176,7 @@ export default function App({
           />
         )}
         <OverlayPills
-          config={config}
+          selectedMap={selectedMap}
           activeOverlays={activeOverlays}
           onToggle={onOverlayToggle}
         />

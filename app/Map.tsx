@@ -177,7 +177,7 @@ export default function Map({
     let disposed = false;
     let map: olMap | null = null;
 
-    const overlayPromises = (config.overlays ?? []).map((overlay) =>
+    const overlayPromises = (selectedMap.overlays ?? []).map((overlay) =>
       loadMapImage(overlay.src).then((mapImage) => ({ overlay, mapImage })),
     );
 
@@ -435,13 +435,7 @@ export default function Map({
       setMap(null);
       selectedFeatureRef.current = null;
     };
-  }, [
-    selectedMap,
-    config.overlays,
-    config.theme.background,
-    mapDiv,
-    unselectedStyle,
-  ]);
+  }, [selectedMap, config.theme.background, mapDiv, unselectedStyle]);
 
   const onMapClick = useCallback(
     (e: MapBrowserEvent<any>) => {
@@ -573,18 +567,18 @@ export default function Map({
   }, [map, highlightedRooms, selectedRoom, highlightedStyle, unselectedStyle]);
 
   useEffect(() => {
-    if (map == null || !config.overlays) {
+    if (map == null || !selectedMap.overlays) {
       return;
     }
     const activeSet = new Set(activeOverlays);
-    for (const overlay of config.overlays) {
+    for (const overlay of selectedMap.overlays) {
       const layers = overlayLayersRef.current.get(overlay.id) ?? [];
       const visible = activeSet.has(overlay.id);
       for (const layer of layers) {
         layer.setVisible(visible);
       }
     }
-  }, [map, activeOverlays, config.overlays]);
+  }, [map, activeOverlays, selectedMap.overlays]);
 
   return (
     <>
