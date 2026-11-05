@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700" font-family="Helvetica, Arial, sans-serif">
+<g stroke="#7c3aed" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" opacity="0.8" fill="none">
+<path d="M 75 325 H 920"/>
+<path d="M 920 325 V 620"/>
+<path d="M 420 75 V 325"/>
+<path d="M 410 325 V 545"/>
+<path d="M 480 325 V 372"/>
+</g>
+<circle cx="480" cy="385" r="14" fill="#7c3aed"/>
+<text x="480" y="391" text-anchor="middle" font-size="18" fill="white">♿</text>
+</svg>

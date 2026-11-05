@@ -72,11 +72,6 @@ export type Config = {
   filters?: string[];
 
   /**
-   * Overlay images that can be toggled on/off over the map.
-   */
-  overlays?: Overlay[];
-
-  /**
    * Maps to use for the event.
    * If there is more than one map, a floor selector will be shown.
    * The first map in the list is the default map.
@@ -85,11 +80,18 @@ export type Config = {
 };
 
 export interface Overlay {
-  /** Unique identifier for the overlay. */
+  /**
+   * Identifier for the overlay. Whether an overlay is switched on is
+   * remembered by id, so maps that give an overlay the same id share its
+   * on/off state.
+   */
   id: string;
   /** Label shown on the toggle pill. */
   label: string;
-  /** Path to the image (raster or SVG). Must match the map's coordinate space. */
+  /**
+   * Path to the image (raster or SVG). Must match the coordinate space of the
+   * map it is listed under.
+   */
   src: string;
 }
 
@@ -109,6 +111,11 @@ export type Map = {
    * Should be as high resolution as possible.
    */
   src: string;
+
+  /**
+   * Overlay images that can be toggled on/off over this map.
+   */
+  overlays?: Overlay[];
 
   /**
    * List of rooms on the map.

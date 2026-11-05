@@ -1,24 +1,24 @@
 import React from "react";
-import { Config } from "./config.types";
+import { Map as MapConfig } from "./config.types";
 
 interface OverlayPillsProps {
-  config: Config;
+  selectedMap: MapConfig;
   activeOverlays: string[];
   onToggle: (id: string) => void;
 }
 
 export default function OverlayPills({
-  config,
+  selectedMap,
   activeOverlays,
   onToggle,
 }: OverlayPillsProps) {
-  if (!config.overlays || config.overlays.length === 0) {
+  if (!selectedMap.overlays || selectedMap.overlays.length === 0) {
     return null;
   }
 
   return (
     <>
-      {config.overlays.map((overlay) => (
+      {selectedMap.overlays.map((overlay) => (
         <button
           key={overlay.id}
           className={`cursor-pointer rounded-full border px-4 py-2 text-sm whitespace-nowrap ${

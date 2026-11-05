@@ -27,18 +27,18 @@ const config: Config = {
     disabled: "#cbd5e1",
   },
   filters: ["Toilets", "Food"],
-  overlays: [
-    {
-      id: "step-free",
-      label: "♿ Step-free routes",
-      src: "/step-free-ground.svg",
-    },
-  ],
   maps: [
     {
       id: "ground",
       label: "Ground floor",
       src: "/ground.svg",
+      overlays: [
+        {
+          id: "step-free",
+          label: "♿ Step-free routes",
+          src: "/step-free-ground.svg",
+        },
+      ],
       rooms: [
         {
           id: "main-hall",
@@ -241,6 +241,13 @@ const config: Config = {
       id: "first",
       label: "First floor",
       src: "/first.svg",
+      overlays: [
+        {
+          id: "step-free",
+          label: "♿ Step-free routes",
+          src: "/step-free-first.svg",
+        },
+      ],
       rooms: [
         {
           id: "gallery",
