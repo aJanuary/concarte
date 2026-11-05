@@ -78,9 +78,15 @@ export type Config = {
   filters?: string[];
 
   /**
+   * Id of the map shown when no map is chosen, such as on the home page.
+   * Defaults to the first map in the list.
+   */
+  defaultMap?: string;
+
+  /**
    * Maps to use for the event.
-   * If there is more than one map, a floor selector will be shown.
-   * The first map in the list is the default map.
+   * If there is more than one map, a floor selector will be shown, in the
+   * order the maps are listed here.
    */
   maps: Map[];
 };
