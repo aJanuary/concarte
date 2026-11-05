@@ -1,7 +1,7 @@
 import { existsSync } from "fs";
 import { join } from "path";
 import { pathToFileURL } from "url";
-import type { Config } from "../../app/config.types";
+import type { Config } from "../../app/config.types.ts";
 
 const root = process.cwd();
 

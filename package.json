@@ -2,6 +2,7 @@
   "name": "concarte",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "pnpm generate && concurrently -k -n generate,next \"pnpm generate:watch\" \"next dev\"",
     "build": "pnpm generate && next build",
@@ -11,6 +12,8 @@
     "generate:assets": "tsx scripts/generate-assets.ts",
     "generate:config": "tsx scripts/generate-config.ts",
     "generate:theme": "tsx scripts/generate-theme-css.ts",
+    "editor": "vite --config tools/editor/vite.config.ts",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
     "format": "prettier --write --ignore-path .gitignore --ignore-path .prettierignore .",
@@ -31,14 +34,20 @@
     "svg-pathdata": "^8.0.0"
   },
   "devDependencies": {
+    "@codemirror/lang-markdown": "^6.5.2",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.15",
     "@eslint/eslintrc": "^3.3.4",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/postcss": "^4.2.1",
+    "@tailwindcss/vite": "^4.3.4",
     "@types/mdast": "^4.0.4",
     "@types/node": "^25.3.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/unist": "^3.0.3",
+    "@vitejs/plugin-react": "^6.2.1",
+    "codemirror": "^6.0.2",
     "concurrently": "^10.0.5",
     "eslint": "^9.39.1",
     "eslint-config-next": "16.1.6",
@@ -55,6 +64,7 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "unist-util-visit": "^5.1.0",
+    "vite": "^8.3.6",
     "vitest": "^4.1.11"
   },
   "lint-staged": {

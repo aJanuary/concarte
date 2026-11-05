@@ -119,6 +119,25 @@ from it, so don't edit them directly.
 If you keep your event in a fork, leaving `default` untouched keeps merging
 upstream changes conflict-free.
 
+### Map editor
+
+A development-only editor for an event's `config.ts`. It works with SVG maps
+whose rooms are defined as `area: { ref }`.
+
+```bash
+CONCARTE_EVENT=<name> pnpm editor
+```
+
+Open [http://localhost:5173](http://localhost:5173). Select shapes or groups
+in the map or the tree to make them rooms, and edit the event, maps, overlays
+and rooms in the panel. Ctrl+S saves to `events/<name>/config.ts`.
+
+Saving rewrites the whole file: comments are not preserved and rooms are ordered
+as their elements appear in the SVG. A room inside a room group is therefore
+drawn above it and wins clicks on its own area.
+
+The editor is never part of `pnpm build`.
+
 ## Contributing
 
 We welcome contributions to the project.
