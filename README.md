@@ -94,8 +94,30 @@ server {
 
 ## Configuring
 
-The project is configured using `/app/config.ts`. See `/app/config.types.ts` for
-documentation on the configuration options.
+Everything specific to a convention lives in its own directory under
+`events/`:
+
+```
+events/<name>/
+  config.ts   # see app/config.types.ts for documentation of the options
+  assets/     # maps, overlays and favicon.ico
+```
+
+`events/default` is a working example. To create your own, copy it to
+`events/<name>` and select it with the `CONCARTE_EVENT` environment variable
+(it defaults to `default`):
+
+```bash
+CONCARTE_EVENT=<name> pnpm dev
+CONCARTE_EVENT=<name> pnpm build
+```
+
+Paths in `config.ts` such as `src: "/ground.png"` are relative to the event's
+`assets/` directory. The `public/` directory and `app/favicon.ico` are generated
+from it, so don't edit them directly.
+
+If you keep your event in a fork, leaving `default` untouched keeps merging
+upstream changes conflict-free.
 
 ## Contributing
 
