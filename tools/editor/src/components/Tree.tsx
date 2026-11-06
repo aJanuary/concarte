@@ -1,6 +1,5 @@
 import {
   ChevronDownIcon,
-  ExclamationCircleIcon,
   ChevronRightIcon,
   Squares2X2Icon,
   FolderIcon,
@@ -18,8 +17,11 @@ import {
   type SvgTreeNode,
 } from "../../shared/tree";
 import { defaultMapOf } from "../doc/ops";
-import type { Issue } from "../../shared/validate";
+import type { Issue } from "../../../../scripts/lib/validate-config";
 import type { Selection } from "./Panels";
+import { IssueBadges } from "./widgets";
+
+type IssueCounts = { errors: number; warnings: number };
 
 export type TreeData = Record<string, SvgTreeNode[] | "error" | undefined>;
 
@@ -275,16 +277,18 @@ export function Tree({
     return byMap;
   }, [doc]);
 
-  const invalidRooms = useMemo(() => {
-    const byMap: Record<string, Set<string>> = {};
+  const roomIssues = useMemo(() => {
+    const byMap: Record<string, Map<string, IssueCounts>> = {};
     for (const issue of issues) {
-      if (
-        issue.severity === "error" &&
-        issue.mapSrc !== undefined &&
-        issue.ref !== undefined
-      ) {
-        (byMap[issue.mapSrc] ??= new Set()).add(issue.ref);
+      if (issue.mapSrc === undefined || issue.ref === undefined) {
+        continue;
       }
+      const counts = (byMap[issue.mapSrc] ??= new Map()).get(issue.ref) ?? {
+        errors: 0,
+        warnings: 0,
+      };
+      counts[issue.severity === "error" ? "errors" : "warnings"] += 1;
+      byMap[issue.mapSrc].set(issue.ref, counts);
     }
     return byMap;
   }, [issues]);
@@ -313,8 +317,10 @@ export function Tree({
     nodes.map((node) => {
       const key = nodeKey(mapSrc, node);
       const isRoom = node.id !== null && rooms[mapSrc].has(node.id);
-      const invalid =
-        isRoom && node.id !== null && !!invalidRooms[mapSrc]?.has(node.id);
+      const counts =
+        isRoom && node.id !== null
+          ? roomIssues[mapSrc]?.get(node.id)
+          : undefined;
       const open = expanded.has(key);
       const hasChildren = node.children.length > 0;
       const selected =
@@ -334,13 +340,18 @@ export function Tree({
               open={hasChildren ? open : undefined}
               onToggle={hasChildren ? () => toggle(key) : undefined}
               onClick={() => onSelect({ kind: "node", mapSrc, key: node.key })}
+              trailing={
+                counts && (
+                  <span className="flex gap-1 self-center">
+                    <IssueBadges
+                      errors={counts.errors}
+                      warnings={counts.warnings}
+                    />
+                  </span>
+                )
+              }
             >
-              {invalid ? (
-                <ExclamationCircleIcon
-                  className="size-4 shrink-0 text-red-600"
-                  aria-label="Has errors"
-                />
-              ) : isRoom ? (
+              {isRoom ? (
                 <MapPinIcon className="size-4 shrink-0 text-blue-600" />
               ) : node.isGroup ? (
                 <FolderIcon className="size-4 shrink-0 text-slate-400" />
@@ -348,7 +359,7 @@ export function Tree({
                 <StopIcon className="size-4 shrink-0 text-slate-400" />
               )}
               <span className="flex min-w-0 flex-col">
-                <span className={"truncate " + (invalid ? "text-red-700" : "")}>
+                <span className="truncate">
                   {(node.id !== null &&
                     isRoom &&
                     labels[mapSrc].get(node.id)) || (

@@ -135,6 +135,7 @@ export function MapView({
   const [view, setView] = useState<View>({ x: 0, y: 0, k: 1 });
   const [hovered, setHovered] = useState<string>();
   const [shownOverlays, setShownOverlays] = useState<Set<string>>(new Set());
+  const [panning, setPanning] = useState(false);
   const drag = useRef<{
     startX: number;
     startY: number;
@@ -272,9 +273,11 @@ export function MapView({
   return (
     <div
       ref={viewport}
-      className="relative h-full cursor-grab touch-none overflow-hidden bg-slate-100 select-none active:cursor-grabbing"
+      className={`relative h-full touch-none overflow-hidden bg-slate-100 select-none ${panning ? "cursor-grabbing" : "cursor-grab"}`}
       onPointerDown={(e) => {
-        if (e.button !== 0) {
+        // The panel handles' hit areas reach into the map; they claim those
+        // presses by preventing default.
+        if (e.button !== 0 || e.defaultPrevented) {
           return;
         }
         drag.current = {
@@ -291,6 +294,7 @@ export function MapView({
           const dy = e.clientY - d.startY;
           if (!d.moved && Math.hypot(dx, dy) > DRAG_THRESHOLD) {
             d.moved = true;
+            setPanning(true);
             e.currentTarget.setPointerCapture(e.pointerId);
             setHovered(undefined);
           }
@@ -299,12 +303,19 @@ export function MapView({
           }
           return;
         }
-        setHovered(hitAt(e, e.currentTarget, ids));
+        // A button held without a press here is another drag (a panel
+        // handle) passing over the map.
+        setHovered(e.buttons ? undefined : hitAt(e, e.currentTarget, ids));
       }}
       onPointerLeave={() => setHovered(undefined)}
+      onPointerCancel={() => {
+        drag.current = null;
+        setPanning(false);
+      }}
       onPointerUp={(e) => {
         const d = drag.current;
         drag.current = null;
+        setPanning(false);
         if (!d || d.moved) {
           return;
         }

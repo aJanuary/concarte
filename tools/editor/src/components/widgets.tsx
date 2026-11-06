@@ -98,16 +98,20 @@ export function Button({
   disabled,
   danger,
   title,
+  label,
 }: {
   children: ReactNode;
   onClick: () => void;
   disabled?: boolean;
   danger?: boolean;
   title?: string;
+  /** Accessible name for buttons whose content is only an icon. */
+  label?: string;
 }) {
   return (
     <button
       type="button"
+      aria-label={label}
       title={title}
       disabled={disabled}
       onClick={onClick}
@@ -135,5 +139,71 @@ export function Section({
       <h3 className="font-semibold text-slate-900">{title}</h3>
       {children}
     </section>
+  );
+}
+
+/**
+ * Shows an asset in the file explorer. Only the app has a file explorer to
+ * open, so it renders nothing in a browser.
+ */
+export function ShowInExplorerButton({ asset }: { asset: string }) {
+  if (!window.concarte) {
+    return null;
+  }
+  return (
+    <Button
+      title="Show this file in your file explorer"
+      onClick={() =>
+        void fetch(`/api/reveal-asset?path=${encodeURIComponent(asset)}`, {
+          method: "POST",
+        })
+      }
+    >
+      Show in file explorer
+    </Button>
+  );
+}
+
+const badgeTones = {
+  error: "bg-red-100 text-red-800",
+  warning: "bg-amber-100 text-amber-800",
+};
+
+/** Pill showing how many errors or warnings there are; nothing when zero. */
+export function CountBadge({
+  severity,
+  count,
+}: {
+  severity: "error" | "warning";
+  count: number;
+}) {
+  if (count === 0) {
+    return null;
+  }
+  return (
+    <span
+      className={
+        "shrink-0 rounded-full px-1.5 text-xs leading-5 font-medium " +
+        badgeTones[severity]
+      }
+      aria-label={`${count} ${severity}${count === 1 ? "" : "s"}`}
+    >
+      {count}
+    </span>
+  );
+}
+
+export function IssueBadges({
+  errors,
+  warnings,
+}: {
+  errors: number;
+  warnings: number;
+}) {
+  return (
+    <>
+      <CountBadge severity="error" count={errors} />
+      <CountBadge severity="warning" count={warnings} />
+    </>
   );
 }

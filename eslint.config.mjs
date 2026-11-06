@@ -3,7 +3,7 @@ import prettier from "eslint-config-prettier/flat";
 
 const eslintConfig = [
   {
-    ignores: [".next/**", "out/**", "node_modules/**"],
+    ignores: [".next/**", "out/**", "build/**", "node_modules/**"],
   },
   ...nextCoreWebVitals,
   prettier,

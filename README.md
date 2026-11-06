@@ -99,7 +99,7 @@ Everything specific to a convention lives in its own directory under
 
 ```
 events/<name>/
-  config.ts   # see app/config.types.ts for documentation of the options
+  concarte.json   # see app/config.types.ts for documentation of the options
   assets/     # maps, overlays and favicon.ico
 ```
 
@@ -112,7 +112,7 @@ CONCARTE_EVENT=<name> pnpm dev
 CONCARTE_EVENT=<name> pnpm build
 ```
 
-Paths in `config.ts` such as `src: "/ground.png"` are relative to the event's
+Paths in `concarte.json` such as `src: "/ground.png"` are relative to the event's
 `assets/` directory. The `public/` directory and `app/favicon.ico` are generated
 from it, so don't edit them directly.
 
@@ -121,8 +121,41 @@ upstream changes conflict-free.
 
 ### Map editor
 
-A development-only editor for an event's `config.ts`. It works with SVG maps
-whose rooms are defined as `area: { ref }`.
+An editor for an event's `concarte.json`. It works with SVG maps whose rooms are
+defined as `area: { ref }`.
+
+#### The app
+
+The editor is packaged as a desktop app for Linux (AppImage), macOS (dmg) and
+Windows (installer), built by the `Package editor` workflow when a `v*` tag is
+pushed. The installers are unsigned, so macOS and Windows warn about an
+unidentified developer the first time they open it.
+
+- **New event** picks an empty folder and writes a minimal event into it.
+- **Open event** picks a folder that contains a `concarte.json`. Only open events you
+  trust: the config is code, and the editor and Build both run it.
+- **Add map** (in the structure panel) copies an SVG into the event's `assets/`
+  folder.
+- **Build** produces the static site in `<event>/dist/`. It needs no Node or pnpm
+  on the machine, but the site loads its fonts from Google, so it needs a
+  network connection. **Preview** serves `dist/` locally and opens it in your
+  browser.
+
+`--event <folder>` opens a folder at launch.
+
+To run or package the app from a checkout:
+
+```bash
+pnpm editor:app                # build and run
+pnpm editor:package            # installer for the current OS in build/editor-dist
+pnpm editor:package --dir      # unpacked app only, for testing
+```
+
+#### In a browser
+
+For working on the editor itself there is a development server with hot
+reloading. It edits one event, chosen with `CONCARTE_EVENT`, and has no Build
+or Preview.
 
 ```bash
 CONCARTE_EVENT=<name> pnpm editor
@@ -130,13 +163,18 @@ CONCARTE_EVENT=<name> pnpm editor
 
 Open [http://localhost:5173](http://localhost:5173). Select shapes or groups
 in the map or the tree to make them rooms, and edit the event, maps, overlays
-and rooms in the panel. Ctrl+S saves to `events/<name>/config.ts`.
+and rooms in the panel. Changes save automatically to `events/<name>/concarte.json`.
 
 Saving rewrites the whole file: comments are not preserved and rooms are ordered
 as their elements appear in the SVG. A room inside a room group is therefore
 drawn above it and wins clicks on its own area.
 
 The editor is never part of `pnpm build`.
+
+#### Building an event outside the repository
+
+`CONCARTE_EVENT_DIR=/absolute/path/to/event pnpm build` builds the event in that
+folder, which is what the app does. It takes precedence over `CONCARTE_EVENT`.
 
 ## Contributing
 

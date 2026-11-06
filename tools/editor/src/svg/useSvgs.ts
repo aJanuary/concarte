@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { assetPath } from "../../shared/schema";
-import { ASSET_CHANGED_EVENT } from "../../shared/api";
+import { SSE_ASSET_CHANGED } from "../../shared/api";
+import { useServerEvents } from "../events";
 import { parseSvg, type ParsedSvg } from "./parse";
 
 export type SvgState = ParsedSvg | "error";
 
 function fetchSvg(src: string): Promise<SvgState> {
-  return fetch(`/assets/${assetPath(src)}`, { cache: "no-store" })
+  return fetch(`/event-assets/${assetPath(src)}`, { cache: "no-store" })
     .then((res) => {
       if (!res.ok) {
         throw new Error(res.statusText);
@@ -61,19 +62,12 @@ export function useSvgs(srcs: string[]): {
     }
   }, [key, load]);
 
-  useEffect(() => {
-    const hot = import.meta.hot;
-    if (!hot) {
-      return;
+  useServerEvents(SSE_ASSET_CHANGED, (data) => {
+    const path = data as string;
+    if (loaded.current.has(path)) {
+      setChangedPaths((prev) => new Set(prev).add(path));
     }
-    const onChange = (path: string) => {
-      if (loaded.current.has(path)) {
-        setChangedPaths((prev) => new Set(prev).add(path));
-      }
-    };
-    hot.on(ASSET_CHANGED_EVENT, onChange);
-    return () => hot.off(ASSET_CHANGED_EVENT, onChange);
-  }, []);
+  });
 
   const changed = useMemo(
     () =>

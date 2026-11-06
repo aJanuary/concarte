@@ -16,6 +16,7 @@ import {
   Field,
   inputClass,
   Section,
+  ShowInExplorerButton,
   TextField,
   Toggle,
 } from "../components/widgets";
@@ -223,21 +224,24 @@ export const overlayFields: Registry<Overlay> = {
   src: ({ value, onChange, ctx }) => (
     <Field label="Source">
       {(id) => (
-        <select
-          id={id}
-          className={inputClass}
-          value={assetPath(value)}
-          onChange={(e) => onChange("/" + e.target.value)}
-        >
-          {!ctx.assets.includes(assetPath(value)) && (
-            <option value={assetPath(value)}>{value} (missing)</option>
-          )}
-          {ctx.assets.map((asset) => (
-            <option key={asset} value={asset}>
-              /{asset}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <select
+            id={id}
+            className={inputClass}
+            value={assetPath(value)}
+            onChange={(e) => onChange("/" + e.target.value)}
+          >
+            {!ctx.assets.includes(assetPath(value)) && (
+              <option value={assetPath(value)}>{value} (missing)</option>
+            )}
+            {ctx.assets.map((asset) => (
+              <option key={asset} value={asset}>
+                /{asset}
+              </option>
+            ))}
+          </select>
+          <ShowInExplorerButton asset={assetPath(value)} />
+        </div>
       )}
     </Field>
   ),
@@ -265,7 +269,10 @@ export const mapFields: Registry<MapConfig> = {
   src: ({ value }) => (
     <div className="mt-3">
       <p className="font-medium text-slate-700">Source</p>
-      <p className="break-all text-slate-600">{value}</p>
+      <div className="flex items-center gap-2">
+        <p className="flex-1 break-all text-slate-600">{value}</p>
+        <ShowInExplorerButton asset={assetPath(value)} />
+      </div>
     </div>
   ),
   overlays: ({ value, onChange, ctx }) => {

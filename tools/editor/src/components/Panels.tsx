@@ -1,8 +1,9 @@
 import { MapPinIcon } from "@heroicons/react/16/solid";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import type { ImportSvgResponse } from "../../shared/api";
 import type { Config, MapConfig } from "../../shared/schema";
 import type { SvgTreeNode } from "../../shared/tree";
-import type { Issue } from "../../shared/validate";
+import type { Issue } from "../../../../scripts/lib/validate-config";
 import * as ops from "../doc/ops";
 import {
   configFields,
@@ -11,6 +12,7 @@ import {
   roomFields,
   type FieldContext,
 } from "../fields/registry";
+import { FaviconSection } from "./FaviconSection";
 import { Button, Section } from "./widgets";
 
 export type Apply = (edit: ops.Edit, key?: string) => void;
@@ -40,6 +42,7 @@ export function EventPanel({ doc, apply, ctx }: Common) {
         (patch) => apply(ops.updateEvent(patch), patchKey("event", patch)),
         ctx,
       )}
+      <FaviconSection />
     </div>
   );
 }
@@ -135,7 +138,32 @@ export function AddMapPanel({
   apply,
   ctx,
   onAdded,
-}: Common & { onAdded: (mapSrc: string) => void }) {
+  onAssetAdded,
+}: Common & {
+  onAdded: (mapSrc: string) => void;
+  onAssetAdded: (asset: string) => void;
+}) {
+  const [error, setError] = useState("");
+  const upload = async (file: File) => {
+    setError("");
+    try {
+      const res = await fetch(
+        `/api/assets?name=${encodeURIComponent(file.name)}`,
+        { method: "POST", body: file },
+      );
+      const body = (await res.json()) as ImportSvgResponse;
+      if ("error" in body) {
+        setError(body.error);
+        return;
+      }
+      onAssetAdded(body.asset);
+      const map = ops.newMap(doc, body.asset);
+      apply(ops.addMap(map));
+      onAdded(map.src);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  };
   const used = useMemo(() => {
     const srcs = new Set<string>();
     for (const map of doc.maps) {
@@ -151,7 +179,30 @@ export function AddMapPanel({
   return (
     <div>
       <Heading>Add map</Heading>
-      <p className="mt-2 text-xs text-slate-500">
+      <label className="mt-3 inline-block cursor-pointer rounded border border-slate-300 px-2 py-1 text-slate-700 hover:bg-slate-100">
+        Import SVG file...
+        <input
+          type="file"
+          accept=".svg,image/svg+xml"
+          className="sr-only"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (file) {
+              void upload(file);
+            }
+          }}
+        />
+      </label>
+      <p className="mt-1 text-xs text-slate-500">
+        The file is copied into the event&apos;s assets folder.
+      </p>
+      {error && (
+        <p role="alert" className="mt-2 text-red-700">
+          {error}
+        </p>
+      )}
+      <p className="mt-4 text-xs text-slate-500">
         Files in assets/ that aren&apos;t already used as a map or overlay.
       </p>
       {available.length === 0 && (

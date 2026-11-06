@@ -1,10 +1,4 @@
 import {
-  ArrowDownTrayIcon,
-  ArrowUturnLeftIcon,
-  ArrowUturnRightIcon,
-  ExclamationTriangleIcon,
-} from "@heroicons/react/20/solid";
-import {
   useCallback,
   useEffect,
   useMemo,
@@ -12,14 +6,26 @@ import {
   useRef,
   useState,
 } from "react";
-import type { LoadResponse, SaveResponse } from "../shared/api";
+import type {
+  LoadResponse,
+  SaveResponse,
+  SessionResponse,
+} from "../shared/api";
+import type { MenuAction } from "../shared/native";
+import { BuildLog, BuildToolbar } from "./build/BuildPanel";
+import { useBuild } from "./build/useBuild";
+import { runMenuAction } from "./native";
+import { StartScreen } from "./StartScreen";
 import { roomRef, type Config } from "../shared/schema";
 import {
   selectableIds,
   sortRoomsByTree,
   type SvgTreeNode,
 } from "../shared/tree";
-import { validateConfig, type Issue } from "../shared/validate";
+import {
+  validateConfig,
+  type Issue,
+} from "../../../scripts/lib/validate-config";
 import {
   AddMapPanel,
   EventPanel,
@@ -28,7 +34,7 @@ import {
   type Selection,
 } from "./components/Panels";
 import { MapView } from "./components/MapView";
-import { Splitter, useStoredWidth } from "./components/Splitter";
+import { EditorLayout } from "./layout/EditorLayout";
 import { Tree, type TreeData } from "./components/Tree";
 import { Button } from "./components/widgets";
 import {
@@ -48,7 +54,6 @@ import {
 import { findRoom, removeRoom, type Edit } from "./doc/ops";
 import type { FieldContext } from "./fields/registry";
 import { useSvgs } from "./svg/useSvgs";
-import { timeAgo } from "./time";
 import { findNode } from "../shared/tree";
 
 type Action =
@@ -114,7 +119,55 @@ async function load(): Promise<LoadState> {
   }
 }
 
+async function loadSession(): Promise<SessionResponse> {
+  return (await (await fetch("/api/session")).json()) as SessionResponse;
+}
+
 export function App() {
+  const [session, setSession] = useState<SessionResponse>();
+  const [failure, setFailure] = useState("");
+  const [generation, setGeneration] = useState(0);
+
+  const refresh = useCallback(() => {
+    loadSession().then(
+      (next) => {
+        setSession(next);
+        setGeneration((g) => g + 1);
+      },
+      (e: Error) => setFailure(e.message),
+    );
+  }, []);
+  useEffect(refresh, [refresh]);
+
+  if (failure) {
+    return (
+      <p className="p-4 text-red-700">
+        Could not reach the editor server: {failure}
+      </p>
+    );
+  }
+  if (!session) {
+    return <p className="p-4 text-slate-500">Loading...</p>;
+  }
+  if (!session.event) {
+    return <StartScreen session={session} onChanged={refresh} />;
+  }
+  return (
+    <EventLoader
+      key={generation}
+      canBuild={session.canBuild}
+      onSwitched={refresh}
+    />
+  );
+}
+
+function EventLoader({
+  canBuild,
+  onSwitched,
+}: {
+  canBuild: boolean;
+  onSwitched: () => void;
+}) {
   const [state, setState] = useState<LoadState>({ status: "loading" });
   const [generation, setGeneration] = useState(0);
 
@@ -155,15 +208,27 @@ export function App() {
       </div>
     );
   }
-  return <Editor key={generation} loaded={state} onReload={reload} />;
+  return (
+    <Editor
+      key={generation}
+      loaded={state}
+      canBuild={canBuild}
+      onReload={reload}
+      onSwitched={onSwitched}
+    />
+  );
 }
 
 function Editor({
   loaded,
+  canBuild,
   onReload,
+  onSwitched,
 }: {
   loaded: Loaded;
+  canBuild: boolean;
   onReload: () => void;
+  onSwitched: () => void;
 }) {
   const [history, dispatch] = useReducer(reducer, loaded.config, createHistory);
   const doc = current(history);
@@ -171,13 +236,13 @@ function Editor({
 
   const [selection, setSelection] = useState<Selection>({ kind: "event" });
   const [activeMapSrc, setActiveMapSrc] = useState(doc.maps[0]?.src);
-  const [mtime, setMtime] = useState(loaded.mtime);
   const [status, setStatus] = useState("");
-  const [now, setNow] = useState(() => Date.now());
-  const [showProblems, setShowProblems] = useState(false);
   const [conflict, setConflict] = useState(false);
-  const [treeWidth, setTreeWidth] = useStoredWidth("editor.treeWidth", 260);
-  const [panelWidth, setPanelWidth] = useStoredWidth("editor.panelWidth", 440);
+  const [saveTick, setSaveTick] = useState(0);
+  const [assets, setAssets] = useState(loaded.assets);
+  const [revealBuild, setRevealBuild] = useState(0);
+  const build = useBuild(canBuild);
+  const { start: buildStart, preview: buildPreview } = build;
 
   const {
     svgs,
@@ -204,17 +269,24 @@ function Editor({
     () => issues.filter((i) => i.severity === "error"),
     [issues],
   );
-  const warnings = useMemo(
-    () => issues.filter((i) => i.severity === "warning"),
-    [issues],
+
+  // Saves are triggered by bumping a counter so they run after the render that
+  // holds the edit, and read the latest state through refs.
+  const requestSave = useCallback(
+    () => setSaveTick((t) => t + 1),
+    [setSaveTick],
   );
 
   const apply = useCallback(
     (edit: Edit, key?: string) => {
       setStatus("");
       dispatch({ type: "edit", edit, key });
+      // Keyed edits are field typing; they save when the field blurs.
+      if (key === undefined) {
+        requestSave();
+      }
     },
-    [setStatus, dispatch],
+    [setStatus, dispatch, requestSave],
   );
 
   const ctx: FieldContext = useMemo(() => {
@@ -229,12 +301,12 @@ function Editor({
       }
     }
     return {
-      assets: loaded.assets,
+      assets,
       locales: loaded.locales,
       aliasSuggestions: [...aliases, ...(doc.filters ?? [])].sort(),
       filterSuggestions: [...aliases, ...labels].sort(),
     };
-  }, [doc, loaded.assets, loaded.locales]);
+  }, [doc, assets, loaded.locales]);
 
   const activeMap = doc.maps.find((m) => m.src === activeMapSrc) ?? doc.maps[0];
   const effective: Selection =
@@ -253,66 +325,160 @@ function Editor({
     [setSelection, setActiveMapSrc],
   );
 
+  const latest = useRef({ doc, trees, errors, index: history.index });
+  useEffect(() => {
+    latest.current = { doc, trees, errors, index: history.index };
+  });
+  const mtimeRef = useRef(loaded.mtime);
+  const savedDocRef = useRef(loaded.config);
+  const conflictRef = useRef(false);
+  // Saves run one at a time so a slow response can't overwrite a newer save.
+  const queue = useRef<Promise<boolean>>(Promise.resolve(true));
+
   const save = useCallback(
-    async (force = false) => {
-      if (errors.length > 0) {
-        setShowProblems(true);
-        setStatus("Fix the errors before saving");
-        return;
-      }
-      const index = history.index;
-      setStatus("Saving...");
-      try {
-        const res = await fetch("/api/config", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            config: {
-              ...doc,
-              maps: doc.maps.map((map) => ({
-                ...map,
-                rooms: sortRoomsByTree(map.rooms, trees[map.src]),
-              })),
-            },
-            mtime,
-            force,
-          }),
-        });
-        const body = (await res.json()) as SaveResponse;
-        if (body.ok) {
-          setMtime(body.mtime);
-          dispatch({ type: "saved", index });
-          setStatus("");
-          setNow(Date.now());
-        } else if (body.reason === "conflict") {
-          setConflict(true);
-          setStatus("");
-        } else {
-          setStatus(`Not saved: ${body.errors.join("; ")}`);
+    (force = false): Promise<boolean> => {
+      const run = async (): Promise<boolean> => {
+        const { doc, trees, index } = latest.current;
+        if (conflictRef.current && !force) {
+          return false;
         }
-      } catch (e) {
-        setStatus(`Not saved: ${(e as Error).message}`);
-      }
+        if (!force && doc === savedDocRef.current) {
+          return true;
+        }
+        setStatus("Saving...");
+        try {
+          const res = await fetch("/api/config", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              config: {
+                ...doc,
+                maps: doc.maps.map((map) => ({
+                  ...map,
+                  rooms: sortRoomsByTree(map.rooms, trees[map.src]),
+                })),
+              },
+              mtime: mtimeRef.current,
+              force,
+            }),
+          });
+          const body = (await res.json()) as SaveResponse;
+          if (body.ok) {
+            mtimeRef.current = body.mtime;
+            savedDocRef.current = doc;
+            dispatch({ type: "saved", index });
+            setStatus("");
+            return true;
+          } else if (body.reason === "conflict") {
+            conflictRef.current = true;
+            setConflict(true);
+            setStatus("");
+          }
+        } catch (e) {
+          setStatus(`Not saved: ${(e as Error).message}`);
+        }
+        return false;
+      };
+      const next = queue.current.then(run, run);
+      queue.current = next;
+      return next;
     },
-    [
-      doc,
-      trees,
-      errors,
-      history.index,
-      mtime,
-      setStatus,
-      setShowProblems,
-      setMtime,
-      setConflict,
-      setNow,
-      dispatch,
-    ],
+    [setStatus, setConflict, dispatch],
   );
 
-  const saveRef = useRef(save);
   useEffect(() => {
-    saveRef.current = save;
-  }, [save]);
+    if (saveTick > 0) {
+      void save();
+    }
+  }, [saveTick, save]);
+
+  const overwrite = useCallback(() => {
+    conflictRef.current = false;
+    setConflict(false);
+    void save(true);
+  }, [save, setConflict]);
+
+  const refuseInvalid = useCallback(
+    (count: number): boolean => {
+      if (count === 0) {
+        return false;
+      }
+      setStatus(`Fix ${count} ${count === 1 ? "error" : "errors"} first`);
+      return true;
+    },
+    [setStatus],
+  );
+
+  const startBuild = useCallback(async () => {
+    if (!(await save()) || refuseInvalid(latest.current.errors.length)) {
+      return;
+    }
+    setRevealBuild((n) => n + 1);
+    const result = await buildStart();
+    if ("reason" in result) {
+      refuseInvalid(result.errors.length);
+    }
+  }, [save, buildStart, setRevealBuild, refuseInvalid]);
+
+  const startPreview = useCallback(async () => {
+    if (!(await save()) || refuseInvalid(latest.current.errors.length)) {
+      return;
+    }
+    setStatus("Starting the preview...");
+    const result = await buildPreview();
+    if (result.ok) {
+      setStatus("Preview opened in your browser");
+    } else if (result.reason === "invalid") {
+      refuseInvalid(result.errors.length);
+    } else if (result.reason === "failed") {
+      setStatus("");
+      window.alert(`The preview couldn't start.\n\n${result.error}`);
+    }
+  }, [save, buildPreview, setStatus, refuseInvalid]);
+
+  useEffect(() => {
+    const native = window.concarte;
+    if (!native) {
+      return;
+    }
+    return native.onMenu(async (action: MenuAction) => {
+      if (!(await save())) {
+        if (conflictRef.current) {
+          return;
+        }
+        if (
+          latest.current.doc !== savedDocRef.current &&
+          !window.confirm("Discard your unsaved changes?")
+        ) {
+          return;
+        }
+      }
+      const result = await runMenuAction(action);
+      if (result.ok) {
+        onSwitched();
+      } else if (!result.cancelled) {
+        setStatus(result.message);
+      }
+    });
+  }, [save, onSwitched]);
+
+  useEffect(() => {
+    return window.concarte?.onEdit((action) => {
+      dispatch({ type: action });
+      requestSave();
+    });
+  }, [requestSave]);
+
+  useEffect(() => {
+    window.concarte?.setEditState({
+      undo: canUndo(history) ? (undoLabel(history) ?? "") : null,
+      redo: canRedo(history) ? (redoLabel(history) ?? "") : null,
+    });
+  }, [history]);
+
+  useEffect(() => {
+    return () => window.concarte?.setEditState({ undo: null, redo: null });
+  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -320,25 +486,16 @@ function Editor({
         return;
       }
       const key = e.key.toLowerCase();
-      if (key === "s") {
-        e.preventDefault();
-        void saveRef.current();
-        return;
-      }
       // The markdown editor has its own undo history.
       if (key === "z" && !(e.target as Element).closest?.(".cm-editor")) {
         e.preventDefault();
         dispatch({ type: e.shiftKey ? "redo" : "undo" });
+        requestSave();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 30_000);
-    return () => clearInterval(timer);
-  }, []);
+  }, [requestSave]);
 
   useEffect(() => {
     if (!dirty) {
@@ -355,7 +512,6 @@ function Editor({
     } else if (issue.mapSrc) {
       select({ kind: "map", mapSrc: issue.mapSrc });
     }
-    setShowProblems(false);
   };
 
   const renderPanel = () => {
@@ -368,6 +524,11 @@ function Editor({
         <AddMapPanel
           {...common}
           onAdded={(mapSrc) => select({ kind: "map", mapSrc })}
+          onAssetAdded={(asset) =>
+            setAssets((prev) =>
+              prev.includes(asset) ? prev : [...prev, asset].sort(),
+            )
+          }
         />
       );
     }
@@ -433,177 +594,90 @@ function Editor({
       ? effective.key
       : undefined;
 
-  const iconButton =
-    "relative rounded p-1.5 text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40";
-
   return (
-    <div className="grid h-full grid-rows-[40px_1fr] bg-white text-slate-900">
-      <header className="flex items-center gap-1 border-b border-slate-300 px-2">
-        <button
-          type="button"
-          className={iconButton}
-          title={
-            undoLabel(history)
-              ? `Undo ${undoLabel(history)} (Ctrl+Z)`
-              : "Undo (Ctrl+Z)"
+    <div
+      className="h-full border-t border-slate-300 bg-white text-slate-900"
+      onBlur={requestSave}
+      onChange={(e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.type === "checkbox" || target.tagName === "SELECT") {
+          requestSave();
+        }
+      }}
+      onClick={(e) => {
+        // Buttons can remove the focused element without a blur event.
+        if ((e.target as Element).closest("button")) {
+          requestSave();
+        }
+      }}
+    >
+      <main className="h-full min-h-0">
+        <EditorLayout
+          revealBuild={revealBuild}
+          toolbar={
+            <>
+              <span className="mr-2 text-slate-500" role="status">
+                {status}
+              </span>
+              {canBuild && (
+                <BuildToolbar
+                  state={build.state}
+                  noMaps={doc.maps.length === 0}
+                  onBuild={() => void startBuild()}
+                  onCancel={() => void build.cancel()}
+                  onPreview={() => void startPreview()}
+                  onReveal={() => void build.reveal()}
+                />
+              )}
+            </>
           }
-          aria-label="Undo"
-          disabled={!canUndo(history)}
-          onClick={() => dispatch({ type: "undo" })}
-        >
-          <ArrowUturnLeftIcon className="size-5" />
-        </button>
-        <button
-          type="button"
-          className={iconButton}
-          title={
-            redoLabel(history)
-              ? `Redo ${redoLabel(history)} (Ctrl+Shift+Z)`
-              : "Redo (Ctrl+Shift+Z)"
+          issues={issues}
+          onSelectIssue={jumpTo}
+          tree={
+            <Tree
+              doc={doc}
+              data={treeData}
+              changedSvgs={changedSvgs}
+              onReloadSvg={reloadSvg}
+              issues={issues}
+              selection={effective}
+              onSelect={select}
+            />
           }
-          aria-label="Redo"
-          disabled={!canRedo(history)}
-          onClick={() => dispatch({ type: "redo" })}
-        >
-          <ArrowUturnRightIcon className="size-5" />
-        </button>
-        <button
-          type="button"
-          className={iconButton + " ml-3"}
-          title={dirty ? "Save (Ctrl+S), unsaved changes" : "Save (Ctrl+S)"}
-          aria-label="Save"
-          onClick={() => void save()}
-        >
-          <ArrowDownTrayIcon className="size-5" />
-          {dirty && (
-            <span className="absolute top-0.5 right-0.5 size-2.5 rounded-full border border-white bg-amber-500" />
-          )}
-        </button>
-        <span className="text-slate-500" role="status">
-          {status || `Last saved ${timeAgo(now, mtime)}`}
-        </span>
-        <div className="relative ml-2">
-          {issues.length > 0 && (
-            <button
-              type="button"
-              className="flex items-center gap-1 rounded px-2 py-1 hover:bg-slate-100"
-              aria-expanded={showProblems}
-              onClick={() => setShowProblems(!showProblems)}
-            >
-              <ExclamationTriangleIcon
-                className={
-                  "size-4 " +
-                  (errors.length ? "text-red-600" : "text-amber-500")
+          properties={renderPanel()}
+          map={
+            activeMap && activeSvg && activeSvg !== "error" ? (
+              <MapView
+                key={activeMap.src}
+                title={activeMap.label || activeMap.id}
+                svg={activeSvg}
+                tree={activeSvg.tree}
+                roomRefs={
+                  new Set(activeMap.rooms.flatMap((r) => roomRef(r) ?? []))
+                }
+                ids={selectableIds(activeSvg.tree)}
+                selectedKey={selectedKey}
+                overlays={activeMap.overlays ?? []}
+                onSelect={(id) =>
+                  select(
+                    id
+                      ? { kind: "node", mapSrc: activeMap.src, key: id }
+                      : { kind: "map", mapSrc: activeMap.src },
+                  )
                 }
               />
-              {errors.length > 0 && (
-                <span className="text-red-700">
-                  {errors.length} error{errors.length === 1 ? "" : "s"}
-                </span>
-              )}
-              {warnings.length > 0 && (
-                <span className="text-amber-700">
-                  {warnings.length} warning{warnings.length === 1 ? "" : "s"}
-                </span>
-              )}
-            </button>
-          )}
-          {showProblems && (
-            <ul className="absolute top-full left-0 z-20 mt-1 max-h-96 w-[28rem] overflow-auto rounded border border-slate-300 bg-white shadow-lg">
-              {issues.map((issue, i) => (
-                <li key={i}>
-                  <button
-                    type="button"
-                    className="w-full px-3 py-1.5 text-left hover:bg-slate-100"
-                    onClick={() => jumpTo(issue)}
-                  >
-                    <span
-                      className={
-                        issue.severity === "error"
-                          ? "text-red-700"
-                          : "text-amber-700"
-                      }
-                    >
-                      {issue.severity === "error" ? "Error" : "Warning"}:
-                    </span>{" "}
-                    {issue.message}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <span className="flex-1" />
-        <strong>Editor</strong>
-        <span className="text-slate-500">{loaded.eventDir}</span>
-      </header>
-
-      <main
-        className="grid min-h-0"
-        style={{
-          gridTemplateColumns: `${treeWidth}px ${panelWidth}px minmax(0, 1fr)`,
-        }}
-      >
-        <nav
-          className="relative min-h-0 border-r border-slate-300"
-          aria-label="Event structure"
-        >
-          <Tree
-            doc={doc}
-            data={treeData}
-            changedSvgs={changedSvgs}
-            onReloadSvg={reloadSvg}
-            issues={issues}
-            selection={effective}
-            onSelect={select}
-          />
-          <Splitter
-            label="Resize structure panel"
-            width={treeWidth}
-            otherWidth={panelWidth}
-            onChange={setTreeWidth}
-          />
-        </nav>
-        <div className="relative min-h-0 border-r border-slate-300">
-          <section className="h-full overflow-auto p-3">
-            {renderPanel()}
-          </section>
-          <Splitter
-            label="Resize properties panel"
-            width={panelWidth}
-            otherWidth={treeWidth}
-            onChange={setPanelWidth}
-          />
-        </div>
-        <section className="min-h-0">
-          {activeMap && activeSvg && activeSvg !== "error" ? (
-            <MapView
-              key={activeMap.src}
-              title={activeMap.label || activeMap.id}
-              svg={activeSvg}
-              tree={activeSvg.tree}
-              roomRefs={
-                new Set(activeMap.rooms.flatMap((r) => roomRef(r) ?? []))
-              }
-              ids={selectableIds(activeSvg.tree)}
-              selectedKey={selectedKey}
-              overlays={activeMap.overlays ?? []}
-              onSelect={(id) =>
-                select(
-                  id
-                    ? { kind: "node", mapSrc: activeMap.src, key: id }
-                    : { kind: "map", mapSrc: activeMap.src },
-                )
-              }
-            />
-          ) : (
-            <p className="p-4 text-slate-500">
-              {activeSvg === "error"
-                ? "Could not read this SVG."
-                : "Loading map..."}
-            </p>
-          )}
-        </section>
+            ) : (
+              <p className="p-4 text-slate-500">
+                {!activeMap
+                  ? "This event has no maps yet. Add a map to see it here."
+                  : activeSvg === "error"
+                    ? "Could not read this SVG."
+                    : "Loading map..."}
+              </p>
+            )
+          }
+          build={canBuild ? <BuildLog state={build.state} /> : undefined}
+        />
       </main>
 
       {conflict && (
@@ -617,22 +691,15 @@ function Editor({
               The config changed on disk
             </h2>
             <p className="mt-2">
-              Something else has written {loaded.eventDir}/config.ts since the
-              editor loaded it. Overwriting loses those changes; reloading loses
-              yours.
+              Something else has written {loaded.eventDir}/concarte.json since
+              the editor loaded it. Overwriting loses those changes; reloading
+              loses yours.
             </p>
             <div className="mt-4 flex justify-end gap-2">
-              <Button onClick={() => setConflict(false)}>Cancel</Button>
               <Button danger onClick={onReload}>
-                Reload and discard my changes
+                Reload from disk
               </Button>
-              <Button
-                danger
-                onClick={() => {
-                  setConflict(false);
-                  void save(true);
-                }}
-              >
+              <Button danger onClick={overwrite}>
                 Overwrite
               </Button>
             </div>
