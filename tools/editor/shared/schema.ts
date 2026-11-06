@@ -6,11 +6,13 @@ import type {
 } from "../../../app/config.types.ts";
 
 export type { Config, MapConfig, Overlay, Room };
+export { roomRef } from "../../../scripts/lib/validate-config.ts";
 export type Theme = Config["theme"];
 export type RoomLink = NonNullable<Room["link"]>;
 
-// Declared key order for each type. Used by the serializer, and typed as
-// Record so that adding a field to the config types is a compile error here.
+// Declared key order for each type, which is the order the serializer writes
+// them in. Typed as Record so that adding a field to the config types is a
+// compile error here, as a reminder to update the serializer.
 export const configOrder = {
   eventName: true,
   locale: true,
@@ -64,19 +66,6 @@ export const linkOrder = {
 
 export function keysOf<T extends object>(order: Record<keyof T, true>) {
   return Object.keys(order) as (keyof T)[];
-}
-
-export function roomRef(room: Room): string | undefined {
-  const area = room.area;
-  if (
-    typeof area === "object" &&
-    area !== null &&
-    !Array.isArray(area) &&
-    typeof area.ref === "string"
-  ) {
-    return area.ref;
-  }
-  return undefined;
 }
 
 export function assetPath(src: string): string {

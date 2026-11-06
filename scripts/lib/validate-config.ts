@@ -1,5 +1,4 @@
-import { selectableIds, type SvgTreeNode } from "./tree.ts";
-import { roomRef, type Config } from "./schema.ts";
+import type { Config, Room } from "../../app/config.types.ts";
 
 export type Issue = {
   severity: "error" | "warning";
@@ -9,13 +8,40 @@ export type Issue = {
   field?: "id" | "label" | "link" | "area" | "src";
 };
 
+/** The part of a parsed SVG tree that validation reads. */
+export type IdNode = { id: string | null; children: IdNode[] };
+
+/** The id of the SVG element a room's area refers to, if it has a `{ ref }` area. */
+export function roomRef(room: Room): string | undefined {
+  const area = room.area;
+  if (
+    typeof area === "object" &&
+    area !== null &&
+    !Array.isArray(area) &&
+    typeof area.ref === "string"
+  ) {
+    return area.ref;
+  }
+  return undefined;
+}
+
+function collectIds(nodes: IdNode[], ids: Set<string>): Set<string> {
+  for (const node of nodes) {
+    if (node.id !== null) {
+      ids.add(node.id);
+    }
+    collectIds(node.children, ids);
+  }
+  return ids;
+}
+
 /**
- * Checks a config before it is saved. `trees` holds the parsed SVG of each map
- * by `src`; checks that need an SVG are skipped for maps without one.
+ * Finds problems in a config. `trees` holds the parsed SVG of each map by
+ * `src`; checks that need an SVG are skipped for maps without one.
  */
 export function validateConfig(
   config: Config,
-  trees: Record<string, SvgTreeNode[] | undefined> = {},
+  trees: Record<string, IdNode[] | undefined> = {},
 ): Issue[] {
   const issues: Issue[] = [];
   const error = (issue: Omit<Issue, "severity">) =>
@@ -121,7 +147,7 @@ export function validateConfig(
 
     const tree = trees[map.src];
     if (tree) {
-      const known = selectableIds(tree);
+      const known = collectIds(tree, new Set());
       for (const ref of refs) {
         if (!known.has(ref)) {
           warning({

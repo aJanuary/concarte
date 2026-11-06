@@ -1,20 +1,17 @@
-import { mkdtemp, writeFile } from "fs/promises";
-import { tmpdir } from "os";
+import { readFileSync } from "fs";
 import { join } from "path";
-import { pathToFileURL } from "url";
 import { describe, expect, it } from "vitest";
-import defaultConfig from "../../../events/default/config";
 import type { Config } from "../shared/schema";
 import { normalizeConfig, serializeConfig } from "./serialize";
 
-const prettierPath = join(process.cwd(), "events", "default", "config.ts");
+const defaultConfig = JSON.parse(
+  readFileSync(
+    join(process.cwd(), "events", "default", "concarte.json"),
+    "utf8",
+  ),
+) as Config;
 
-async function reload(source: string): Promise<Config> {
-  const dir = await mkdtemp(join(tmpdir(), "concarte-editor-"));
-  const file = join(dir, "config.mts");
-  await writeFile(file, source.replace(/^import .*$/m, ""));
-  return (await import(/* @vite-ignore */ pathToFileURL(file).href)).default;
-}
+const reload = (source: string): Config => JSON.parse(source);
 
 const base: Config = {
   eventName: "Test",
@@ -25,86 +22,74 @@ const base: Config = {
 };
 
 describe("serializeConfig", () => {
-  it("round-trips the default event config", async () => {
-    const source = await serializeConfig(defaultConfig, prettierPath);
-    // The runtime dedents and trims descriptions, so compare in that form.
-    expect(normalizeConfig(await reload(source))).toEqual(
+  it("round-trips the default event config", () => {
+    expect(reload(serializeConfig(defaultConfig))).toEqual(
       normalizeConfig(defaultConfig),
     );
   });
 
-  it("is stable when serialized twice", async () => {
-    const once = await serializeConfig(defaultConfig, prettierPath);
-    const twice = await serializeConfig(await reload(once), prettierPath);
-    expect(twice).toBe(once);
+  it("leaves the default event config unchanged", () => {
+    expect(serializeConfig(defaultConfig)).toBe(
+      readFileSync(
+        join(process.cwd(), "events", "default", "concarte.json"),
+        "utf8",
+      ),
+    );
   });
 
-  it("escapes backslashes, backticks and template substitutions", async () => {
+  it("keeps multi-line descriptions", () => {
     const config: Config = {
       ...base,
       description: "line one \\\nuses `code` and ${value}\nline three",
     };
-    const source = await serializeConfig(config, prettierPath);
-    expect(normalizeConfig(await reload(source)).description).toBe(
+    expect(reload(serializeConfig(config)).description).toBe(
       config.description,
     );
   });
 
-  it("accepts blank descriptions", async () => {
+  it("accepts blank descriptions", () => {
     const config: Config = { ...base, description: "  \n " };
-    const source = await serializeConfig(config, prettierPath);
-    expect((await reload(source)).description).toBe("");
+    expect(reload(serializeConfig(config)).description).toBe("");
   });
 
-  it("writes the default map after the filters and before the maps", async () => {
+  it("writes the default map after the filters and before the maps", () => {
     const config: Config = {
       ...base,
       filters: ["A"],
       defaultMap: "m",
       maps: [{ id: "m", label: "M", src: "/m.svg", rooms: [] }],
     };
-    const source = await serializeConfig(config, prettierPath);
-    expect((await reload(source)).defaultMap).toBe("m");
-    expect(source.indexOf("filters:")).toBeLessThan(
-      source.indexOf("defaultMap:"),
+    const source = serializeConfig(config);
+    expect(reload(source).defaultMap).toBe("m");
+    expect(source.indexOf('"filters"')).toBeLessThan(
+      source.indexOf('"defaultMap"'),
     );
-    expect(source.indexOf("defaultMap:")).toBeLessThan(source.indexOf("maps:"));
+    expect(source.indexOf('"defaultMap"')).toBeLessThan(
+      source.indexOf('"maps"'),
+    );
   });
 
-  it("drops blank attributions", async () => {
+  it("drops blank attributions", () => {
     const config: Config = { ...base, attributions: ["Credit", "  "] };
-    const source = await serializeConfig(config, prettierPath);
-    expect((await reload(source)).attributions).toEqual(["Credit"]);
+    expect(reload(serializeConfig(config)).attributions).toEqual(["Credit"]);
   });
 
-  it("escapes quotes in single-line strings", async () => {
-    const config: Config = { ...base, eventName: 'The "Big" \\ Con' };
-    const source = await serializeConfig(config, prettierPath);
-    expect((await reload(source)).eventName).toBe(config.eventName);
-  });
-
-  it("indents multi-line text to its position", async () => {
-    const config: Config = { ...base, description: "one\n\ntwo" };
-    const source = await serializeConfig(config, prettierPath);
-    expect(source).toContain("description: `\n    one\n\n    two\n  `,");
-  });
-
-  it("writes keys in the order the types declare them", async () => {
-    const source = await serializeConfig(defaultConfig, prettierPath);
+  it("writes keys in the order the types declare them", () => {
+    const source = serializeConfig(defaultConfig);
     const positions = [
-      "eventName:",
-      "locale:",
-      "description:",
-      "attributions:",
-      "theme:",
-      "filters:",
-      "maps:",
-    ].map((key) => source.indexOf(`\n  ${key}`));
+      "eventName",
+      "locale",
+      "description",
+      "attributions",
+      "theme",
+      "filters",
+      "maps",
+    ].map((key) => source.indexOf(`\n  "${key}":`));
     expect(positions.every((p) => p >= 0)).toBe(true);
     expect([...positions].sort((a, b) => a - b)).toEqual(positions);
   });
 
-  it("omits unset and empty optional fields", async () => {
+  it("omits unset and empty optional fields", () => {
     const config: Config = {
       ...base,
       attributions: [],
@@ -127,15 +112,15 @@ describe("serializeConfig", () => {
         },
       ],
     };
-    const source = await serializeConfig(config, prettierPath);
+    const source = serializeConfig(config);
     for (const field of ["attributions", "filters", "overlays", "aliases"]) {
       expect(source).not.toContain(field);
     }
-    expect(source).not.toMatch(/description: ""/);
-    expect(source.match(/description:/g)).toHaveLength(1);
+    expect(source).not.toMatch(/"description": ""/);
+    expect(source.match(/"description"/g)).toHaveLength(1);
   });
 
-  it("keeps rooms in the order given", async () => {
+  it("keeps rooms in the order given", () => {
     const room = (label: string) => ({
       id: label,
       label,
@@ -152,15 +137,12 @@ describe("serializeConfig", () => {
         },
       ],
     };
-    const reloaded = await reload(await serializeConfig(config, prettierPath));
-    expect(reloaded.maps[0].rooms.map((r) => r.label)).toEqual([
-      "beta",
-      "Gamma",
-      "alpha",
-    ]);
+    expect(
+      reload(serializeConfig(config)).maps[0].rooms.map((r) => r.label),
+    ).toEqual(["beta", "Gamma", "alpha"]);
   });
 
-  it("refuses rooms whose area is not a ref", async () => {
+  it("refuses rooms whose area is not a ref", () => {
     const config: Config = {
       ...base,
       maps: [
@@ -172,6 +154,6 @@ describe("serializeConfig", () => {
         },
       ],
     };
-    await expect(serializeConfig(config, prettierPath)).rejects.toThrow();
+    expect(() => serializeConfig(config)).toThrow();
   });
 });
