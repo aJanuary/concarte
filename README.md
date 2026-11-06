@@ -94,30 +94,27 @@ server {
 
 ## Configuring
 
-Everything specific to a convention lives in its own directory under
-`events/`:
+Everything specific to a convention lives in its own folder, which can be
+anywhere on disk:
 
 ```
-events/<name>/
+<event>/
   concarte.json   # see app/config.types.ts for documentation of the options
   assets/     # maps, overlays and favicon.ico
 ```
 
-`events/default` is a working example. To create your own, copy it to
-`events/<name>` and select it with the `CONCARTE_EVENT` environment variable
-(it defaults to `default`):
+`examples/demo` is a working example. Select the folder with the
+`CONCARTE_EVENT_DIR` environment variable, which `pnpm dev` and `pnpm build`
+require:
 
 ```bash
-CONCARTE_EVENT=<name> pnpm dev
-CONCARTE_EVENT=<name> pnpm build
+CONCARTE_EVENT_DIR=/absolute/path/to/event pnpm dev
+CONCARTE_EVENT_DIR=/absolute/path/to/event pnpm build
 ```
 
 Paths in `concarte.json` such as `src: "/ground.png"` are relative to the event's
 `assets/` directory. The `public/` directory and `app/favicon.ico` are generated
 from it, so don't edit them directly.
-
-If you keep your event in a fork, leaving `default` untouched keeps merging
-upstream changes conflict-free.
 
 ### Map editor
 
@@ -154,27 +151,22 @@ pnpm editor:package --dir      # unpacked app only, for testing
 #### In a browser
 
 For working on the editor itself there is a development server with hot
-reloading. It edits one event, chosen with `CONCARTE_EVENT`, and has no Build
+reloading. It edits one event, chosen with `CONCARTE_EVENT_DIR`, and has no Build
 or Preview.
 
 ```bash
-CONCARTE_EVENT=<name> pnpm editor
+CONCARTE_EVENT_DIR=/absolute/path/to/event pnpm editor
 ```
 
 Open [http://localhost:5173](http://localhost:5173). Select shapes or groups
 in the map or the tree to make them rooms, and edit the event, maps, overlays
-and rooms in the panel. Changes save automatically to `events/<name>/concarte.json`.
+and rooms in the panel. Changes save automatically to the event's `concarte.json`.
 
 Saving rewrites the whole file: comments are not preserved and rooms are ordered
 as their elements appear in the SVG. A room inside a room group is therefore
 drawn above it and wins clicks on its own area.
 
 The editor is never part of `pnpm build`.
-
-#### Building an event outside the repository
-
-`CONCARTE_EVENT_DIR=/absolute/path/to/event pnpm build` builds the event in that
-folder, which is what the app does. It takes precedence over `CONCARTE_EVENT`.
 
 ## Contributing
 

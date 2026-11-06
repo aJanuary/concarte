@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 import { writeFileSync, mkdirSync } from "fs";
 import { join } from "path";
-import { eventLabel, loadEventConfig } from "./lib/event.js";
+import { eventDir, loadEventConfig } from "./lib/event.js";
 import { green } from "./lib/console-color.js";
 
 async function main() {
@@ -20,7 +20,7 @@ async function main() {
   writeFileSync(outputPath, themeCss, "utf-8");
 
   console.log(
-    ` ${green("✓")} Generated generated/theme.css from ${eventLabel}/concarte.json`,
+    ` ${green("✓")} Generated generated/theme.css from ${eventDir}/concarte.json`,
   );
 }
 

@@ -6,7 +6,7 @@ import { normalizeConfig, serializeConfig } from "./serialize";
 
 const defaultConfig = JSON.parse(
   readFileSync(
-    join(process.cwd(), "events", "default", "concarte.json"),
+    join(process.cwd(), "examples", "demo", "concarte.json"),
     "utf8",
   ),
 ) as Config;
@@ -31,7 +31,7 @@ describe("serializeConfig", () => {
   it("leaves the default event config unchanged", () => {
     expect(serializeConfig(defaultConfig)).toBe(
       readFileSync(
-        join(process.cwd(), "events", "default", "concarte.json"),
+        join(process.cwd(), "examples", "demo", "concarte.json"),
         "utf8",
       ),
     );

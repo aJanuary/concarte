@@ -3,7 +3,6 @@ import react from "@vitejs/plugin-react";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { defineConfig } from "vite";
-import { eventDir } from "../../scripts/lib/event.ts";
 import { editorApi } from "./server/plugin.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -14,7 +13,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    editorApi({ eventDir, root: join(here, "..", "..") }),
+    editorApi({ root: join(here, "..", "..") }),
   ],
   server: {
     port: 5173,

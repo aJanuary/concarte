@@ -8,7 +8,7 @@
     "build": "pnpm generate && next build",
     "start": "next start",
     "generate": "tsx scripts/generate.ts",
-    "generate:watch": "tsx watch --include \"events/**/*\" scripts/generate.ts",
+    "generate:watch": "tsx watch --include \"$CONCARTE_EVENT_DIR/**/*\" scripts/generate.ts",
     "generate:assets": "tsx scripts/generate-assets.ts",
     "generate:config": "tsx scripts/generate-config.ts",
     "generate:theme": "tsx scripts/generate-theme-css.ts",

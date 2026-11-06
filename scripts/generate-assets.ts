@@ -1,14 +1,14 @@
 #!/usr/bin/env tsx
 import { cpSync, existsSync, mkdirSync, renameSync, rmSync } from "fs";
 import { join } from "path";
-import { assetsDir, eventLabel } from "./lib/event.js";
+import { assetsDir, eventDir } from "./lib/event.js";
 import { green } from "./lib/console-color.js";
 
 const root = process.cwd();
 const publicDir = join(root, "public");
 
 if (!existsSync(assetsDir)) {
-  console.error(`No assets directory at ${eventLabel}/assets.`);
+  console.error(`No assets directory at ${eventDir}/assets.`);
   process.exit(1);
 }
 
@@ -23,4 +23,4 @@ if (existsSync(favicon)) {
   renameSync(favicon, join(root, "app", "favicon.ico"));
 }
 
-console.log(` ${green("✓")} Copied ${eventLabel}/assets to public/`);
+console.log(` ${green("✓")} Copied ${eventDir}/assets to public/`);
