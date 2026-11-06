@@ -179,7 +179,11 @@ function Editor({
   const [treeWidth, setTreeWidth] = useStoredWidth("editor.treeWidth", 260);
   const [panelWidth, setPanelWidth] = useStoredWidth("editor.panelWidth", 440);
 
-  const svgs = useSvgs(doc.maps.map((m) => m.src));
+  const {
+    svgs,
+    changed: changedSvgs,
+    reload: reloadSvg,
+  } = useSvgs(doc.maps.map((m) => m.src));
   const trees = useMemo(() => {
     const byMap: Record<string, SvgTreeNode[] | undefined> = {};
     for (const [src, svg] of Object.entries(svgs)) {
@@ -547,6 +551,8 @@ function Editor({
           <Tree
             doc={doc}
             data={treeData}
+            changedSvgs={changedSvgs}
+            onReloadSvg={reloadSvg}
             issues={issues}
             selection={effective}
             onSelect={select}

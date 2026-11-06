@@ -1,4 +1,4 @@
-import type { Config } from "./schema";
+import type { Config } from "./schema.ts";
 
 export type LoadResponse = {
   eventName: string;
@@ -19,3 +19,6 @@ export type SaveResponse =
   | { ok: true; mtime: number }
   | { ok: false; reason: "conflict" }
   | { ok: false; reason: "invalid"; errors: string[] };
+
+/** Vite HMR custom event sent when a file under the assets directory changes. */
+export const ASSET_CHANGED_EVENT = "concarte:asset-changed";

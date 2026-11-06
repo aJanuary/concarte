@@ -64,6 +64,7 @@ function Row({
   onToggle,
   onClick,
   leading,
+  trailing,
   children,
   rowKey,
   parentKey,
@@ -76,6 +77,7 @@ function Row({
   onToggle?: () => void;
   onClick?: () => void;
   leading?: React.ReactNode;
+  trailing?: React.ReactNode;
   children: React.ReactNode;
   rowKey: string;
   parentKey?: string;
@@ -130,6 +132,7 @@ function Row({
       >
         {children}
       </button>
+      {trailing}
     </div>
   );
 }
@@ -137,6 +140,8 @@ function Row({
 export function Tree({
   doc,
   data,
+  changedSvgs,
+  onReloadSvg,
   issues,
   selection,
   onSelect,
@@ -144,6 +149,8 @@ export function Tree({
   doc: Config;
   issues: Issue[];
   data: TreeData;
+  changedSvgs: Set<string>;
+  onReloadSvg: (src: string) => void;
   selection: Selection;
   onSelect: (selection: Selection) => void;
 }) {
@@ -444,6 +451,18 @@ export function Tree({
                       open={open}
                       onToggle={() => toggle(key)}
                       onClick={() => onSelect({ kind: "map", mapSrc: map.src })}
+                      trailing={
+                        changedSvgs.has(map.src) && (
+                          <button
+                            type="button"
+                            title="The SVG changed on disk. Reload it."
+                            onClick={() => onReloadSvg(map.src)}
+                            className="my-0.5 shrink-0 rounded-full bg-amber-100 px-2 text-xs leading-4 text-amber-800 hover:bg-amber-200"
+                          >
+                            Reload
+                          </button>
+                        )
+                      }
                     >
                       <MapIcon className="size-4 shrink-0 text-slate-500" />
                       <span className="truncate font-semibold">

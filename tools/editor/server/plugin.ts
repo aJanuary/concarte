@@ -10,7 +10,12 @@ import { readdir } from "fs/promises";
 import type { IncomingMessage, ServerResponse } from "http";
 import { join, normalize, relative, sep, extname } from "path";
 import type { Plugin } from "vite";
-import type { LoadResponse, SaveRequest, SaveResponse } from "../shared/api.ts";
+import {
+  ASSET_CHANGED_EVENT,
+  type LoadResponse,
+  type SaveRequest,
+  type SaveResponse,
+} from "../shared/api.ts";
 import type { Config } from "../shared/schema.ts";
 import { validateConfig } from "../shared/validate.ts";
 import { checkConfig } from "./checks.ts";
@@ -177,6 +182,22 @@ export function editorApi(options: Options): Plugin {
         renameSync(tmpPath, configPath);
         respond(200, { ok: true, mtime: statSync(configPath).mtimeMs });
       }
+
+      // The assets directory is outside the Vite root, so it isn't watched
+      // until added.
+      server.watcher.add(assetsDir);
+      const notifyAsset = (file: string) => {
+        const path = relative(assetsDir, file).split(sep).join("/");
+        if (!path.startsWith("..")) {
+          server.ws.send({
+            type: "custom",
+            event: ASSET_CHANGED_EVENT,
+            data: path,
+          });
+        }
+      };
+      server.watcher.on("change", notifyAsset);
+      server.watcher.on("unlink", notifyAsset);
 
       server.middlewares.use(async (req, res, next) => {
         const url = new URL(req.url ?? "/", "http://localhost");
