@@ -171,7 +171,13 @@ export function createDevRunner(options: DevRunnerOptions) {
       running = { eventDir, url };
       return { ok: true, url };
     } catch (e) {
-      const tail = log.trim().split("\n").slice(-8).join("\n");
+      // Stack frames would crowd out the message naming what went wrong.
+      const tail = log
+        .trim()
+        .split("\n")
+        .filter((line) => !/^\s+at /.test(line))
+        .slice(-8)
+        .join("\n");
       await stop();
       return {
         ok: false,

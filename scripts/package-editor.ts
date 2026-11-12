@@ -142,7 +142,7 @@ run("pnpm", [
   "--config",
   join(root, "tools", "editor", "app", "electron-builder.yml"),
   `-c.electronVersion=${electronVersion}`,
-  `-c.afterPack=${join(root, "tools", "editor", "app", "copy-declarations.cjs")}`,
+  `-c.afterPack=${join(root, "tools", "editor", "app", "copy-node-modules.cjs")}`,
   `-c.directories.output=${output}`,
   "--publish",
   "never",
