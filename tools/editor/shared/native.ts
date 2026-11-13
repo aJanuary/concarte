@@ -1,3 +1,5 @@
+import type { Settings, SettingsUpdate } from "./settings.ts";
+
 /** What the Electron preload script exposes as `window.concarte`. */
 
 export type NativeResult =
@@ -20,6 +22,11 @@ export type EditAction = "undo" | "redo";
 export type EditState = { undo: string | null; redo: string | null };
 
 export type ConcarteNative = {
+  getSettings(): Promise<Settings>;
+  /** Saves the valid parts of `update` and resolves to the new settings. */
+  updateSettings(update: SettingsUpdate): Promise<Settings>;
+  /** Calls back when Settings is chosen in the menu. Returns an unsubscribe. */
+  onOpenSettings(callback: () => void): () => void;
   newEvent(): Promise<NativeResult>;
   openEvent(path?: string): Promise<NativeResult>;
   /** Calls back when a File menu item is chosen. Returns an unsubscribe. */

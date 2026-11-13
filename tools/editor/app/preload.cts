@@ -6,6 +6,15 @@ import type {
 } from "../shared/native.ts";
 
 const native: ConcarteNative = {
+  getSettings: () => ipcRenderer.invoke("settings:get"),
+  updateSettings: (update) => ipcRenderer.invoke("settings:update", update),
+  onOpenSettings(callback) {
+    const listener = () => callback();
+    ipcRenderer.on("settings:open", listener);
+    return () => {
+      ipcRenderer.off("settings:open", listener);
+    };
+  },
   newEvent: () => ipcRenderer.invoke("event:new"),
   openEvent: (path) => ipcRenderer.invoke("event:open", path),
   onMenu(callback) {

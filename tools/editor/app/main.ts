@@ -4,6 +4,7 @@ import {
   dialog,
   ipcMain,
   Menu,
+  nativeTheme,
   shell,
   type MenuItemConstructorOptions,
 } from "electron";
@@ -35,12 +36,28 @@ import {
   readRecents,
   removeRecent,
 } from "../server/recents.ts";
+import { readSettings, updateSettings } from "../server/settings.ts";
+import type { Settings } from "../shared/settings.ts";
 
 // The bundle sits at the root of the packaged app, beside the site's files,
 // and in build/editor/ during development.
 const bundleDir = dirname(fileURLToPath(import.meta.url));
 const packaged = app.isPackaged;
 const recentsFile = join(app.getPath("userData"), "recents.json");
+const settingsFile = join(app.getPath("userData"), "settings.json");
+
+// The renderer's prefers-color-scheme follows themeSource, so this alone
+// themes both the native chrome and the page.
+function applySettings(settings: Settings) {
+  nativeTheme.themeSource = settings.appearance.theme;
+}
+
+ipcMain.handle("settings:get", () => readSettings(settingsFile));
+ipcMain.handle("settings:update", (_, update: unknown) => {
+  const settings = updateSettings(settingsFile, update);
+  applySettings(settings);
+  return settings;
+});
 
 /**
  * The site is built in a writable copy: the installed app may be read-only and
@@ -139,9 +156,32 @@ function buildMenu() {
       click: () => send({ type: "open-recent", path }),
     }),
   );
+  const mac = process.platform === "darwin";
+  const settingsItem: MenuItemConstructorOptions = {
+    label: "Settings...",
+    accelerator: "CmdOrCtrl+,",
+    click: () => window?.webContents.send("settings:open"),
+  };
   const template: MenuItemConstructorOptions[] = [
-    ...(process.platform === "darwin"
-      ? [{ role: "appMenu" } as MenuItemConstructorOptions]
+    ...(mac
+      ? [
+          {
+            label: app.name,
+            submenu: [
+              { role: "about" },
+              { type: "separator" },
+              settingsItem,
+              { type: "separator" },
+              { role: "services" },
+              { type: "separator" },
+              { role: "hide" },
+              { role: "hideOthers" },
+              { role: "unhide" },
+              { type: "separator" },
+              { role: "quit" },
+            ],
+          } as MenuItemConstructorOptions,
+        ]
       : []),
     {
       label: "File",
@@ -162,7 +202,8 @@ function buildMenu() {
           submenu: recents,
         },
         { type: "separator" },
-        process.platform === "darwin" ? { role: "close" } : { role: "quit" },
+        ...(mac ? [] : [settingsItem, { type: "separator" } as const]),
+        mac ? { role: "close" } : { role: "quit" },
       ],
     },
     {
@@ -336,6 +377,7 @@ if (!app.requestSingleInstanceLock()) {
   });
 
   app.whenReady().then(async () => {
+    applySettings(readSettings(settingsFile));
     buildMenu();
     const dir = eventArgument(process.argv);
     if (dir) {
