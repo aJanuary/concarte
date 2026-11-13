@@ -7,6 +7,7 @@ import {
   Menu,
   MenuItem,
   MenuTrigger,
+  ToggleButton,
   Tooltip,
   TooltipTrigger,
   TreeView,
@@ -21,6 +22,7 @@ import Filter from "@react-spectrum/s2/icons/Filter";
 import Folder from "@react-spectrum/s2/icons/Folder";
 import ImageIcon from "@react-spectrum/s2/icons/Image";
 import Refresh from "@react-spectrum/s2/icons/Refresh";
+import Settings from "@react-spectrum/s2/icons/Settings";
 import {
   iconStyle,
   style,
@@ -70,7 +72,6 @@ type IssueCounts = { errors: number; warnings: number };
 
 export type TreeData = Record<string, SvgTreeNode[] | "error" | undefined>;
 
-const eventKey = "event";
 const mapKey = (src: string) => `map:${src}`;
 const nodeKey = (src: string, node: SvgTreeNode) => `${src}|${node.key}`;
 const statusKey = (src: string) => `status:${src}`;
@@ -106,9 +107,9 @@ function sameSelection(a: Selection, b: Selection): boolean {
 
 function keysToReveal(selection: Selection, data: TreeData): string[] {
   if (selection.kind === "event" || selection.kind === "addMap") {
-    return [eventKey];
+    return [];
   }
-  const keys = [eventKey, mapKey(selection.mapSrc)];
+  const keys = [mapKey(selection.mapSrc)];
   if (selection.kind === "node") {
     const tree = data[selection.mapSrc];
     const found = Array.isArray(tree)
@@ -124,7 +125,6 @@ function keysToReveal(selection: Selection, data: TreeData): string[] {
 function selectionKey(selection: Selection): string | undefined {
   switch (selection.kind) {
     case "event":
-      return eventKey;
     case "addMap":
       return undefined;
     case "map":
@@ -278,8 +278,8 @@ export function Tree({
 
   // Filled while rendering: which selection each row stands for, and the
   // order of the rows currently shown (for scrolling to the selection).
-  const selections = new Map<Key, Selection>([[eventKey, { kind: "event" }]]);
-  const visible: Key[] = [eventKey];
+  const selections = new Map<Key, Selection>();
+  const visible: Key[] = [];
   const statusKeys: Key[] = [];
 
   const renderNodes = (
@@ -332,11 +332,8 @@ export function Tree({
   const mapItems = doc.maps.map((map) => {
     const key = mapKey(map.src);
     selections.set(key, { kind: "map", mapSrc: map.src });
-    const mapShown = expanded.has(eventKey);
-    if (mapShown) {
-      visible.push(key);
-    }
-    const childrenShown = mapShown && expanded.has(key);
+    visible.push(key);
+    const childrenShown = expanded.has(key);
     const data_ = data[map.src];
     const tree = Array.isArray(data_) ? data_ : undefined;
     const refs = rooms[map.src];
@@ -440,10 +437,26 @@ export function Tree({
           borderColor: "gray-200",
         })}
       >
+        {/* The event's own settings: the tree holds only its maps. */}
+        <ToggleButton
+          isQuiet
+          size="S"
+          isSelected={selection.kind === "event"}
+          onChange={() => onSelect({ kind: "event" })}
+          styles={style({ flexShrink: 1, minWidth: 0 })}
+        >
+          <Settings />
+          <Text>
+            <span style={doc.eventName ? undefined : { fontStyle: "italic" }}>
+              {doc.eventName || "(unnamed event)"}
+            </span>
+          </Text>
+        </ToggleButton>
         <ActionButton
           isQuiet
           size="S"
           onPress={() => onSelect({ kind: "addMap" })}
+          styles={style({ marginStart: "auto", flexShrink: 0 })}
         >
           <Add />
           <Text>Add map</Text>
@@ -453,7 +466,7 @@ export function Tree({
             aria-label="Filter"
             isQuiet
             size="S"
-            styles={style({ marginStart: "auto" })}
+            styles={style({ flexShrink: 0 })}
           >
             <Filter />
           </ActionButton>
@@ -475,7 +488,7 @@ export function Tree({
       </div>
       <div ref={scroller} className={style({ minHeight: 0, flexGrow: 1 })}>
         <TreeView
-          aria-label="Event structure"
+          aria-label="Maps"
           selectionMode="single"
           selectionStyle="highlight"
           disallowEmptySelection
@@ -492,20 +505,7 @@ export function Tree({
           disabledKeys={statusKeys}
           styles={style({ height: "full" })}
         >
-          <TreeViewItem
-            id={eventKey}
-            textValue={doc.eventName || "(unnamed event)"}
-            hasChildItems
-          >
-            <TreeViewItemContent>
-              <RowText
-                label={doc.eventName || "(unnamed event)"}
-                placeholder={!doc.eventName}
-                detail="event"
-              />
-            </TreeViewItemContent>
-            {mapItems}
-          </TreeViewItem>
+          {mapItems}
         </TreeView>
       </div>
     </div>
