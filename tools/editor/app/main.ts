@@ -12,6 +12,7 @@ import {
   existsSync,
   mkdirSync,
   readdirSync,
+  readFileSync,
   rmSync,
   writeFileSync,
 } from "fs";
@@ -50,8 +51,14 @@ const siteRoot = packaged
   : join(bundleDir, "..", "..");
 
 async function prepareSite(log: (text: string) => void): Promise<void> {
+  // Keyed by build, not version: rebuilds of the same version must not
+  // reuse a copy of an older build's files.
   const marker = join(siteRoot, ".copied");
-  if (!packaged || existsSync(marker)) {
+  if (!packaged) {
+    return;
+  }
+  const buildId = readFileSync(join(bundleDir, "build-id.txt"), "utf8");
+  if (existsSync(marker) && readFileSync(marker, "utf8") === buildId) {
     return;
   }
   log("Preparing the build tools. This only happens once...\n");
@@ -61,7 +68,7 @@ async function prepareSite(log: (text: string) => void): Promise<void> {
     recursive: true,
     filter: (source) => source !== join(bundleDir, "ui"),
   });
-  writeFileSync(marker, "");
+  writeFileSync(marker, buildId);
   for (const entry of readdirSync(app.getPath("userData"))) {
     if (
       entry.startsWith("site-") &&

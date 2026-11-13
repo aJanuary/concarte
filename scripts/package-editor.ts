@@ -75,6 +75,9 @@ cpSync(join(root, "scripts"), join(stage, "scripts"), {
     ),
 });
 
+// Lets the installed editor tell whether its copy of the site is current.
+writeFileSync(join(stage, "build-id.txt"), String(Date.now()));
+
 // A flat node_modules exposes every transitive @types package, and tsconfig
 // includes all visible ones implicitly, including some that are broken alone.
 const tsconfig = JSON.parse(
