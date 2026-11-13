@@ -282,6 +282,9 @@ export function MapView({
       ref={viewport}
       className={style({
         position: "relative",
+        // Own stacking context: the controls' z-index stays inside the map
+        // and can't rise above dialogs.
+        isolation: "isolate",
         height: "full",
         touchAction: "none",
         overflow: "hidden",
