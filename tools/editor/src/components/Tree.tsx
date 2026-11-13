@@ -1,14 +1,30 @@
+// Spectrum has no floor-plan or map icon.
+import { MapIcon as HeroMapIcon } from "@heroicons/react/16/solid";
 import {
-  ChevronDownIcon,
-  ChevronRightIcon,
-  Squares2X2Icon,
-  FolderIcon,
-  MapIcon,
-  MapPinIcon,
-  PlusIcon,
-  StopIcon,
-} from "@heroicons/react/16/solid";
-import { useEffect, useMemo, useRef, useState } from "react";
+  ActionButton,
+  ActionButtonGroup,
+  createIcon,
+  IconContext,
+  Text,
+  ToggleButton,
+  Tooltip,
+  TooltipTrigger,
+  TreeView,
+  TreeViewItem,
+  TreeViewItemContent,
+  type Key,
+} from "@react-spectrum/s2";
+import Add from "@react-spectrum/s2/icons/Add";
+import AlertDiamond from "@react-spectrum/s2/icons/AlertDiamond";
+import AlertTriangle from "@react-spectrum/s2/icons/AlertTriangle";
+import Folder from "@react-spectrum/s2/icons/Folder";
+import Refresh from "@react-spectrum/s2/icons/Refresh";
+import ViewGrid from "@react-spectrum/s2/icons/ViewGrid";
+import {
+  iconStyle,
+  style,
+} from "@react-spectrum/s2/style" with { type: "macro" };
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { roomRef, type Config } from "../../shared/schema";
 import {
   filterTree,
@@ -19,7 +35,36 @@ import {
 import { defaultMapOf } from "../doc/ops";
 import type { Issue } from "../../../../scripts/lib/validate-config";
 import type { Selection } from "./Panels";
-import { IssueBadges } from "./widgets";
+
+const MapIcon = createIcon(HeroMapIcon);
+// Room pins, drawn from Spectrum's Location icon. Both are kept here rather
+// than using Spectrum's own outline so the pair stays matched if the
+// library's pin changes.
+const PIN_OUTLINE =
+  "M10.005 18.583H10c-.557-.001-1.071-.248-1.413-.679C6.688 15.514 3.5 10.98 3.5 7.49c0-3.446 2.916-6.25 6.5-6.25s6.5 2.804 6.5 6.25c0 3.55-3.186 8.052-5.084 10.421-.342.427-.856.672-1.411.672";
+
+/** A room: the pin filled, with its centre dot cut out. */
+const RoomPin = createIcon((props) => (
+  <svg viewBox="0 0 20 20" {...props}>
+    <path
+      fill="var(--iconPrimary, currentColor)"
+      fillRule="evenodd"
+      d={`${PIN_OUTLINE}ZM10 5.49a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z`}
+    />
+  </svg>
+));
+
+/** A shape not yet assigned to a room: the pin's outline, faded. */
+const UnassignedPin = createIcon((props) => (
+  <svg viewBox="0 0 20 20" {...props}>
+    <g fill="var(--iconPrimary, currentColor)" fillOpacity={0.5}>
+      <path d="M10 9.99c-1.379 0-2.5-1.12-2.5-2.5s1.121-2.5 2.5-2.5 2.5 1.121 2.5 2.5-1.121 2.5-2.5 2.5m0-3.5c-.552 0-1 .448-1 1s.448 1 1 1 1-.448 1-1-.448-1-1-1" />
+      <path
+        d={`${PIN_OUTLINE}M10 2.74c-2.757 0-5 2.131-5 4.75 0 3.148 3.331 7.68 4.763 9.482.08.1.195.111.24.111h.002c.046 0 .161-.01.24-.11C11.675 15.19 15 10.698 15 7.49c0-2.619-2.243-4.75-5-4.75`}
+      />
+    </g>
+  </svg>
+));
 
 type IssueCounts = { errors: number; warnings: number };
 
@@ -28,6 +73,23 @@ export type TreeData = Record<string, SvgTreeNode[] | "error" | undefined>;
 const eventKey = "event";
 const mapKey = (src: string) => `map:${src}`;
 const nodeKey = (src: string, node: SvgTreeNode) => `${src}|${node.key}`;
+const statusKey = (src: string) => `status:${src}`;
+
+// TreeView's fixed row height at the default (medium) scale.
+const ROW_PX = 40;
+
+// TreeView draws row text in the subdued colour, so labels are raised to the
+// full-strength colour to set ids and placeholders apart.
+const labelStyle = style({ color: "neutral" });
+const detailStyle = style({ color: "neutral-subdued", marginStart: 8 });
+const issueIconsStyle = style({
+  gridArea: "actions",
+  display: "flex",
+  alignItems: "center",
+  gap: 4,
+  marginEnd: 8,
+});
+const subduedStyle = style({ color: "neutral-subdued" });
 
 function sameSelection(a: Selection, b: Selection): boolean {
   if (a.kind !== b.kind) {
@@ -59,83 +121,70 @@ function keysToReveal(selection: Selection, data: TreeData): string[] {
   return keys;
 }
 
-function Row({
-  depth,
-  selected,
-  open,
-  onToggle,
-  onClick,
-  leading,
-  trailing,
-  children,
-  rowKey,
-  parentKey,
-  focusable,
-  onFocusRow,
+function selectionKey(selection: Selection): string | undefined {
+  switch (selection.kind) {
+    case "event":
+      return eventKey;
+    case "addMap":
+      return undefined;
+    case "map":
+      return mapKey(selection.mapSrc);
+    case "node":
+      return `${selection.mapSrc}|${selection.key}`;
+  }
+}
+
+/** The row's single line: a label, then subdued detail such as the id. */
+function RowText({
+  label,
+  placeholder,
+  subdued,
+  detail,
 }: {
-  depth: number;
-  selected: boolean;
-  open?: boolean;
-  onToggle?: () => void;
-  onClick?: () => void;
-  leading?: React.ReactNode;
-  trailing?: React.ReactNode;
-  children: React.ReactNode;
-  rowKey: string;
-  parentKey?: string;
-  focusable: boolean;
-  onFocusRow: (key: string) => void;
+  label: ReactNode;
+  placeholder?: boolean;
+  subdued?: boolean;
+  detail?: string;
 }) {
   return (
-    <div
-      role="treeitem"
-      tabIndex={focusable ? 0 : -1}
-      onFocus={(e) => {
-        if (e.target === e.currentTarget) {
-          onFocusRow(rowKey);
-        }
-      }}
-      onClick={(e) => e.currentTarget.focus()}
-      data-parent={parentKey}
-      aria-selected={selected}
-      aria-expanded={open}
-      data-row={rowKey}
-      className={
-        "flex items-start gap-1 pr-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-600 " +
-        (selected ? "bg-blue-100 " : "hover:bg-slate-100 ") +
-        "text-slate-800"
-      }
-      style={{ paddingLeft: 4 + depth * 14 }}
-    >
-      {leading ? (
-        <span className="mt-0.5 size-4 shrink-0">{leading}</span>
-      ) : (
-        <button
-          type="button"
-          tabIndex={-1}
-          data-toggle
-          aria-label={open ? "Collapse" : "Expand"}
-          className={"mt-0.5 size-4 shrink-0 " + (onToggle ? "" : "invisible")}
-          onClick={onToggle}
-        >
-          {open ? (
-            <ChevronDownIcon className="size-4" />
-          ) : (
-            <ChevronRightIcon className="size-4" />
-          )}
-        </button>
-      )}
-      <button
-        type="button"
-        tabIndex={-1}
-        data-activate
-        onClick={onClick}
-        className="flex min-w-0 flex-1 items-start gap-1 py-0.5 text-left leading-4"
+    <Text>
+      <span
+        className={placeholder || subdued ? subduedStyle : labelStyle}
+        // style() has no font-style property.
+        style={placeholder ? { fontStyle: "italic" } : undefined}
       >
-        {children}
-      </button>
-      {trailing}
-    </div>
+        {label}
+      </span>
+      {detail && <span className={detailStyle}>{detail}</span>}
+    </Text>
+  );
+}
+
+function IssueIcons({ counts }: { counts: IssueCounts }) {
+  // In the row's actions area so long labels can't truncate them. TreeView
+  // puts every icon in the row's leading icon slot; an empty context keeps
+  // these here.
+  return (
+    <span className={issueIconsStyle}>
+      <IconContext.Provider value={{}}>
+        {counts.errors > 0 && (
+          <span className="inline-flex">
+            <AlertDiamond
+              aria-label={`${counts.errors} error${counts.errors === 1 ? "" : "s"}`}
+              styles={iconStyle({ size: "S", color: "negative" })}
+            />
+          </span>
+        )}
+        {counts.warnings > 0 && (
+          <span className="inline-flex">
+            <AlertTriangle
+              aria-label={`${counts.warnings} warning${counts.warnings === 1 ? "" : "s"}`}
+              styles={iconStyle({ size: "S", color: "notice" })}
+            />
+          </span>
+        )}
+      </IconContext.Provider>
+    </span>
   );
 }
 
@@ -157,13 +206,12 @@ export function Tree({
   onSelect: (selection: Selection) => void;
 }) {
   const [showUnassigned, setShowUnassigned] = useState(true);
-  const [expanded, setExpanded] = useState<Set<string>>(
+  const [expanded, setExpanded] = useState<Set<Key>>(
     () => new Set(keysToReveal(selection, data)),
   );
   const [seen, setSeen] = useState(selection);
   const [opened, setOpened] = useState<Set<string>>(new Set());
-  const container = useRef<HTMLDivElement>(null);
-  const [focusKey, setFocusKey] = useState(eventKey);
+  const scroller = useRef<HTMLDivElement>(null);
 
   const fresh = doc.maps.filter(
     (m) => Array.isArray(data[m.src]) && !opened.has(m.src),
@@ -189,86 +237,6 @@ export function Tree({
     setExpanded(next);
   }
 
-  const selectedKey =
-    selection.kind === "event"
-      ? eventKey
-      : selection.kind === "addMap"
-        ? "addMap"
-        : selection.kind === "map"
-          ? mapKey(selection.mapSrc)
-          : `${selection.mapSrc}|${selection.key}`;
-
-  useEffect(() => {
-    const row = container.current?.querySelector(
-      `[data-selected-id="${CSS.escape(selectedKey)}"]`,
-    );
-    row?.scrollIntoView({ block: "nearest" });
-  }, [selectedKey]);
-
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    const item = e.target as HTMLElement;
-    if (item.getAttribute("role") !== "treeitem") {
-      return;
-    }
-    const items = Array.from(
-      e.currentTarget.querySelectorAll<HTMLElement>('[role="treeitem"]'),
-    );
-    const index = items.indexOf(item);
-    const expandedState = item.getAttribute("aria-expanded");
-    const toggleButton = item.querySelector<HTMLElement>("[data-toggle]");
-    const activateButton =
-      item.querySelector<HTMLButtonElement>("[data-activate]");
-    let target: HTMLElement | undefined;
-    switch (e.key) {
-      case "ArrowDown":
-        target = items[index + 1];
-        break;
-      case "ArrowUp":
-        target = items[index - 1];
-        break;
-      case "Home":
-        target = items[0];
-        break;
-      case "End":
-        target = items[items.length - 1];
-        break;
-      case "ArrowRight":
-        if (expandedState === "false") {
-          toggleButton?.click();
-        } else if (expandedState === "true") {
-          target = items[index + 1];
-        }
-        break;
-      case "ArrowLeft": {
-        if (expandedState === "true") {
-          toggleButton?.click();
-        } else {
-          const parent = item.dataset.parent;
-          target = parent
-            ? (items.find((i) => i.dataset.row === parent) ?? undefined)
-            : undefined;
-        }
-        break;
-      }
-      case "Enter":
-      case " ":
-        activateButton?.click();
-        break;
-      default:
-        return;
-    }
-    e.preventDefault();
-    target?.focus();
-  };
-
-  const toggle = (key: string) => {
-    const next = new Set(expanded);
-    if (!next.delete(key)) {
-      next.add(key);
-    }
-    setExpanded(next);
-  };
-
   const rooms = useMemo(() => {
     const byMap: Record<string, Set<string>> = {};
     for (const map of doc.maps) {
@@ -293,8 +261,6 @@ export function Tree({
     return byMap;
   }, [issues]);
 
-  const defaultMap = defaultMapOf(doc);
-
   const labels = useMemo(() => {
     const byMap: Record<string, Map<string, string>> = {};
     for (const map of doc.maps) {
@@ -308,217 +274,219 @@ export function Tree({
     return byMap;
   }, [doc]);
 
+  const defaultMap = defaultMapOf(doc);
+
+  // Filled while rendering: which selection each row stands for, and the
+  // order of the rows currently shown (for scrolling to the selection).
+  const selections = new Map<Key, Selection>([[eventKey, { kind: "event" }]]);
+  const visible: Key[] = [eventKey];
+  const statusKeys: Key[] = [];
+
   const renderNodes = (
     mapSrc: string,
     nodes: SvgTreeNode[],
-    depth: number,
-    parentKey: string,
-  ): React.ReactNode =>
+    shown: boolean,
+  ): ReactNode =>
     nodes.map((node) => {
       const key = nodeKey(mapSrc, node);
+      selections.set(key, { kind: "node", mapSrc, key: node.key });
+      if (shown) {
+        visible.push(key);
+      }
       const isRoom = node.id !== null && rooms[mapSrc].has(node.id);
+      const label = isRoom && node.id !== null && labels[mapSrc].get(node.id);
       const counts =
         isRoom && node.id !== null
           ? roomIssues[mapSrc]?.get(node.id)
           : undefined;
-      const open = expanded.has(key);
-      const hasChildren = node.children.length > 0;
-      const selected =
-        selection.kind === "node" &&
-        selection.mapSrc === mapSrc &&
-        selection.key === node.key;
       return (
-        <div key={key}>
-          <div data-selected-id={key}>
-            <Row
-              rowKey={key}
-              parentKey={parentKey}
-              focusable={focusKey === key}
-              onFocusRow={setFocusKey}
-              depth={depth}
-              selected={selected}
-              open={hasChildren ? open : undefined}
-              onToggle={hasChildren ? () => toggle(key) : undefined}
-              onClick={() => onSelect({ kind: "node", mapSrc, key: node.key })}
-              trailing={
-                counts && (
-                  <span className="flex gap-1 self-center">
-                    <IssueBadges
-                      errors={counts.errors}
-                      warnings={counts.warnings}
-                    />
-                  </span>
-                )
-              }
-            >
-              {isRoom ? (
-                <MapPinIcon className="size-4 shrink-0 text-blue-600" />
-              ) : node.isGroup ? (
-                <FolderIcon className="size-4 shrink-0 text-slate-400" />
-              ) : (
-                <StopIcon className="size-4 shrink-0 text-slate-400" />
-              )}
-              <span className="flex min-w-0 flex-col">
-                <span className="truncate">
-                  {(node.id !== null &&
-                    isRoom &&
-                    labels[mapSrc].get(node.id)) || (
-                    <span className="text-slate-400 italic">
-                      {isRoom
-                        ? "No label"
-                        : node.id === null
-                          ? "Unassignable"
-                          : "Unassigned"}
-                    </span>
-                  )}
-                </span>
-                <span className="truncate font-mono text-xs text-slate-500">
-                  {node.id ?? "(no id)"}
-                </span>
-              </span>
-            </Row>
-          </div>
-          {hasChildren &&
-            open &&
-            renderNodes(mapSrc, node.children, depth + 1, key)}
-        </div>
+        <TreeViewItem
+          key={key}
+          id={key}
+          textValue={label || node.id || "(no id)"}
+          hasChildItems={node.children.length > 0}
+        >
+          <TreeViewItemContent>
+            {isRoom ? (
+              <RoomPin />
+            ) : node.isGroup ? (
+              <Folder />
+            ) : (
+              <UnassignedPin />
+            )}
+            {/* The icon says whether it's a room; the text is its label
+                when it has one, otherwise just its id. */}
+            <RowText
+              label={label || node.id || "(no id)"}
+              placeholder={node.id === null}
+              subdued={!isRoom}
+              detail={label ? `(${node.id})` : undefined}
+            />
+            {counts && <IssueIcons counts={counts} />}
+          </TreeViewItemContent>
+          {renderNodes(mapSrc, node.children, shown && expanded.has(key))}
+        </TreeViewItem>
       );
     });
 
+  const mapItems = doc.maps.map((map) => {
+    const key = mapKey(map.src);
+    selections.set(key, { kind: "map", mapSrc: map.src });
+    const mapShown = expanded.has(eventKey);
+    if (mapShown) {
+      visible.push(key);
+    }
+    const childrenShown = mapShown && expanded.has(key);
+    const data_ = data[map.src];
+    const tree = Array.isArray(data_) ? data_ : undefined;
+    const refs = rooms[map.src];
+    const shown = tree
+      ? filterTree(tree, (n) =>
+          showUnassigned ? n.id !== null : n.id !== null && refs.has(n.id),
+        )
+      : undefined;
+    const status =
+      data_ === undefined
+        ? "Loading..."
+        : data_ === "error"
+          ? "Could not read this SVG."
+          : shown?.length === 0
+            ? showUnassigned
+              ? "No shapes with ids"
+              : "No rooms"
+            : undefined;
+    if (status) {
+      statusKeys.push(statusKey(map.src));
+      if (childrenShown) {
+        visible.push(statusKey(map.src));
+      }
+    }
+    return (
+      <TreeViewItem
+        key={key}
+        id={key}
+        textValue={map.label || map.id || map.src}
+        hasChildItems
+      >
+        <TreeViewItemContent>
+          <MapIcon />
+          <RowText
+            label={map.label || map.id || map.src}
+            detail={map === defaultMap ? "map · default" : "map"}
+          />
+          {changedSvgs.has(map.src) && (
+            <ActionButtonGroup>
+              <TooltipTrigger>
+                <ActionButton
+                  isQuiet
+                  aria-label="Reload SVG"
+                  onPress={() => onReloadSvg(map.src)}
+                >
+                  <Refresh />
+                </ActionButton>
+                <Tooltip>The SVG changed on disk. Reload it.</Tooltip>
+              </TooltipTrigger>
+            </ActionButtonGroup>
+          )}
+        </TreeViewItemContent>
+        {status && (
+          <TreeViewItem id={statusKey(map.src)} textValue={status}>
+            <TreeViewItemContent>
+              <RowText label={status} placeholder />
+            </TreeViewItemContent>
+          </TreeViewItem>
+        )}
+        {shown && renderNodes(map.src, shown, childrenShown)}
+      </TreeViewItem>
+    );
+  });
+
+  const selectedKey = selectionKey(selection);
+  const selectedIndex =
+    selectedKey === undefined ? -1 : visible.indexOf(selectedKey);
+
+  // The tree only renders the rows on screen, so the selected row may not
+  // exist yet to scroll into view; work out where it sits instead.
+  useEffect(() => {
+    const el =
+      scroller.current?.querySelector<HTMLElement>('[role="treegrid"]');
+    if (!el || selectedIndex < 0) {
+      return;
+    }
+    const top = selectedIndex * ROW_PX;
+    if (top < el.scrollTop) {
+      el.scrollTop = top;
+    } else if (top + ROW_PX > el.scrollTop + el.clientHeight) {
+      el.scrollTop = top + ROW_PX - el.clientHeight;
+    }
+  }, [selectedIndex]);
+
   return (
     <div className="flex h-full flex-col">
-      <div className="flex border-b border-slate-200 p-1">
-        <button
-          type="button"
-          aria-pressed={showUnassigned}
-          title="Show shapes that aren't assigned to a room"
-          aria-label="Show unassigned"
-          className={
-            "flex rounded border p-1.5 " +
-            (showUnassigned
-              ? "border-blue-600 bg-blue-600 text-white"
-              : "border-slate-300 text-slate-700 hover:bg-slate-100")
-          }
-          onClick={() => {
-            setShowUnassigned(!showUnassigned);
-            // The focused row may be filtered out, which would leave the
-            // tree without a tab stop.
-            setFocusKey(eventKey);
-          }}
-        >
-          <Squares2X2Icon className="size-4" />
-        </button>
-      </div>
       <div
-        ref={container}
-        role="tree"
-        onKeyDown={onKeyDown}
-        className="min-h-0 flex-1 overflow-auto py-1"
+        className={
+          "flex gap-1 p-1 " +
+          style({
+            borderBottomWidth: 1,
+            borderStyle: "solid",
+            borderColor: "gray-200",
+          })
+        }
       >
-        <div data-selected-id={eventKey}>
-          <Row
-            rowKey={eventKey}
-            focusable={focusKey === eventKey}
-            onFocusRow={setFocusKey}
-            depth={0}
-            selected={selection.kind === "event"}
-            open={expanded.has(eventKey)}
-            onToggle={() => toggle(eventKey)}
-            onClick={() => onSelect({ kind: "event" })}
+        <span title="Show shapes that aren't assigned to a room">
+          <ToggleButton
+            aria-label="Show unassigned"
+            size="S"
+            isSelected={showUnassigned}
+            onChange={setShowUnassigned}
           >
-            <span className="truncate font-semibold">
-              {doc.eventName || "(unnamed event)"}
-            </span>
-            <span className="text-xs text-slate-400">event</span>
-          </Row>
-        </div>
-        {expanded.has(eventKey) && (
-          <>
-            {doc.maps.map((map) => {
-              const key = mapKey(map.src);
-              const data_ = data[map.src];
-              const tree = Array.isArray(data_) ? data_ : undefined;
-              const open = expanded.has(key);
-              const refs = rooms[map.src];
-              const shown = tree
-                ? filterTree(tree, (n) =>
-                    showUnassigned
-                      ? n.id !== null
-                      : n.id !== null && refs.has(n.id),
-                  )
-                : tree;
-              return (
-                <div key={key}>
-                  <div data-selected-id={key}>
-                    <Row
-                      rowKey={key}
-                      parentKey={eventKey}
-                      focusable={focusKey === key}
-                      onFocusRow={setFocusKey}
-                      depth={1}
-                      selected={
-                        selection.kind === "map" && selection.mapSrc === map.src
-                      }
-                      open={open}
-                      onToggle={() => toggle(key)}
-                      onClick={() => onSelect({ kind: "map", mapSrc: map.src })}
-                      trailing={
-                        changedSvgs.has(map.src) && (
-                          <button
-                            type="button"
-                            title="The SVG changed on disk. Reload it."
-                            onClick={() => onReloadSvg(map.src)}
-                            className="my-0.5 shrink-0 rounded-full bg-amber-100 px-2 text-xs leading-4 text-amber-800 hover:bg-amber-200"
-                          >
-                            Reload
-                          </button>
-                        )
-                      }
-                    >
-                      <MapIcon className="size-4 shrink-0 text-slate-500" />
-                      <span className="truncate font-semibold">
-                        {map.label || map.id || map.src}
-                      </span>
-                      <span className="text-xs text-slate-400">
-                        {map === defaultMap ? "map · default" : "map"}
-                      </span>
-                    </Row>
-                  </div>
-                  {open && data_ === undefined && (
-                    <p className="py-1 pl-10 text-xs text-slate-400">
-                      Loading...
-                    </p>
-                  )}
-                  {open && data_ === "error" && (
-                    <p className="py-1 pl-10 text-xs text-red-700">
-                      Could not read this SVG.
-                    </p>
-                  )}
-                  {open && shown && renderNodes(map.src, shown, 2, key)}
-                  {open && shown && shown.length === 0 && (
-                    <p className="py-1 pl-10 text-xs text-slate-400 italic">
-                      {showUnassigned ? "No shapes with ids" : "No rooms"}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-            <div data-selected-id="addMap">
-              <Row
-                rowKey="addMap"
-                parentKey={eventKey}
-                focusable={focusKey === "addMap"}
-                onFocusRow={setFocusKey}
-                depth={1}
-                selected={selection.kind === "addMap"}
-                onClick={() => onSelect({ kind: "addMap" })}
-                leading={<PlusIcon className="size-4" />}
-              >
-                <span className="text-slate-600 italic">Add map...</span>
-              </Row>
-            </div>
-          </>
-        )}
+            <ViewGrid />
+          </ToggleButton>
+        </span>
+        <span title="Add a map">
+          <ActionButton
+            aria-label="Add map"
+            size="S"
+            onPress={() => onSelect({ kind: "addMap" })}
+          >
+            <Add />
+          </ActionButton>
+        </span>
+      </div>
+      <div ref={scroller} className="min-h-0 flex-1">
+        <TreeView
+          aria-label="Event structure"
+          selectionMode="single"
+          selectionStyle="highlight"
+          disallowEmptySelection
+          selectedKeys={selectedKey === undefined ? [] : [selectedKey]}
+          onSelectionChange={(keys) => {
+            const key = keys === "all" ? undefined : [...keys][0];
+            const next = key === undefined ? undefined : selections.get(key);
+            if (next) {
+              onSelect(next);
+            }
+          }}
+          expandedKeys={expanded}
+          onExpandedChange={setExpanded}
+          disabledKeys={statusKeys}
+          styles={style({ height: "full" })}
+        >
+          <TreeViewItem
+            id={eventKey}
+            textValue={doc.eventName || "(unnamed event)"}
+            hasChildItems
+          >
+            <TreeViewItemContent>
+              <RowText
+                label={doc.eventName || "(unnamed event)"}
+                placeholder={!doc.eventName}
+                detail="event"
+              />
+            </TreeViewItemContent>
+            {mapItems}
+          </TreeViewItem>
+        </TreeView>
       </div>
     </div>
   );
