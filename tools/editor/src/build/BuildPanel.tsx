@@ -1,12 +1,11 @@
+import { style } from "@react-spectrum/s2/style" with { type: "macro" };
 import { useEffect, useRef } from "react";
 import type { BuildResponse } from "../../shared/api";
-import {
-  FolderOpenIcon,
-  PlayIcon,
-  StopIcon,
-  WrenchScrewdriverIcon,
-} from "@heroicons/react/20/solid";
-import { Button } from "../components/widgets";
+import FolderOpen from "@react-spectrum/s2/icons/FolderOpen";
+import Play from "@react-spectrum/s2/icons/Play";
+import StopProcessing from "@react-spectrum/s2/icons/StopProcessing";
+import Briefcase from "@react-spectrum/s2/icons/Briefcase";
+import { Button, mutedText } from "../components/widgets";
 
 const TITLES: Record<BuildResponse["status"], string> = {
   idle: "",
@@ -33,14 +32,14 @@ export function BuildToolbar({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="mr-1 text-slate-500">{TITLES[state.status]}</span>
+      <span className={"mr-1 " + mutedText}>{TITLES[state.status]}</span>
       {state.status === "running" ? (
         <Button
           label="Stop build"
           title="Stop the running build"
           onClick={onCancel}
         >
-          <StopIcon className="size-5" />
+          <StopProcessing />
         </Button>
       ) : (
         <Button
@@ -53,7 +52,7 @@ export function BuildToolbar({
           }
           onClick={onBuild}
         >
-          <WrenchScrewdriverIcon className="size-5" />
+          <Briefcase />
         </Button>
       )}
       <Button
@@ -66,7 +65,7 @@ export function BuildToolbar({
         }
         onClick={onReveal}
       >
-        <FolderOpenIcon className="size-5" />
+        <FolderOpen />
       </Button>
       <Button
         label="Preview"
@@ -78,7 +77,7 @@ export function BuildToolbar({
         }
         onClick={onPreview}
       >
-        <PlayIcon className="size-5" />
+        <Play />
       </Button>
     </div>
   );
@@ -94,7 +93,16 @@ export function BuildLog({ state }: { state: BuildResponse }) {
     <div className="h-full p-2">
       <pre
         ref={log}
-        className="h-full overflow-auto rounded bg-slate-900 p-3 text-xs whitespace-pre-wrap text-slate-100"
+        className={style({
+          height: "full",
+          overflow: "auto",
+          margin: 0,
+          padding: 12,
+          borderRadius: "default",
+          backgroundColor: "layer-2",
+          font: "code-xs",
+          whiteSpace: "pre-wrap",
+        })}
       >
         {state.log ||
           (state.status === "idle" ? "No build yet." : "Starting...")}

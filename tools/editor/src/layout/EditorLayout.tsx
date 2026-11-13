@@ -1,4 +1,13 @@
-import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/20/solid";
+import ChevronDown from "@react-spectrum/s2/icons/ChevronDown";
+import ChevronUp from "@react-spectrum/s2/icons/ChevronUp";
+import {
+  ActionButton,
+  Tab as S2Tab,
+  TabList,
+  TabPanel,
+  Tabs,
+} from "@react-spectrum/s2";
+import { style } from "@react-spectrum/s2/style" with { type: "macro" };
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
@@ -29,52 +38,53 @@ type Tab = "problems" | "build";
 
 function TabBar({
   tabs,
-  active,
   collapsed,
-  onSelect,
   onToggle,
+  onExpand,
   toolbar,
 }: {
   tabs: { id: Tab; label: ReactNode }[];
-  active: Tab;
   collapsed: boolean;
-  onSelect: (tab: Tab) => void;
   onToggle: () => void;
+  onExpand: () => void;
   toolbar: ReactNode;
 }) {
-  const Icon = collapsed ? ChevronUpIcon : ChevronDownIcon;
+  const Icon = collapsed ? ChevronUp : ChevronDown;
   return (
     <div
-      className="flex shrink-0 items-center gap-1 border-b border-slate-300 bg-slate-50 px-3 text-slate-700 select-none"
+      className={style({
+        display: "flex",
+        flexShrink: 0,
+        alignItems: "center",
+        gap: 4,
+        paddingX: 12,
+        backgroundColor: "layer-1",
+        borderBottomWidth: 1,
+        borderStyle: "solid",
+        borderColor: "gray-200",
+        userSelect: "none",
+      })}
       style={{ height: HEADER_PX }}
     >
-      <button
-        type="button"
-        className="rounded p-1 hover:bg-slate-200"
+      <ActionButton
+        isQuiet
+        size="S"
         aria-label={collapsed ? "Expand panel" : "Collapse panel"}
         aria-expanded={!collapsed}
-        onClick={onToggle}
+        onPress={onToggle}
       >
-        <Icon className="size-4" />
-      </button>
-      <div role="tablist" className="flex items-center gap-1">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            role="tab"
-            aria-selected={tab.id === active}
-            className={
-              "flex items-center gap-1 rounded px-2 py-1 " +
-              (tab.id === active && !collapsed
-                ? "bg-white shadow-sm"
-                : "hover:bg-slate-200")
-            }
-            onClick={() => onSelect(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+        <Icon />
+      </ActionButton>
+      {/* Tabs only report a change of tab, and clicking the current tab
+          should still open a collapsed panel. */}
+      <div onClickCapture={() => collapsed && onExpand()}>
+        <TabList aria-label="Panels">
+          {tabs.map((tab) => (
+            <S2Tab key={tab.id} id={tab.id}>
+              {tab.label}
+            </S2Tab>
+          ))}
+        </TabList>
       </div>
       <span className="flex-1" />
       {toolbar}
@@ -142,10 +152,6 @@ export function EditorLayout({
     tabs.push({ id: "build", label: "Build" });
   }
   const selectTab = (next: Tab) => {
-    if (next === tab && !collapsed) {
-      buildPanel.current?.collapse();
-      return;
-    }
     setTab(next);
     buildPanel.current?.expand();
   };
@@ -202,27 +208,33 @@ export function EditorLayout({
         groupResizeBehavior="preserve-pixel-size"
         onResize={() => setCollapsed(buildPanel.current?.isCollapsed() ?? true)}
       >
-        <div className="flex h-full flex-col">
+        <Tabs
+          aria-label="Panels"
+          density="compact"
+          selectedKey={tab}
+          onSelectionChange={(key) => selectTab(key as Tab)}
+          UNSAFE_className="flex h-full flex-col"
+        >
           <TabBar
             tabs={tabs}
-            active={tab}
             collapsed={collapsed}
             toolbar={toolbar}
-            onSelect={selectTab}
+            onExpand={() => buildPanel.current?.expand()}
             onToggle={() =>
               collapsed
                 ? buildPanel.current?.expand()
                 : buildPanel.current?.collapse()
             }
           />
-          <div className="min-h-0 flex-1 overflow-hidden">
-            {tab === "build" && build ? (
-              build
-            ) : (
-              <ProblemsList issues={issues} onSelect={onSelectIssue} />
-            )}
-          </div>
-        </div>
+          <TabPanel id="problems" UNSAFE_className="min-h-0 flex-1">
+            <ProblemsList issues={issues} onSelect={onSelectIssue} />
+          </TabPanel>
+          {build && (
+            <TabPanel id="build" UNSAFE_className="min-h-0 flex-1">
+              {build}
+            </TabPanel>
+          )}
+        </Tabs>
       </Panel>
     </Group>
   );

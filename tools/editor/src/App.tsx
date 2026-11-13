@@ -1,4 +1,12 @@
 import {
+  AlertDialog,
+  Content,
+  DialogContainer,
+  Heading,
+  InlineAlert,
+} from "@react-spectrum/s2";
+import { style } from "@react-spectrum/s2/style" with { type: "macro" };
+import {
   useCallback,
   useEffect,
   useMemo,
@@ -36,7 +44,12 @@ import {
 import { MapView } from "./components/MapView";
 import { EditorLayout } from "./layout/EditorLayout";
 import { Tree, type TreeData } from "./components/Tree";
-import { Button } from "./components/widgets";
+import {
+  Button,
+  CommitProvider,
+  Loading,
+  mutedText,
+} from "./components/widgets";
 import {
   canRedo,
   canUndo,
@@ -141,13 +154,16 @@ export function App() {
 
   if (failure) {
     return (
-      <p className="p-4 text-red-700">
-        Could not reach the editor server: {failure}
-      </p>
+      <div className="p-4">
+        <InlineAlert variant="negative">
+          <Heading>Could not reach the editor server</Heading>
+          <Content>{failure}</Content>
+        </InlineAlert>
+      </div>
     );
   }
   if (!session) {
-    return <p className="p-4 text-slate-500">Loading...</p>;
+    return <Loading />;
   }
   if (!session.event) {
     return <StartScreen session={session} onChanged={refresh} />;
@@ -189,19 +205,21 @@ function EventLoader({
   }, []);
 
   if (state.status === "loading") {
-    return <p className="p-4 text-slate-500">Loading...</p>;
+    return <Loading />;
   }
   if (state.status === "failed") {
     return (
       <div className="mx-auto max-w-2xl p-6">
-        <h1 className="text-lg font-semibold text-red-700">
-          The editor can&apos;t open this event
-        </h1>
-        <ul className="mt-3 list-disc space-y-2 pl-5">
-          {state.errors.map((error) => (
-            <li key={error}>{error}</li>
-          ))}
-        </ul>
+        <InlineAlert variant="negative">
+          <Heading>The editor can&apos;t open this event</Heading>
+          <Content>
+            <ul className="list-disc space-y-2 pl-5">
+              {state.errors.map((error) => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          </Content>
+        </InlineAlert>
         <div className="mt-4">
           <Button onClick={reload}>Try again</Button>
         </div>
@@ -548,7 +566,7 @@ function Editor({
     const node = tree ? findNode(tree, effective.key)?.node : undefined;
     if (!tree) {
       return (
-        <p className="text-slate-500">
+        <p className={mutedText}>
           The SVG for map &quot;{map.label || map.id}&quot; ({map.src}) is still
           loading or could not be read, so its elements can&apos;t be shown.
         </p>
@@ -557,7 +575,7 @@ function Editor({
     if (!node) {
       const room = findRoom(doc, map.src, effective.key);
       return (
-        <div className="space-y-3 text-slate-500">
+        <div className={"space-y-3 " + mutedText}>
           <p>
             {room
               ? `Room "${room.label || room.id}" refers to an element with id "${effective.key}", but ${map.src} has no such element. It may have been renamed or removed from the SVG.`
@@ -596,14 +614,12 @@ function Editor({
 
   return (
     <div
-      className="h-full border-t border-slate-300 bg-white text-slate-900"
+      className={style({
+        height: "full",
+        backgroundColor: "base",
+        color: "neutral",
+      })}
       onBlur={requestSave}
-      onChange={(e) => {
-        const target = e.target as HTMLInputElement;
-        if (target.type === "checkbox" || target.tagName === "SELECT") {
-          requestSave();
-        }
-      }}
       onClick={(e) => {
         // Buttons can remove the focused element without a blur event.
         if ((e.target as Element).closest("button")) {
@@ -611,101 +627,93 @@ function Editor({
         }
       }}
     >
-      <main className="h-full min-h-0">
-        <EditorLayout
-          revealBuild={revealBuild}
-          toolbar={
-            <>
-              <span className="mr-2 text-slate-500" role="status">
-                {status}
-              </span>
-              {canBuild && (
-                <BuildToolbar
-                  state={build.state}
-                  noMaps={doc.maps.length === 0}
-                  onBuild={() => void startBuild()}
-                  onCancel={() => void build.cancel()}
-                  onPreview={() => void startPreview()}
-                  onReveal={() => void build.reveal()}
-                />
-              )}
-            </>
-          }
-          issues={issues}
-          onSelectIssue={jumpTo}
-          tree={
-            <Tree
-              doc={doc}
-              data={treeData}
-              changedSvgs={changedSvgs}
-              onReloadSvg={reloadSvg}
-              issues={issues}
-              selection={effective}
-              onSelect={select}
-            />
-          }
-          properties={renderPanel()}
-          map={
-            activeMap && activeSvg && activeSvg !== "error" ? (
-              <MapView
-                key={activeMap.src}
-                title={activeMap.label || activeMap.id}
-                svg={activeSvg}
-                tree={activeSvg.tree}
-                roomRefs={
-                  new Set(activeMap.rooms.flatMap((r) => roomRef(r) ?? []))
-                }
-                ids={selectableIds(activeSvg.tree)}
-                selectedKey={selectedKey}
-                overlays={activeMap.overlays ?? []}
-                onSelect={(id) =>
-                  select(
-                    id
-                      ? { kind: "node", mapSrc: activeMap.src, key: id }
-                      : { kind: "map", mapSrc: activeMap.src },
-                  )
-                }
+      <CommitProvider value={requestSave}>
+        <main className="h-full min-h-0">
+          <EditorLayout
+            revealBuild={revealBuild}
+            toolbar={
+              <>
+                <span className={"mr-2 " + mutedText} role="status">
+                  {status}
+                </span>
+                {canBuild && (
+                  <BuildToolbar
+                    state={build.state}
+                    noMaps={doc.maps.length === 0}
+                    onBuild={() => void startBuild()}
+                    onCancel={() => void build.cancel()}
+                    onPreview={() => void startPreview()}
+                    onReveal={() => void build.reveal()}
+                  />
+                )}
+              </>
+            }
+            issues={issues}
+            onSelectIssue={jumpTo}
+            tree={
+              <Tree
+                doc={doc}
+                data={treeData}
+                changedSvgs={changedSvgs}
+                onReloadSvg={reloadSvg}
+                issues={issues}
+                selection={effective}
+                onSelect={select}
               />
-            ) : (
-              <p className="p-4 text-slate-500">
-                {!activeMap
-                  ? "This event has no maps yet. Add a map to see it here."
-                  : activeSvg === "error"
-                    ? "Could not read this SVG."
-                    : "Loading map..."}
-              </p>
-            )
-          }
-          build={canBuild ? <BuildLog state={build.state} /> : undefined}
-        />
-      </main>
+            }
+            properties={renderPanel()}
+            map={
+              activeMap && activeSvg && activeSvg !== "error" ? (
+                <MapView
+                  key={activeMap.src}
+                  title={activeMap.label || activeMap.id}
+                  svg={activeSvg}
+                  tree={activeSvg.tree}
+                  roomRefs={
+                    new Set(activeMap.rooms.flatMap((r) => roomRef(r) ?? []))
+                  }
+                  ids={selectableIds(activeSvg.tree)}
+                  selectedKey={selectedKey}
+                  overlays={activeMap.overlays ?? []}
+                  onSelect={(id) =>
+                    select(
+                      id
+                        ? { kind: "node", mapSrc: activeMap.src, key: id }
+                        : { kind: "map", mapSrc: activeMap.src },
+                    )
+                  }
+                />
+              ) : (
+                <p className={"p-4 " + mutedText}>
+                  {!activeMap
+                    ? "This event has no maps yet. Add a map to see it here."
+                    : activeSvg === "error"
+                      ? "Could not read this SVG."
+                      : "Loading map..."}
+                </p>
+              )
+            }
+            build={canBuild ? <BuildLog state={build.state} /> : undefined}
+          />
+        </main>
+      </CommitProvider>
 
-      {conflict && (
-        <div className="fixed inset-0 z-30 flex items-center justify-center bg-black/40">
-          <div
-            role="alertdialog"
-            aria-labelledby="conflict-title"
-            className="max-w-md rounded bg-white p-4 shadow-xl"
+      <DialogContainer onDismiss={() => {}}>
+        {conflict && (
+          <AlertDialog
+            title="The config changed on disk"
+            variant="destructive"
+            primaryActionLabel="Overwrite"
+            secondaryActionLabel="Reload from disk"
+            onPrimaryAction={overwrite}
+            onSecondaryAction={onReload}
           >
-            <h2 id="conflict-title" className="text-base font-semibold">
-              The config changed on disk
-            </h2>
-            <p className="mt-2">
-              Something else has written {loaded.eventDir}/concarte.json since
-              the editor loaded it. Overwriting loses those changes; reloading
-              loses yours.
-            </p>
-            <div className="mt-4 flex justify-end gap-2">
-              <Button danger onClick={onReload}>
-                Reload from disk
-              </Button>
-              <Button danger onClick={overwrite}>
-                Overwrite
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            Something else has written {loaded.eventDir}/concarte.json since the
+            editor loaded it. Overwriting loses those changes; reloading loses
+            yours.
+          </AlertDialog>
+        )}
+      </DialogContainer>
     </div>
   );
 }

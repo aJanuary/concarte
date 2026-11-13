@@ -1,9 +1,10 @@
-import {
-  ArrowUpIcon,
-  ArrowsPointingOutIcon,
-  MinusIcon,
-  PlusIcon,
-} from "@heroicons/react/16/solid";
+// Spectrum has no plain up arrow.
+import { ArrowUpIcon } from "@heroicons/react/16/solid";
+import ZoomFitToScreen from "@react-spectrum/s2/icons/ZoomFitToScreen";
+import ZoomIn from "@react-spectrum/s2/icons/ZoomIn";
+import ZoomOut from "@react-spectrum/s2/icons/ZoomOut";
+import { ActionButton, ToggleButton } from "@react-spectrum/s2";
+import { style } from "@react-spectrum/s2/style" with { type: "macro" };
 import {
   useCallback,
   useEffect,
@@ -91,23 +92,30 @@ function hitAt(
 
 function HudButton({
   label,
+  title,
   onClick,
+  isDisabled,
   children,
 }: {
   label: string;
+  title?: string;
   onClick: () => void;
+  isDisabled?: boolean;
   children: React.ReactNode;
 }) {
+  // A native title rather than a Spectrum Tooltip, which doesn't show on
+  // disabled buttons.
   return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      className="rounded border border-slate-300 bg-white p-1.5 text-slate-700 hover:bg-slate-100"
-      onClick={onClick}
-    >
-      {children}
-    </button>
+    <span title={title ?? label} className="inline-flex">
+      <ActionButton
+        aria-label={label}
+        size="S"
+        isDisabled={isDisabled}
+        onPress={onClick}
+      >
+        {children}
+      </ActionButton>
+    </span>
   );
 }
 
@@ -263,7 +271,7 @@ export function MapView({
   const selectedId = selectedKey
     ? (findNode(tree, selectedKey)?.node.id ?? undefined)
     : undefined;
-  const style = useMemo(
+  const svgCss = useMemo(
     () => buildStyle(roomRefs, selectedId, hovered),
     [roomRefs, selectedId, hovered],
   );
@@ -273,7 +281,7 @@ export function MapView({
   return (
     <div
       ref={viewport}
-      className={`relative h-full touch-none overflow-hidden bg-slate-100 select-none ${panning ? "cursor-grabbing" : "cursor-grab"}`}
+      className={`relative h-full touch-none overflow-hidden select-none ${style({ backgroundColor: "layer-1" })} ${panning ? "cursor-grabbing" : "cursor-grab"}`}
       onPointerDown={(e) => {
         // The panel handles' hit areas reach into the map; they claim those
         // presses by preventing default.
@@ -327,7 +335,19 @@ export function MapView({
         }
       }}
     >
-      <div className="pointer-events-none absolute top-2 left-2 z-10 rounded bg-white/80 px-2 py-0.5 text-slate-600">
+      <div
+        className={
+          "pointer-events-none absolute top-2 left-2 z-10 " +
+          style({
+            backgroundColor: "layer-2",
+            borderRadius: "default",
+            paddingX: 8,
+            paddingY: 2,
+            font: "ui-sm",
+            color: "neutral-subdued",
+          })
+        }
+      >
         {title}
       </div>
 
@@ -339,7 +359,7 @@ export function MapView({
           transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})`,
         }}
       >
-        <style>{style}</style>
+        <style>{svgCss}</style>
         {inner}
         {overlays
           .filter((o) => shownOverlays.has(o.src))
@@ -363,26 +383,22 @@ export function MapView({
           {overlays.map((o) => {
             const on = shownOverlays.has(o.src);
             return (
-              <button
+              <ToggleButton
                 key={o.src}
-                type="button"
-                aria-pressed={on}
-                className={
-                  "rounded border px-2 py-1 " +
-                  (on
-                    ? "border-blue-600 bg-blue-600 text-white"
-                    : "border-slate-300 bg-white text-slate-700")
-                }
-                onClick={() => {
+                size="S"
+                isSelected={on}
+                onChange={(selected) => {
                   const next = new Set(shownOverlays);
-                  if (!next.delete(o.src)) {
+                  if (selected) {
                     next.add(o.src);
+                  } else {
+                    next.delete(o.src);
                   }
                   setShownOverlays(next);
                 }}
               >
-                Overlay: {o.label || o.id}
-              </button>
+                {`Overlay: ${o.label || o.id}`}
+              </ToggleButton>
             );
           })}
         </div>
@@ -394,24 +410,22 @@ export function MapView({
         onPointerUp={(e) => e.stopPropagation()}
       >
         <HudButton label="Zoom in" onClick={() => zoomFromCentre(1.5)}>
-          <PlusIcon className="size-4" />
+          <ZoomIn />
         </HudButton>
         <HudButton label="Zoom out" onClick={() => zoomFromCentre(1 / 1.5)}>
-          <MinusIcon className="size-4" />
+          <ZoomOut />
         </HudButton>
         <HudButton label="Fit to view" onClick={fit}>
-          <ArrowsPointingOutIcon className="size-4" />
+          <ZoomFitToScreen />
         </HudButton>
-        <button
-          type="button"
-          aria-label="Select parent"
+        <HudButton
+          label="Select parent"
           title="Select parent group (Alt+click also does this)"
-          disabled={parent === undefined}
-          className="rounded border border-slate-300 bg-white p-1.5 text-slate-700 hover:bg-slate-100 disabled:opacity-40"
+          isDisabled={parent === undefined}
           onClick={() => parent && onSelect(parent)}
         >
           <ArrowUpIcon className="size-4" />
-        </button>
+        </HudButton>
       </div>
     </div>
   );
