@@ -40,6 +40,8 @@ function defaultCommands(siteRoot: string, eventDir: string, port: number) {
       [
         require.resolve("next/dist/bin/next"),
         "dev",
+        // See build-runner.ts: Turbopack needs a `node` on PATH.
+        "--webpack",
         "-p",
         String(port),
         "-H",

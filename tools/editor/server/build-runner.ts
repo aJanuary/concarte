@@ -34,7 +34,9 @@ function defaultCommands(siteRoot: string): Command[] {
   const require = createRequire(join(siteRoot, "package.json"));
   return [
     { args: [require.resolve("tsx/cli"), "scripts/generate.ts"] },
-    { args: [require.resolve("next/dist/bin/next"), "build"] },
+    // Turbopack runs PostCSS in a `node` it finds on PATH, which the
+    // packaged editor can't rely on; webpack runs it in-process.
+    { args: [require.resolve("next/dist/bin/next"), "build", "--webpack"] },
   ];
 }
 
