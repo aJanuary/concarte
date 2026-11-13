@@ -1,4 +1,6 @@
 import { markdown } from "@codemirror/lang-markdown";
+import { HighlightStyle, syntaxHighlighting } from "@codemirror/language";
+import { tags } from "@lezer/highlight";
 import { Annotation, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { basicSetup } from "codemirror";
@@ -9,6 +11,26 @@ import Markdown from "react-markdown";
 import { tidyText } from "../../shared/text";
 
 const external = Annotation.define<boolean>();
+
+// CodeMirror's built-in theme is light-only. Deriving from the frame's text
+// colour keeps the editor in step with the app's light or dark theme.
+const followFrameTheme = EditorView.theme({
+  "&": { color: "inherit", backgroundColor: "transparent" },
+  ".cm-content": { caretColor: "currentColor" },
+  ".cm-cursor, .cm-dropCursor": { borderLeftColor: "currentColor" },
+  ".cm-gutters": {
+    color: "color-mix(in srgb, currentColor 55%, transparent)",
+    backgroundColor: "color-mix(in srgb, currentColor 5%, transparent)",
+    borderRight: "1px solid color-mix(in srgb, currentColor 15%, transparent)",
+  },
+  ".cm-activeLine, .cm-activeLineGutter": {
+    backgroundColor: "color-mix(in srgb, currentColor 7%, transparent)",
+  },
+  "&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground, ::selection":
+    {
+      backgroundColor: "color-mix(in srgb, Highlight 45%, transparent)",
+    },
+});
 
 function CodeMirror({
   value,
@@ -37,6 +59,8 @@ function CodeMirror({
         extensions: [
           basicSetup,
           markdown(),
+          followFrameTheme,
+          syntaxHighlighting(markdownHighlight),
           EditorView.lineWrapping,
           EditorView.contentAttributes.of({ id }),
           EditorView.updateListener.of((update) => {
@@ -72,6 +96,23 @@ function CodeMirror({
   return <div ref={host} className={editorFrame} />;
 }
 
+// Replaces basicSetup's light-only colours. light-dark() works because S2's
+// page.css sets color-scheme.
+const subdued = "color-mix(in srgb, currentColor 65%, transparent)";
+const markdownHighlight = HighlightStyle.define([
+  { tag: tags.heading, fontWeight: "bold" },
+  { tag: tags.strong, fontWeight: "bold" },
+  { tag: tags.emphasis, fontStyle: "italic" },
+  { tag: tags.strikethrough, textDecoration: "line-through" },
+  {
+    tag: [tags.processingInstruction, tags.meta, tags.contentSeparator],
+    color: subdued,
+  },
+  { tag: [tags.link, tags.url], color: "light-dark(#1d4ed8, #93c5fd)" },
+  { tag: tags.monospace, color: "light-dark(#9d174d, #f9a8d4)" },
+  { tag: tags.quote, color: subdued, fontStyle: "italic" },
+]);
+
 const editorFrame = style({
   height: 256,
   overflow: "auto",
@@ -80,6 +121,7 @@ const editorFrame = style({
   borderStyle: "solid",
   borderColor: "gray-300",
   backgroundColor: "gray-25",
+  color: "neutral",
 });
 
 export function MarkdownField({

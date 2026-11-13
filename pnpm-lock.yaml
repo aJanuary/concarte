@@ -45,6 +45,9 @@ importers:
       '@codemirror/lang-markdown':
         specifier: ^6.5.2
         version: 6.5.2
+      '@codemirror/language':
+        specifier: ^6.13.1
+        version: 6.13.1
       '@codemirror/state':
         specifier: ^6.7.6
         version: 6.7.6
@@ -57,6 +60,9 @@ importers:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@9.39.3(jiti@2.7.0))
+      '@lezer/highlight':
+        specifier: ^1.2.5
+        version: 1.2.5
       '@react-spectrum/s2':
         specifier: ^1.8.2
         version: 1.8.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
