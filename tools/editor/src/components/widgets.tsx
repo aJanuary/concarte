@@ -1,15 +1,20 @@
 import {
   ActionButton,
   AlertDialog,
-  Badge,
   Button as S2Button,
   DialogContainer,
+  IconContext,
   ProgressCircle,
   Switch,
   TextField as S2TextField,
 } from "@react-spectrum/s2";
 import FolderOpen from "@react-spectrum/s2/icons/FolderOpen";
-import { style } from "@react-spectrum/s2/style" with { type: "macro" };
+import AlertDiamond from "@react-spectrum/s2/icons/AlertDiamond";
+import AlertTriangle from "@react-spectrum/s2/icons/AlertTriangle";
+import {
+  iconStyle,
+  style,
+} from "@react-spectrum/s2/style" with { type: "macro" };
 import { createContext, useContext, useState, type ReactNode } from "react";
 
 /**
@@ -247,8 +252,11 @@ export function ShowInExplorerButton({ asset }: { asset: string }) {
   );
 }
 
-/** Pill showing how many errors or warnings there are; nothing when zero. */
-export function CountBadge({
+/**
+ * An error or warning icon with its count, matching the icons on tree rows
+ * and in the problems list; nothing when zero.
+ */
+export function IssueCount({
   severity,
   count,
 }: {
@@ -259,18 +267,37 @@ export function CountBadge({
     return null;
   }
   return (
-    <Badge
-      size="S"
-      fillStyle="subtle"
-      variant={severity === "error" ? "negative" : "notice"}
-      aria-label={`${count} ${severity}${count === 1 ? "" : "s"}`}
+    <span
+      className={style({
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 2,
+      })}
     >
+      {/* Containers such as Tab restyle icons; an empty context keeps
+          these colours. */}
+      <IconContext.Provider value={{}}>
+        {severity === "error" ? (
+          <AlertDiamond
+            aria-hidden
+            styles={iconStyle({ size: "S", color: "negative" })}
+          />
+        ) : (
+          <AlertTriangle
+            aria-hidden
+            styles={iconStyle({ size: "S", color: "notice" })}
+          />
+        )}
+      </IconContext.Provider>
       {count}
-    </Badge>
+      <span className="visually-hidden">
+        {` ${severity}${count === 1 ? "" : "s"}`}
+      </span>
+    </span>
   );
 }
 
-export function IssueBadges({
+export function IssueCounts({
   errors,
   warnings,
 }: {
@@ -279,8 +306,8 @@ export function IssueBadges({
 }) {
   return (
     <>
-      <CountBadge severity="error" count={errors} />
-      <CountBadge severity="warning" count={warnings} />
+      <IssueCount severity="error" count={errors} />
+      <IssueCount severity="warning" count={warnings} />
     </>
   );
 }

@@ -18,7 +18,7 @@ import {
   type PanelImperativeHandle,
 } from "react-resizable-panels";
 import type { Issue } from "../../../../scripts/lib/validate-config";
-import { IssueBadges } from "../components/widgets";
+import { IssueCounts } from "../components/widgets";
 import { ProblemsList } from "./ProblemsList";
 
 const HEADER_PX = 40;
@@ -156,7 +156,7 @@ export function EditorLayout({
       label: (
         <>
           Problems
-          <IssueBadges errors={errors} warnings={warnings} />
+          <IssueCounts errors={errors} warnings={warnings} />
         </>
       ),
     },
