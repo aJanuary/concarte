@@ -1,3 +1,11 @@
+import {
+  Picker,
+  PickerItem,
+  TextArea,
+  type Key,
+  type PickerProps,
+} from "@react-spectrum/s2";
+import { style } from "@react-spectrum/s2/style" with { type: "macro" };
 import type { ReactNode } from "react";
 import {
   assetPath,
@@ -13,13 +21,45 @@ import { MarkdownField } from "../components/MarkdownField";
 import { StringListField } from "../components/StringListField";
 import {
   Button,
-  Field,
-  inputClass,
+  errorText,
+  fieldStyle,
+  groupBox,
+  helpText,
   Section,
   ShowInExplorerButton,
   TextField,
   Toggle,
+  useCommit,
 } from "../components/widgets";
+
+/** A single-select Picker whose picks save immediately. */
+function CommittingPicker({
+  onChange,
+  ...props
+}: Omit<PickerProps<object>, "onSelectionChange" | "onChange"> & {
+  onChange: (key: Key) => void;
+}) {
+  const commit = useCommit();
+  return (
+    <Picker
+      {...props}
+      onSelectionChange={(key) => {
+        if (key !== null) {
+          onChange(key);
+          commit();
+        }
+      }}
+    />
+  );
+}
+
+// Matches the labels Spectrum draws above its fields.
+const readOnlyLabel = style({
+  font: "ui",
+  color: "neutral-subdued",
+  margin: 0,
+  marginBottom: 4,
+});
 
 export type FieldContext = {
   assets: string[];
@@ -114,28 +154,22 @@ export const configFields: Registry<Config> = {
     />
   ),
   locale: ({ value, onChange, ctx }) => (
-    <Field
+    <CommittingPicker
       label="Locale"
-      hint="The language of the content. Only languages the app has translations for can be chosen."
+      description="The language of the content. Only languages the app has translations for can be chosen."
+      selectedKey={value}
+      onChange={(key) => onChange(String(key))}
+      styles={fieldStyle}
     >
-      {(id) => (
-        <select
-          id={id}
-          className={inputClass}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          {!ctx.locales.includes(value) && (
-            <option value={value}>{value} (no translation)</option>
-          )}
-          {ctx.locales.map((locale) => (
-            <option key={locale} value={locale}>
-              {locale}
-            </option>
-          ))}
-        </select>
+      {!ctx.locales.includes(value) && (
+        <PickerItem id={value}>{`${value} (no translation)`}</PickerItem>
       )}
-    </Field>
+      {ctx.locales.map((locale) => (
+        <PickerItem key={locale} id={locale}>
+          {locale}
+        </PickerItem>
+      ))}
+    </CommittingPicker>
   ),
   description: ({ value, onChange }) => (
     <MarkdownField label="Description" value={value} onChange={onChange} />
@@ -153,28 +187,19 @@ export const configFields: Registry<Config> = {
     const attributions = value ?? [];
     return (
       <Section title="Attributions">
-        <p className="text-xs text-slate-500">
+        <p className={helpText}>
           Credits for graphics or other resources. Supports markdown.
         </p>
         {attributions.map((attribution, index) => (
-          <div key={index} className="mt-2 rounded border border-slate-300 p-2">
-            <Field label="Attribution">
-              {(id) => (
-                <textarea
-                  id={id}
-                  rows={3}
-                  className={inputClass}
-                  value={attribution}
-                  onChange={(e) =>
-                    onChange(
-                      attributions.map((a, i) =>
-                        i === index ? e.target.value : a,
-                      ),
-                    )
-                  }
-                />
-              )}
-            </Field>
+          <div key={index} className={groupBox}>
+            <TextArea
+              label="Attribution"
+              value={attribution}
+              onChange={(text) =>
+                onChange(attributions.map((a, i) => (i === index ? text : a)))
+              }
+              styles={style({ width: "full" })}
+            />
             <div className="mt-3">
               <Button
                 danger
@@ -222,28 +247,24 @@ export const overlayFields: Registry<Overlay> = {
     <TextField label="Label" value={value} onChange={onChange} />
   ),
   src: ({ value, onChange, ctx }) => (
-    <Field label="Source">
-      {(id) => (
-        <div className="flex items-center gap-2">
-          <select
-            id={id}
-            className={inputClass}
-            value={assetPath(value)}
-            onChange={(e) => onChange("/" + e.target.value)}
-          >
-            {!ctx.assets.includes(assetPath(value)) && (
-              <option value={assetPath(value)}>{value} (missing)</option>
-            )}
-            {ctx.assets.map((asset) => (
-              <option key={asset} value={asset}>
-                /{asset}
-              </option>
-            ))}
-          </select>
-          <ShowInExplorerButton asset={assetPath(value)} />
-        </div>
-      )}
-    </Field>
+    <div className="mt-3 flex items-end gap-2">
+      <CommittingPicker
+        label="Source"
+        selectedKey={assetPath(value)}
+        onChange={(key) => onChange("/" + String(key))}
+        styles={style({ flexGrow: 1 })}
+      >
+        {!ctx.assets.includes(assetPath(value)) && (
+          <PickerItem id={assetPath(value)}>{`${value} (missing)`}</PickerItem>
+        )}
+        {ctx.assets.map((asset) => (
+          <PickerItem key={asset} id={asset}>
+            {`/${asset}`}
+          </PickerItem>
+        ))}
+      </CommittingPicker>
+      <ShowInExplorerButton asset={assetPath(value)} />
+    </div>
   ),
 };
 
@@ -268,9 +289,9 @@ export const mapFields: Registry<MapConfig> = {
   ),
   src: ({ value }) => (
     <div className="mt-3">
-      <p className="font-medium text-slate-700">Source</p>
-      <div className="flex items-center gap-2">
-        <p className="flex-1 break-all text-slate-600">{value}</p>
+      <p className={readOnlyLabel}>Source</p>
+      <div className="flex items-center gap-1">
+        <span className="min-w-0 break-all">{value}</span>
         <ShowInExplorerButton asset={assetPath(value)} />
       </div>
     </div>
@@ -280,7 +301,7 @@ export const mapFields: Registry<MapConfig> = {
     return (
       <Section title="Overlays">
         {overlays.map((overlay, index) => (
-          <div key={index} className="mt-2 rounded border border-slate-300 p-2">
+          <div key={index} className={groupBox}>
             {renderRegistry(
               overlayFields,
               overlay,
@@ -368,19 +389,19 @@ export const roomFields: Registry<Room> = {
   ),
   link: ({ value, onChange, ctx, error }) => (
     <Section title="Link">
-      <p className="text-xs text-slate-500">
+      <p className={helpText}>
         Shown at the bottom of the description. Clicking the room on the map
         opens it in a new tab.
       </p>
       {value ? (
-        <div className="mt-2 rounded border border-slate-300 p-2">
+        <div className={groupBox}>
           {renderRegistry(
             linkFields,
             value,
             (patch) => onChange({ ...value, ...patch }),
             ctx,
           )}
-          {error && <p className="mt-2 text-xs text-red-700">{error}</p>}
+          {error && <p className={"mt-2 " + errorText}>{error}</p>}
           <div className="mt-3">
             <Button danger onClick={() => onChange(undefined)}>
               Remove link

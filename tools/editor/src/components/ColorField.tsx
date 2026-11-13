@@ -1,4 +1,6 @@
-import { Field, inputClass } from "./widgets";
+import { ColorField as S2ColorField, ColorSwatch } from "@react-spectrum/s2";
+import { style } from "@react-spectrum/s2/style" with { type: "macro" };
+import { useCommit } from "./widgets";
 
 // <input type="color"> only accepts #rrggbb, so resolve any CSS color through a canvas.
 function toHex(value: string): string {
@@ -33,31 +35,33 @@ export function ColorField({
   onChange: (value: string) => void;
   hint?: string;
 }) {
+  const hex = toHex(value);
+  const commit = useCommit();
   return (
-    <Field label={label} hint={hint}>
-      {(id) => (
-        <div className="flex items-center gap-2">
-          <label
-            className="relative size-6 shrink-0 cursor-pointer rounded border border-slate-400"
-            style={{ background: value }}
-          >
-            <span className="sr-only">Pick {label} color</span>
-            <input
-              type="color"
-              className="absolute inset-0 size-full cursor-pointer opacity-0"
-              value={toHex(value)}
-              onChange={(e) => onChange(e.target.value)}
-            />
-          </label>
-          <input
-            id={id}
-            type="text"
-            className={inputClass}
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-          />
-        </div>
-      )}
-    </Field>
+    <div className="mt-3 flex items-start gap-2">
+      <S2ColorField
+        label={label}
+        description={hint}
+        // Normalised: ColorField can't parse names like "white".
+        value={hex}
+        onChange={(color) => {
+          if (color) {
+            onChange(color.toString("hex"));
+            commit();
+          }
+        }}
+        styles={style({ flexGrow: 1 })}
+      />
+      <label className="relative mt-6 shrink-0 cursor-pointer">
+        <ColorSwatch color={hex} size="S" />
+        <span className="sr-only">Pick {label} color</span>
+        <input
+          type="color"
+          className="absolute inset-0 size-full cursor-pointer opacity-0"
+          value={hex}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </label>
+    </div>
   );
 }

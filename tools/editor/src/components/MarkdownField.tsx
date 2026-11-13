@@ -2,10 +2,11 @@ import { markdown } from "@codemirror/lang-markdown";
 import { Annotation, EditorState } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { basicSetup } from "codemirror";
-import { useEffect, useRef, useState } from "react";
+import { Tab, TabList, TabPanel, Tabs } from "@react-spectrum/s2";
+import { style } from "@react-spectrum/s2/style" with { type: "macro" };
+import { useEffect, useId, useRef } from "react";
 import Markdown from "react-markdown";
 import { tidyText } from "../../shared/text";
-import { Field } from "./widgets";
 
 const external = Annotation.define<boolean>();
 
@@ -68,13 +69,18 @@ function CodeMirror({
     }
   }, [value]);
 
-  return (
-    <div
-      ref={host}
-      className="h-64 overflow-auto rounded-tr rounded-b border border-slate-300 bg-white"
-    />
-  );
+  return <div ref={host} className={editorFrame} />;
 }
+
+const editorFrame = style({
+  height: 256,
+  overflow: "auto",
+  borderRadius: "default",
+  borderWidth: 1,
+  borderStyle: "solid",
+  borderColor: "gray-300",
+  backgroundColor: "gray-25",
+});
 
 export function MarkdownField({
   label,
@@ -85,44 +91,34 @@ export function MarkdownField({
   value: string;
   onChange: (value: string) => void;
 }) {
-  const [tab, setTab] = useState<"edit" | "preview">("edit");
+  const id = useId();
   return (
-    <Field label={`${label} (markdown)`}>
-      {(id) => (
-        <div>
-          <div role="tablist" className="flex gap-1">
-            {(["edit", "preview"] as const).map((name) => (
-              <button
-                key={name}
-                type="button"
-                role="tab"
-                aria-selected={tab === name}
-                className={
-                  "rounded-t border border-b-0 px-3 py-1 capitalize " +
-                  (tab === name
-                    ? "border-slate-300 bg-white font-medium text-slate-900"
-                    : "border-transparent text-slate-500 hover:text-slate-800")
-                }
-                onClick={() => setTab(name)}
-              >
-                {name}
-              </button>
-            ))}
+    <div className={style({ marginTop: 12 })}>
+      <label
+        htmlFor={id}
+        className={style({
+          display: "block",
+          font: "ui",
+          color: "neutral-subdued",
+        })}
+      >
+        {label} (markdown)
+      </label>
+      <Tabs aria-label={`${label} view`} density="compact">
+        <TabList>
+          <Tab id="edit">Edit</Tab>
+          <Tab id="preview">Preview</Tab>
+        </TabList>
+        {/* Kept mounted while hidden so the editor's cursor and history survive. */}
+        <TabPanel id="edit" shouldForceMount>
+          <CodeMirror id={id} value={value} onChange={onChange} />
+        </TabPanel>
+        <TabPanel id="preview">
+          <div className={"prose prose-sm max-w-none p-2 " + editorFrame}>
+            <Markdown>{tidyText(value)}</Markdown>
           </div>
-          {/* Kept mounted while hidden so the editor's cursor and history survive. */}
-          <div hidden={tab !== "edit"}>
-            <CodeMirror id={id} value={value} onChange={onChange} />
-          </div>
-          {tab === "preview" && (
-            <div
-              role="tabpanel"
-              className="prose prose-sm h-64 max-w-none overflow-auto rounded-tr rounded-b border border-slate-300 bg-white p-2"
-            >
-              <Markdown>{tidyText(value)}</Markdown>
-            </div>
-          )}
-        </div>
-      )}
-    </Field>
+        </TabPanel>
+      </Tabs>
+    </div>
   );
 }

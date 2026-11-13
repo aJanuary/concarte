@@ -1,31 +1,49 @@
-import { useId, type ReactNode } from "react";
+import {
+  ActionButton,
+  Badge,
+  Button as S2Button,
+  ProgressCircle,
+  Switch,
+  TextField as S2TextField,
+} from "@react-spectrum/s2";
+import FolderOpen from "@react-spectrum/s2/icons/FolderOpen";
+import { style } from "@react-spectrum/s2/style" with { type: "macro" };
+import { createContext, useContext, type ReactNode } from "react";
 
-export const inputClass =
-  "w-full rounded border border-slate-300 bg-white px-2 py-1 text-slate-900 focus:border-blue-500 focus:outline-none";
-
-export function Field({
-  label,
-  hint,
-  error,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  error?: string;
-  children: (id: string) => ReactNode;
-}) {
-  const id = useId();
-  return (
-    <div className="mt-3">
-      <label htmlFor={id} className="mb-1 block font-medium text-slate-700">
-        {label}
-      </label>
-      {children(id)}
-      {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
-      {error && <p className="mt-1 text-xs text-red-700">{error}</p>}
-    </div>
-  );
+/**
+ * Saves edits now rather than when focus leaves the field. Fields that change
+ * in discrete steps (a pick, a toggle, adding a tag) call it after each
+ * change, so nothing is lost if the app closes while they still have focus.
+ */
+const CommitContext = createContext<() => void>(() => {});
+export const CommitProvider = CommitContext.Provider;
+export function useCommit() {
+  return useContext(CommitContext);
 }
+
+export const fieldStyle = style({ width: "full", marginTop: 12 });
+
+export const sectionStyle = style({
+  marginTop: 20,
+  paddingTop: 12,
+  borderTopWidth: 1,
+  borderStyle: "solid",
+  borderColor: "gray-200",
+});
+export const groupBox = style({
+  marginTop: 8,
+  padding: 8,
+  borderRadius: "default",
+  borderWidth: 1,
+  borderStyle: "solid",
+  borderColor: "gray-200",
+});
+export const panelHeading = style({ font: "heading-xs", margin: 0 });
+export const sectionHeading = style({ font: "heading-2xs", margin: 0 });
+export const helpText = style({ font: "ui-sm", color: "neutral-subdued" });
+export const errorText = style({ font: "ui-sm", color: "negative" });
+export const mutedText = style({ font: "ui", color: "neutral-subdued" });
+export const warningText = style({ font: "ui-sm", color: "notice-900" });
 
 export function TextField({
   label,
@@ -45,21 +63,17 @@ export function TextField({
   placeholder?: string;
 }) {
   return (
-    <Field label={label} hint={hint} error={error}>
-      {(id) => (
-        <input
-          id={id}
-          type="text"
-          className={
-            inputClass + (readOnly ? " bg-slate-100 text-slate-500" : "")
-          }
-          value={value}
-          readOnly={readOnly}
-          placeholder={placeholder}
-          onChange={(e) => onChange?.(e.target.value)}
-        />
-      )}
-    </Field>
+    <S2TextField
+      label={label}
+      value={value}
+      onChange={onChange}
+      isReadOnly={readOnly}
+      description={hint}
+      isInvalid={error !== undefined}
+      errorMessage={error}
+      placeholder={placeholder}
+      styles={fieldStyle}
+    />
   );
 }
 
@@ -76,18 +90,21 @@ export function Toggle({
   disabled?: boolean;
   hint?: string;
 }) {
+  const commit = useCommit();
   return (
-    <div className="mt-3">
-      <label className="flex items-center gap-2 font-medium text-slate-700">
-        <input
-          type="checkbox"
-          checked={checked}
-          disabled={disabled}
-          onChange={(e) => onChange(e.target.checked)}
-        />
+    <div className={style({ marginTop: 12 })}>
+      <Switch
+        isSelected={checked}
+        onChange={(selected) => {
+          onChange(selected);
+          commit();
+        }}
+        isDisabled={disabled}
+        description={hint}
+        styles={style({ width: "full" })}
+      >
         {label}
-      </label>
-      {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
+      </Switch>
     </div>
   );
 }
@@ -108,22 +125,42 @@ export function Button({
   /** Accessible name for buttons whose content is only an icon. */
   label?: string;
 }) {
-  return (
-    <button
-      type="button"
+  const button = label ? (
+    <ActionButton
       aria-label={label}
-      title={title}
-      disabled={disabled}
-      onClick={onClick}
-      className={
-        "rounded border px-2 py-1 disabled:cursor-not-allowed disabled:opacity-40 " +
-        (danger
-          ? "border-red-300 text-red-700 hover:bg-red-50"
-          : "border-slate-300 text-slate-700 hover:bg-slate-100")
-      }
+      isQuiet
+      isDisabled={disabled}
+      onPress={onClick}
     >
       {children}
-    </button>
+    </ActionButton>
+  ) : (
+    <S2Button
+      variant={danger ? "negative" : "secondary"}
+      fillStyle={danger ? "fill" : "outline"}
+      size="S"
+      isDisabled={disabled}
+      onPress={onClick}
+    >
+      {children}
+    </S2Button>
+  );
+  // A native title rather than a Spectrum Tooltip: it must also explain why
+  // a button is disabled, and Spectrum tooltips don't show on disabled ones.
+  return title ? (
+    <span title={title} className="inline-flex">
+      {button}
+    </span>
+  ) : (
+    button
+  );
+}
+
+export function Loading() {
+  return (
+    <div className="flex h-full items-center justify-center p-4">
+      <ProgressCircle aria-label="Loading" isIndeterminate />
+    </div>
   );
 }
 
@@ -135,8 +172,8 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section className="mt-5 border-t border-slate-200 pt-3">
-      <h3 className="font-semibold text-slate-900">{title}</h3>
+    <section className={sectionStyle}>
+      <h3 className={sectionHeading}>{title}</h3>
       {children}
     </section>
   );
@@ -152,6 +189,7 @@ export function ShowInExplorerButton({ asset }: { asset: string }) {
   }
   return (
     <Button
+      label="Show in file explorer"
       title="Show this file in your file explorer"
       onClick={() =>
         void fetch(`/api/reveal-asset?path=${encodeURIComponent(asset)}`, {
@@ -159,15 +197,10 @@ export function ShowInExplorerButton({ asset }: { asset: string }) {
         })
       }
     >
-      Show in file explorer
+      <FolderOpen />
     </Button>
   );
 }
-
-const badgeTones = {
-  error: "bg-red-100 text-red-800",
-  warning: "bg-amber-100 text-amber-800",
-};
 
 /** Pill showing how many errors or warnings there are; nothing when zero. */
 export function CountBadge({
@@ -181,15 +214,14 @@ export function CountBadge({
     return null;
   }
   return (
-    <span
-      className={
-        "shrink-0 rounded-full px-1.5 text-xs leading-5 font-medium " +
-        badgeTones[severity]
-      }
+    <Badge
+      size="S"
+      fillStyle="subtle"
+      variant={severity === "error" ? "negative" : "notice"}
       aria-label={`${count} ${severity}${count === 1 ? "" : "s"}`}
     >
       {count}
-    </span>
+    </Badge>
   );
 }
 

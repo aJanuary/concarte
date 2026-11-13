@@ -1,7 +1,8 @@
+import { Button as S2Button, FileTrigger } from "@react-spectrum/s2";
 import { useCallback, useEffect, useState } from "react";
 import { SSE_ASSET_CHANGED, type FaviconResponse } from "../../shared/api";
 import { useServerEvents } from "../events";
-import { Button, Section } from "./widgets";
+import { Button, errorText, helpText, mutedText, Section } from "./widgets";
 
 const FAVICON_ASSET = "favicon.ico";
 
@@ -82,24 +83,26 @@ export function FaviconSection() {
             className="size-8 object-contain"
           />
         )}
-        {preview === null && (
-          <span className="text-slate-500">No favicon set</span>
-        )}
-        <label className="relative cursor-pointer rounded border border-slate-300 px-2 py-1 text-slate-700 hover:bg-slate-100">
-          {hasFavicon ? "Replace..." : "Choose file..."}
-          <input
-            type="file"
-            accept=".ico,.png,image/png,image/x-icon,image/vnd.microsoft.icon"
-            className="sr-only"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              e.target.value = "";
-              if (file) {
-                void request({ method: "PUT", body: file });
-              }
-            }}
-          />
-        </label>
+        {preview === null && <span className={mutedText}>No favicon set</span>}
+        <FileTrigger
+          acceptedFileTypes={[
+            ".ico",
+            ".png",
+            "image/png",
+            "image/x-icon",
+            "image/vnd.microsoft.icon",
+          ]}
+          onSelect={(files) => {
+            const file = files?.[0];
+            if (file) {
+              void request({ method: "PUT", body: file });
+            }
+          }}
+        >
+          <S2Button variant="secondary" fillStyle="outline" size="S">
+            {hasFavicon ? "Replace..." : "Choose file..."}
+          </S2Button>
+        </FileTrigger>
         {hasFavicon && (
           <Button
             danger
@@ -113,12 +116,12 @@ export function FaviconSection() {
           </Button>
         )}
       </div>
-      <p className="mt-1 text-xs text-slate-500">
+      <p className={"mt-1 " + helpText}>
         An ICO file, or a square PNG up to 256×256. It is saved as the
         event&apos;s assets/favicon.ico straight away.
       </p>
       {error && (
-        <p role="alert" className="mt-2 text-red-700">
+        <p role="alert" className={"mt-2 " + errorText}>
           {error}
         </p>
       )}

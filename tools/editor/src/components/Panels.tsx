@@ -1,4 +1,5 @@
-import { MapPinIcon } from "@heroicons/react/16/solid";
+import { FileTrigger, Button as S2Button, Text } from "@react-spectrum/s2";
+import Location from "@react-spectrum/s2/icons/Location";
 import { useMemo, useState } from "react";
 import type { ImportSvgResponse } from "../../shared/api";
 import type { Config, MapConfig } from "../../shared/schema";
@@ -13,7 +14,16 @@ import {
   type FieldContext,
 } from "../fields/registry";
 import { FaviconSection } from "./FaviconSection";
-import { Button, Section } from "./widgets";
+import {
+  Button,
+  errorText,
+  helpText,
+  mutedText,
+  panelHeading,
+  Section,
+  sectionStyle,
+  warningText,
+} from "./widgets";
 
 export type Apply = (edit: ops.Edit, key?: string) => void;
 
@@ -29,7 +39,7 @@ const patchKey = (scope: string, patch: object) =>
   `${scope}:${Object.keys(patch).join(",")}`;
 
 function Heading({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-base font-semibold text-slate-900">{children}</h2>;
+  return <h2 className={panelHeading}>{children}</h2>;
 }
 
 export function EventPanel({ doc, apply, ctx }: Common) {
@@ -95,9 +105,7 @@ export function MapPanel({
         </div>
       </Section>
       <Section title="Default map">
-        <p className="text-xs text-slate-500">
-          The map shown when no map is chosen.
-        </p>
+        <p className={helpText}>The map shown when no map is chosen.</p>
         <div className="mt-2 flex items-center gap-2">
           <Button
             disabled={isDefault}
@@ -105,12 +113,10 @@ export function MapPanel({
           >
             Make default
           </Button>
-          {isDefault && (
-            <span className="text-slate-500">This is the default</span>
-          )}
+          {isDefault && <span className={mutedText}>This is the default</span>}
         </div>
       </Section>
-      <div className="mt-5 border-t border-slate-200 pt-3">
+      <div className={sectionStyle}>
         <Button
           danger
           onClick={() => {
@@ -179,34 +185,34 @@ export function AddMapPanel({
   return (
     <div>
       <Heading>Add map</Heading>
-      <label className="mt-3 inline-block cursor-pointer rounded border border-slate-300 px-2 py-1 text-slate-700 hover:bg-slate-100">
-        Import SVG file...
-        <input
-          type="file"
-          accept=".svg,image/svg+xml"
-          className="sr-only"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            e.target.value = "";
+      <div className="mt-3">
+        <FileTrigger
+          acceptedFileTypes={[".svg", "image/svg+xml"]}
+          onSelect={(files) => {
+            const file = files?.[0];
             if (file) {
               void upload(file);
             }
           }}
-        />
-      </label>
-      <p className="mt-1 text-xs text-slate-500">
+        >
+          <S2Button variant="secondary" fillStyle="outline" size="S">
+            Import SVG file...
+          </S2Button>
+        </FileTrigger>
+      </div>
+      <p className={"mt-1 " + helpText}>
         The file is copied into the event&apos;s assets folder.
       </p>
       {error && (
-        <p role="alert" className="mt-2 text-red-700">
+        <p role="alert" className={"mt-2 " + errorText}>
           {error}
         </p>
       )}
-      <p className="mt-4 text-xs text-slate-500">
+      <p className={"mt-4 " + helpText}>
         Files in assets/ that aren&apos;t already used as a map or overlay.
       </p>
       {available.length === 0 && (
-        <p className="mt-3 text-slate-500">No unused files.</p>
+        <p className={"mt-3 " + mutedText}>No unused files.</p>
       )}
       <ul className="mt-3 space-y-2">
         {available.map((asset) => {
@@ -227,7 +233,7 @@ export function AddMapPanel({
                   Add as map
                 </Button>
               ) : (
-                <span className="text-xs text-slate-500">not an SVG</span>
+                <span className={helpText}>not an SVG</span>
               )}
             </li>
           );
@@ -241,7 +247,7 @@ function UnassignableGroup() {
   return (
     <div>
       <Heading>Unassignable group</Heading>
-      <div className="mt-2 space-y-2 text-xs text-slate-500">
+      <div className={"mt-2 space-y-2 " + helpText}>
         <p>
           This group can&apos;t be assigned as a room because it has no id. To
           assign it, give the group an id in the SVG.
@@ -292,12 +298,10 @@ export function NodePanel({
       {!room && (
         <div className="mt-3">
           <Button onClick={() => apply(ops.addRoom(map.src, id))}>
-            <span className="flex items-center gap-1">
-              <MapPinIcon className="relative -top-px size-4" />
-              Assign as room
-            </span>
+            <Location />
+            <Text>Assign as room</Text>
           </Button>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className={"mt-1 " + helpText}>
             Assigns this shape as a room, with area ref &quot;{id}&quot;.
           </p>
         </div>
@@ -305,7 +309,7 @@ export function NodePanel({
       {room && (
         <>
           {errorFor("area") && (
-            <p className="mt-2 text-xs text-amber-700">{errorFor("area")}</p>
+            <p className={"mt-2 " + warningText}>{errorFor("area")}</p>
           )}
           {renderRegistry(
             roomFields,
@@ -322,11 +326,11 @@ export function NodePanel({
               link: errorFor("link"),
             },
           )}
-          <div className="mt-5 border-t border-slate-200 pt-3">
+          <div className={sectionStyle}>
             <Button danger onClick={removeRoom}>
               Remove room
             </Button>
-            <p className="mt-1 text-xs text-slate-500">
+            <p className={"mt-1 " + helpText}>
               The shape stays on the map. Only its room details, such as the
               label and description, are removed.
             </p>
