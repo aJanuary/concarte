@@ -154,7 +154,7 @@ export function App() {
 
   if (failure) {
     return (
-      <div className="p-4">
+      <div className={style({ padding: 16 })}>
         <InlineAlert variant="negative">
           <Heading>Could not reach the editor server</Heading>
           <Content>{failure}</Content>
@@ -209,18 +209,26 @@ function EventLoader({
   }
   if (state.status === "failed") {
     return (
-      <div className="mx-auto max-w-2xl p-6">
+      <div className={style({ marginX: "auto", maxWidth: 672, padding: 24 })}>
         <InlineAlert variant="negative">
           <Heading>The editor can&apos;t open this event</Heading>
           <Content>
-            <ul className="list-disc space-y-2 pl-5">
+            <ul
+              className={style({
+                margin: 0,
+                paddingStart: 20,
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+              })}
+            >
               {state.errors.map((error) => (
                 <li key={error}>{error}</li>
               ))}
             </ul>
           </Content>
         </InlineAlert>
-        <div className="mt-4">
+        <div className={style({ marginTop: 16 })}>
           <Button onClick={reload}>Try again</Button>
         </div>
       </div>
@@ -575,7 +583,13 @@ function Editor({
     if (!node) {
       const room = findRoom(doc, map.src, effective.key);
       return (
-        <div className={"space-y-3 " + mutedText}>
+        <div
+          className={
+            style({ display: "flex", flexDirection: "column", gap: 12 }) +
+            " " +
+            mutedText
+          }
+        >
           <p>
             {room
               ? `Room "${room.label || room.id}" refers to an element with id "${effective.key}", but ${map.src} has no such element. It may have been renamed or removed from the SVG.`
@@ -628,12 +642,15 @@ function Editor({
       }}
     >
       <CommitProvider value={requestSave}>
-        <main className="h-full min-h-0">
+        <main className={style({ height: "full", minHeight: 0 })}>
           <EditorLayout
             revealBuild={revealBuild}
             toolbar={
               <>
-                <span className={"mr-2 " + mutedText} role="status">
+                <span
+                  className={style({ marginEnd: 8 }) + " " + mutedText}
+                  role="status"
+                >
                   {status}
                 </span>
                 {canBuild && (
@@ -684,7 +701,7 @@ function Editor({
                   }
                 />
               ) : (
-                <p className={"p-4 " + mutedText}>
+                <p className={style({ padding: 16 }) + " " + mutedText}>
                   {!activeMap
                     ? "This event has no maps yet. Add a map to see it here."
                     : activeSvg === "error"

@@ -16,7 +16,9 @@ export function ProblemsList({
   onSelect: (issue: Issue) => void;
 }) {
   if (issues.length === 0) {
-    return <p className={"p-3 " + mutedText}>No problems.</p>;
+    return (
+      <p className={style({ padding: 12 }) + " " + mutedText}>No problems.</p>
+    );
   }
   return (
     <ListView

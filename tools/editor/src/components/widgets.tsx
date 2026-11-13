@@ -26,6 +26,7 @@ export const fieldStyle = style({ width: "full", marginTop: 12 });
 export const sectionStyle = style({
   marginTop: 20,
   paddingTop: 12,
+  borderWidth: 0,
   borderTopWidth: 1,
   borderStyle: "solid",
   borderColor: "gray-200",
@@ -148,7 +149,7 @@ export function Button({
   // A native title rather than a Spectrum Tooltip: it must also explain why
   // a button is disabled, and Spectrum tooltips don't show on disabled ones.
   return title ? (
-    <span title={title} className="inline-flex">
+    <span title={title} className={style({ display: "inline-flex" })}>
       {button}
     </span>
   ) : (
@@ -158,7 +159,15 @@ export function Button({
 
 export function Loading() {
   return (
-    <div className="flex h-full items-center justify-center p-4">
+    <div
+      className={style({
+        display: "flex",
+        height: "full",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 16,
+      })}
+    >
       <ProgressCircle aria-label="Loading" isIndeterminate />
     </div>
   );

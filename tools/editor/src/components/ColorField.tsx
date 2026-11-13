@@ -38,7 +38,14 @@ export function ColorField({
   const hex = toHex(value);
   const commit = useCommit();
   return (
-    <div className="mt-3 flex items-start gap-2">
+    <div
+      className={style({
+        marginTop: 12,
+        display: "flex",
+        alignItems: "start",
+        gap: 8,
+      })}
+    >
       <S2ColorField
         label={label}
         description={hint}
@@ -52,12 +59,25 @@ export function ColorField({
         }}
         styles={style({ flexGrow: 1 })}
       />
-      <label className="relative mt-6 shrink-0 cursor-pointer">
+      <label
+        className={style({
+          position: "relative",
+          marginTop: 24,
+          flexShrink: 0,
+          cursor: "pointer",
+        })}
+      >
         <ColorSwatch color={hex} size="S" />
-        <span className="sr-only">Pick {label} color</span>
+        <span className="visually-hidden">Pick {label} color</span>
         <input
           type="color"
-          className="absolute inset-0 size-full cursor-pointer opacity-0"
+          className={style({
+            position: "absolute",
+            inset: 0,
+            size: "full",
+            cursor: "pointer",
+            opacity: 0,
+          })}
           value={hex}
           onChange={(e) => onChange(e.target.value)}
         />

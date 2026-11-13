@@ -38,12 +38,18 @@ export function StartScreen({
 
   return (
     <div
-      className={
-        "flex h-full justify-center overflow-auto px-6 py-16 " +
-        style({ backgroundColor: "layer-1", userSelect: "none" })
-      }
+      className={style({
+        display: "flex",
+        height: "full",
+        justifyContent: "center",
+        overflow: "auto",
+        paddingX: 24,
+        paddingY: 64,
+        backgroundColor: "layer-1",
+        userSelect: "none",
+      })}
     >
-      <div className="w-full max-w-2xl">
+      <div className={style({ width: "full", maxWidth: 672 })}>
         <h1 className={style({ font: "title-3xl", margin: 0 })}>
           ConCarte
           <span
@@ -65,7 +71,14 @@ export function StartScreen({
         >
           Create an event, or open a folder that already has one.
         </p>
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div
+          className={style({
+            marginTop: 32,
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 12,
+          })}
+        >
           <Button
             variant="accent"
             size="XL"
@@ -84,7 +97,7 @@ export function StartScreen({
           </Button>
         </div>
         {message && (
-          <div className="mt-6">
+          <div className={style({ marginTop: 24 })}>
             <InlineAlert variant="negative">
               <Content>{message}</Content>
             </InlineAlert>

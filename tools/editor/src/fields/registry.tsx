@@ -200,7 +200,7 @@ export const configFields: Registry<Config> = {
               }
               styles={style({ width: "full" })}
             />
-            <div className="mt-3">
+            <div className={style({ marginTop: 12 })}>
               <Button
                 danger
                 onClick={() =>
@@ -212,7 +212,7 @@ export const configFields: Registry<Config> = {
             </div>
           </div>
         ))}
-        <div className="mt-3">
+        <div className={style({ marginTop: 12 })}>
           <Button onClick={() => onChange([...attributions, ""])}>
             + Add attribution
           </Button>
@@ -247,7 +247,14 @@ export const overlayFields: Registry<Overlay> = {
     <TextField label="Label" value={value} onChange={onChange} />
   ),
   src: ({ value, onChange, ctx }) => (
-    <div className="mt-3 flex items-end gap-2">
+    <div
+      className={style({
+        marginTop: 12,
+        display: "flex",
+        alignItems: "end",
+        gap: 8,
+      })}
+    >
       <CommittingPicker
         label="Source"
         selectedKey={assetPath(value)}
@@ -288,10 +295,12 @@ export const mapFields: Registry<MapConfig> = {
     />
   ),
   src: ({ value }) => (
-    <div className="mt-3">
+    <div className={style({ marginTop: 12 })}>
       <p className={readOnlyLabel}>Source</p>
-      <div className="flex items-center gap-1">
-        <span className="min-w-0 break-all">{value}</span>
+      <div className={style({ display: "flex", alignItems: "center", gap: 4 })}>
+        <span className={style({ minWidth: 0, overflowWrap: "anywhere" })}>
+          {value}
+        </span>
         <ShowInExplorerButton asset={assetPath(value)} />
       </div>
     </div>
@@ -313,7 +322,7 @@ export const mapFields: Registry<MapConfig> = {
                 ),
               ctx,
             )}
-            <div className="mt-3">
+            <div className={style({ marginTop: 12 })}>
               <Button
                 danger
                 onClick={() => onChange(overlays.filter((_, i) => i !== index))}
@@ -323,7 +332,7 @@ export const mapFields: Registry<MapConfig> = {
             </div>
           </div>
         ))}
-        <div className="mt-3">
+        <div className={style({ marginTop: 12 })}>
           <Button
             onClick={() =>
               onChange([
@@ -401,15 +410,17 @@ export const roomFields: Registry<Room> = {
             (patch) => onChange({ ...value, ...patch }),
             ctx,
           )}
-          {error && <p className={"mt-2 " + errorText}>{error}</p>}
-          <div className="mt-3">
+          {error && (
+            <p className={style({ marginTop: 8 }) + " " + errorText}>{error}</p>
+          )}
+          <div className={style({ marginTop: 12 })}>
             <Button danger onClick={() => onChange(undefined)}>
               Remove link
             </Button>
           </div>
         </div>
       ) : (
-        <div className="mt-3">
+        <div className={style({ marginTop: 12 })}>
           <Button onClick={() => onChange({ href: "", title: "" })}>
             + Add link
           </Button>

@@ -1,4 +1,3 @@
-import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import macros from "unplugin-parcel-macros";
 import { dirname, join } from "path";
@@ -15,9 +14,10 @@ export default defineConfig({
     // Must run before react(): it compiles the Spectrum style() macros.
     macros.vite(),
     react(),
-    tailwindcss(),
     editorApi({ root: join(here, "..", "..") }),
   ],
+  // The repo's PostCSS config runs Tailwind for the site; the editor has none.
+  css: { postcss: { plugins: [] } },
   optimizeDeps: {
     // A build-time macro, compiled away by the macros plugin; the browser
     // never loads it, and it only resolves under Node.

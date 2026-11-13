@@ -23,15 +23,27 @@ import { ProblemsList } from "./ProblemsList";
 
 const HEADER_PX = 40;
 
+const handleColor = {
+  default: "gray-300",
+  ":hover": "blue-700",
+  ":focus-visible": "blue-700",
+  ":is([data-separator=active])": "blue-800",
+} as const;
+const columnHandle = style({
+  width: "[1px]",
+  backgroundColor: handleColor,
+  outlineStyle: "none",
+  transition: "default",
+});
+const rowHandle = style({
+  height: "[1px]",
+  backgroundColor: handleColor,
+  outlineStyle: "none",
+  transition: "default",
+});
+
 function Handle({ vertical }: { vertical?: boolean }) {
-  return (
-    <Separator
-      className={
-        "bg-slate-300 transition-colors hover:bg-blue-400 focus-visible:bg-blue-400 focus-visible:outline-none data-[separator=active]:bg-blue-500 " +
-        (vertical ? "h-px" : "w-px")
-      }
-    />
-  );
+  return <Separator className={vertical ? rowHandle : columnHandle} />;
 }
 
 type Tab = "problems" | "build";
@@ -59,6 +71,7 @@ function TabBar({
         gap: 4,
         paddingX: 12,
         backgroundColor: "layer-1",
+        borderWidth: 0,
         borderBottomWidth: 1,
         borderStyle: "solid",
         borderColor: "gray-200",
@@ -86,7 +99,7 @@ function TabBar({
           ))}
         </TabList>
       </div>
-      <span className="flex-1" />
+      <span className={style({ flexGrow: 1 })} />
       {toolbar}
     </div>
   );
@@ -168,7 +181,7 @@ export function EditorLayout({
         minSize={160}
         groupResizeBehavior="preserve-pixel-size"
       >
-        <nav className="h-full" aria-label="Event structure">
+        <nav className={style({ height: "full" })} aria-label="Event structure">
           {tree}
         </nav>
       </Panel>
@@ -179,11 +192,15 @@ export function EditorLayout({
         minSize={200}
         groupResizeBehavior="preserve-pixel-size"
       >
-        <section className="h-full overflow-auto p-3">{properties}</section>
+        <section
+          className={style({ height: "full", overflow: "auto", padding: 12 })}
+        >
+          {properties}
+        </section>
       </Panel>
       <Handle />
       <Panel id="map" minSize={200}>
-        <section className="h-full">{map}</section>
+        <section className={style({ height: "full" })}>{map}</section>
       </Panel>
     </Group>
   );
@@ -213,7 +230,11 @@ export function EditorLayout({
           density="compact"
           selectedKey={tab}
           onSelectionChange={(key) => selectTab(key as Tab)}
-          UNSAFE_className="flex h-full flex-col"
+          UNSAFE_style={{
+            display: "flex",
+            height: "100%",
+            flexDirection: "column",
+          }}
         >
           <TabBar
             tabs={tabs}
@@ -226,11 +247,11 @@ export function EditorLayout({
                 : buildPanel.current?.collapse()
             }
           />
-          <TabPanel id="problems" UNSAFE_className="min-h-0 flex-1">
+          <TabPanel id="problems" UNSAFE_style={{ minHeight: 0, flexGrow: 1 }}>
             <ProblemsList issues={issues} onSelect={onSelectIssue} />
           </TabPanel>
           {build && (
-            <TabPanel id="build" UNSAFE_className="min-h-0 flex-1">
+            <TabPanel id="build" UNSAFE_style={{ minHeight: 0, flexGrow: 1 }}>
               {build}
             </TabPanel>
           )}

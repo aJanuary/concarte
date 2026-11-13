@@ -106,7 +106,7 @@ function HudButton({
   // A native title rather than a Spectrum Tooltip, which doesn't show on
   // disabled buttons.
   return (
-    <span title={title ?? label} className="inline-flex">
+    <span title={title ?? label} className={style({ display: "inline-flex" })}>
       <ActionButton
         aria-label={label}
         size="S"
@@ -201,7 +201,7 @@ export function MapView({
     () => (
       <div
         ref={content}
-        className="size-full"
+        className={style({ size: "full" })}
         dangerouslySetInnerHTML={{ __html: svg.markup }}
       />
     ),
@@ -281,7 +281,15 @@ export function MapView({
   return (
     <div
       ref={viewport}
-      className={`relative h-full touch-none overflow-hidden select-none ${style({ backgroundColor: "layer-1" })} ${panning ? "cursor-grabbing" : "cursor-grab"}`}
+      className={style({
+        position: "relative",
+        height: "full",
+        touchAction: "none",
+        overflow: "hidden",
+        userSelect: "none",
+        backgroundColor: "layer-1",
+      })}
+      style={{ cursor: panning ? "grabbing" : "grab" }}
       onPointerDown={(e) => {
         // The panel handles' hit areas reach into the map; they claim those
         // presses by preventing default.
@@ -336,27 +344,30 @@ export function MapView({
       }}
     >
       <div
-        className={
-          "pointer-events-none absolute top-2 left-2 z-10 " +
-          style({
-            backgroundColor: "layer-2",
-            borderRadius: "default",
-            paddingX: 8,
-            paddingY: 2,
-            font: "ui-sm",
-            color: "neutral-subdued",
-          })
-        }
+        className={style({
+          pointerEvents: "none",
+          position: "absolute",
+          top: 8,
+          left: 8,
+          zIndex: 10,
+          backgroundColor: "layer-2",
+          borderRadius: "default",
+          paddingX: 8,
+          paddingY: 2,
+          font: "ui-sm",
+          color: "neutral-subdued",
+        })}
       >
         {title}
       </div>
 
       <div
-        className="absolute top-0 left-0 origin-top-left"
+        className={style({ position: "absolute", top: 0, left: 0 })}
         style={{
           width,
           height,
           transform: `translate(${view.x}px, ${view.y}px) scale(${view.k})`,
+          transformOrigin: "0 0",
         }}
       >
         <style>{svgCss}</style>
@@ -369,14 +380,26 @@ export function MapView({
               key={o.src}
               src={`/assets/${assetPath(o.src)}`}
               alt=""
-              className="pointer-events-none absolute inset-0 size-full"
+              className={style({
+                pointerEvents: "none",
+                position: "absolute",
+                inset: 0,
+                size: "full",
+              })}
             />
           ))}
       </div>
 
       {overlays.length > 0 && (
         <div
-          className="absolute bottom-2 left-2 z-10 flex gap-1"
+          className={style({
+            position: "absolute",
+            bottom: 8,
+            left: 8,
+            zIndex: 10,
+            display: "flex",
+            gap: 4,
+          })}
           onPointerDown={(e) => e.stopPropagation()}
           onPointerUp={(e) => e.stopPropagation()}
         >
@@ -405,7 +428,15 @@ export function MapView({
       )}
 
       <div
-        className="absolute right-2 bottom-2 z-10 flex flex-col gap-1"
+        className={style({
+          position: "absolute",
+          right: 8,
+          bottom: 8,
+          zIndex: 10,
+          display: "flex",
+          flexDirection: "column",
+          gap: 4,
+        })}
         onPointerDown={(e) => e.stopPropagation()}
         onPointerUp={(e) => e.stopPropagation()}
       >
@@ -424,7 +455,7 @@ export function MapView({
           isDisabled={parent === undefined}
           onClick={() => parent && onSelect(parent)}
         >
-          <ArrowUpIcon className="size-4" />
+          <ArrowUpIcon width={16} height={16} />
         </HudButton>
       </div>
     </div>

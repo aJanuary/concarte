@@ -1,14 +1,59 @@
-@import "tailwindcss";
-@plugin "@tailwindcss/typography";
+/*
+ * In a layer below Spectrum's (see index.html): plain rules would otherwise
+ * override every Spectrum style that sets the same property.
+ */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    box-sizing: border-box;
+  }
 
-html,
-body,
-#root {
-  height: 100%;
-}
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
 
-body {
-  margin: 0;
+  body,
+  h1,
+  h2,
+  h3,
+  p,
+  ul,
+  pre {
+    margin: 0;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .markdown-preview {
+    padding: 8px;
+    line-height: 1.5;
+  }
+  .markdown-preview > * + * {
+    margin-top: 0.75em;
+  }
+  .markdown-preview h1,
+  .markdown-preview h2,
+  .markdown-preview h3 {
+    font-size: 1.1em;
+    font-weight: 700;
+  }
+  .markdown-preview ul,
+  .markdown-preview ol {
+    padding-inline-start: 1.5em;
+  }
+  .markdown-preview a {
+    color: inherit;
+  }
 }
 
 .cm-editor {

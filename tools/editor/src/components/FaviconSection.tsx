@@ -1,3 +1,4 @@
+import { style } from "@react-spectrum/s2/style" with { type: "macro" };
 import { Button as S2Button, FileTrigger } from "@react-spectrum/s2";
 import { useCallback, useEffect, useState } from "react";
 import { SSE_ASSET_CHANGED, type FaviconResponse } from "../../shared/api";
@@ -74,13 +75,20 @@ export function FaviconSection() {
 
   return (
     <Section title="Favicon">
-      <div className="mt-2 flex items-center gap-3">
+      <div
+        className={style({
+          marginTop: 8,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+        })}
+      >
         {hasFavicon && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={preview}
             alt="Current favicon"
-            className="size-8 object-contain"
+            className={style({ size: 32, objectFit: "contain" })}
           />
         )}
         {preview === null && <span className={mutedText}>No favicon set</span>}
@@ -116,12 +124,12 @@ export function FaviconSection() {
           </Button>
         )}
       </div>
-      <p className={"mt-1 " + helpText}>
+      <p className={style({ marginTop: 4 }) + " " + helpText}>
         An ICO file, or a square PNG up to 256×256. It is saved as the
         event&apos;s assets/favicon.ico straight away.
       </p>
       {error && (
-        <p role="alert" className={"mt-2 " + errorText}>
+        <p role="alert" className={style({ marginTop: 8 }) + " " + errorText}>
           {error}
         </p>
       )}

@@ -31,8 +31,10 @@ export function BuildToolbar({
   onReveal: () => void;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className={"mr-1 " + mutedText}>{TITLES[state.status]}</span>
+    <div className={style({ display: "flex", alignItems: "center", gap: 8 })}>
+      <span className={style({ marginEnd: 4 }) + " " + mutedText}>
+        {TITLES[state.status]}
+      </span>
       {state.status === "running" ? (
         <Button
           label="Stop build"
@@ -90,7 +92,7 @@ export function BuildLog({ state }: { state: BuildResponse }) {
   }, [state.log]);
 
   return (
-    <div className="h-full p-2">
+    <div className={style({ height: "full", padding: 8 })}>
       <pre
         ref={log}
         className={style({

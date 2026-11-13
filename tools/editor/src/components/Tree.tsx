@@ -168,7 +168,7 @@ function IssueIcons({ counts }: { counts: IssueCounts }) {
     <span className={issueIconsStyle}>
       <IconContext.Provider value={{}}>
         {counts.errors > 0 && (
-          <span className="inline-flex">
+          <span className={style({ display: "inline-flex" })}>
             <AlertDiamond
               aria-label={`${counts.errors} error${counts.errors === 1 ? "" : "s"}`}
               styles={iconStyle({ size: "S", color: "negative" })}
@@ -176,7 +176,7 @@ function IssueIcons({ counts }: { counts: IssueCounts }) {
           </span>
         )}
         {counts.warnings > 0 && (
-          <span className="inline-flex">
+          <span className={style({ display: "inline-flex" })}>
             <AlertTriangle
               aria-label={`${counts.warnings} warning${counts.warnings === 1 ? "" : "s"}`}
               styles={iconStyle({ size: "S", color: "notice" })}
@@ -422,16 +422,23 @@ export function Tree({
   }, [selectedIndex]);
 
   return (
-    <div className="flex h-full flex-col">
+    <div
+      className={style({
+        display: "flex",
+        height: "full",
+        flexDirection: "column",
+      })}
+    >
       <div
-        className={
-          "flex gap-1 p-1 " +
-          style({
-            borderBottomWidth: 1,
-            borderStyle: "solid",
-            borderColor: "gray-200",
-          })
-        }
+        className={style({
+          display: "flex",
+          gap: 4,
+          padding: 4,
+          borderWidth: 0,
+          borderBottomWidth: 1,
+          borderStyle: "solid",
+          borderColor: "gray-200",
+        })}
       >
         <span title="Show shapes that aren't assigned to a room">
           <ToggleButton
@@ -453,7 +460,7 @@ export function Tree({
           </ActionButton>
         </span>
       </div>
-      <div ref={scroller} className="min-h-0 flex-1">
+      <div ref={scroller} className={style({ minHeight: 0, flexGrow: 1 })}>
         <TreeView
           aria-label="Event structure"
           selectionMode="single"

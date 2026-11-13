@@ -1,3 +1,4 @@
+import { style } from "@react-spectrum/s2/style" with { type: "macro" };
 import { FileTrigger, Button as S2Button, Text } from "@react-spectrum/s2";
 import Location from "@react-spectrum/s2/icons/Location";
 import { useMemo, useState } from "react";
@@ -89,7 +90,14 @@ export function MapPanel({
         { id: errorFor("id"), label: errorFor("label") },
       )}
       <Section title="Order">
-        <div className="mt-2 flex flex-wrap gap-2">
+        <div
+          className={style({
+            marginTop: 8,
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 8,
+          })}
+        >
           <Button
             disabled={index === 0}
             onClick={() => apply(ops.moveMap(map.src, -1))}
@@ -106,7 +114,14 @@ export function MapPanel({
       </Section>
       <Section title="Default map">
         <p className={helpText}>The map shown when no map is chosen.</p>
-        <div className="mt-2 flex items-center gap-2">
+        <div
+          className={style({
+            marginTop: 8,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          })}
+        >
           <Button
             disabled={isDefault}
             onClick={() => apply(ops.makeDefaultMap(map.src))}
@@ -185,7 +200,7 @@ export function AddMapPanel({
   return (
     <div>
       <Heading>Add map</Heading>
-      <div className="mt-3">
+      <div className={style({ marginTop: 12 })}>
         <FileTrigger
           acceptedFileTypes={[".svg", "image/svg+xml"]}
           onSelect={(files) => {
@@ -200,26 +215,47 @@ export function AddMapPanel({
           </S2Button>
         </FileTrigger>
       </div>
-      <p className={"mt-1 " + helpText}>
+      <p className={style({ marginTop: 4 }) + " " + helpText}>
         The file is copied into the event&apos;s assets folder.
       </p>
       {error && (
-        <p role="alert" className={"mt-2 " + errorText}>
+        <p role="alert" className={style({ marginTop: 8 }) + " " + errorText}>
           {error}
         </p>
       )}
-      <p className={"mt-4 " + helpText}>
+      <p className={style({ marginTop: 16 }) + " " + helpText}>
         Files in assets/ that aren&apos;t already used as a map or overlay.
       </p>
       {available.length === 0 && (
-        <p className={"mt-3 " + mutedText}>No unused files.</p>
+        <p className={style({ marginTop: 12 }) + " " + mutedText}>
+          No unused files.
+        </p>
       )}
-      <ul className="mt-3 space-y-2">
+      <ul
+        className={style({
+          marginTop: 12,
+          padding: 0,
+          listStyleType: "none",
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+        })}
+      >
         {available.map((asset) => {
           const isSvg = asset.toLowerCase().endsWith(".svg");
           return (
-            <li key={asset} className="flex items-center gap-2">
-              <span className="flex-1 truncate" title={asset}>
+            <li
+              key={asset}
+              className={style({
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              })}
+            >
+              <span
+                className={style({ flexGrow: 1, truncate: true })}
+                title={asset}
+              >
                 /{asset}
               </span>
               {isSvg ? (
@@ -247,7 +283,18 @@ function UnassignableGroup() {
   return (
     <div>
       <Heading>Unassignable group</Heading>
-      <div className={"mt-2 space-y-2 " + helpText}>
+      <div
+        className={
+          style({
+            marginTop: 8,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }) +
+          " " +
+          helpText
+        }
+      >
         <p>
           This group can&apos;t be assigned as a room because it has no id. To
           assign it, give the group an id in the SVG.
@@ -296,12 +343,12 @@ export function NodePanel({
         {node.tag}#{id}
       </Heading>
       {!room && (
-        <div className="mt-3">
+        <div className={style({ marginTop: 12 })}>
           <Button onClick={() => apply(ops.addRoom(map.src, id))}>
             <Location />
             <Text>Assign as room</Text>
           </Button>
-          <p className={"mt-1 " + helpText}>
+          <p className={style({ marginTop: 4 }) + " " + helpText}>
             Assigns this shape as a room, with area ref &quot;{id}&quot;.
           </p>
         </div>
@@ -309,7 +356,9 @@ export function NodePanel({
       {room && (
         <>
           {errorFor("area") && (
-            <p className={"mt-2 " + warningText}>{errorFor("area")}</p>
+            <p className={style({ marginTop: 8 }) + " " + warningText}>
+              {errorFor("area")}
+            </p>
           )}
           {renderRegistry(
             roomFields,
@@ -330,7 +379,7 @@ export function NodePanel({
             <Button danger onClick={removeRoom}>
               Remove room
             </Button>
-            <p className={"mt-1 " + helpText}>
+            <p className={style({ marginTop: 4 }) + " " + helpText}>
               The shape stays on the map. Only its room details, such as the
               label and description, are removed.
             </p>

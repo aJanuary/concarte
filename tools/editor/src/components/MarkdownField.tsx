@@ -114,7 +114,7 @@ export function MarkdownField({
           <CodeMirror id={id} value={value} onChange={onChange} />
         </TabPanel>
         <TabPanel id="preview">
-          <div className={"prose prose-sm max-w-none p-2 " + editorFrame}>
+          <div className={"markdown-preview " + editorFrame}>
             <Markdown>{tidyText(value)}</Markdown>
           </div>
         </TabPanel>

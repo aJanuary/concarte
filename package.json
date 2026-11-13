@@ -44,7 +44,6 @@
     "@eslint/js": "^10.0.1",
     "@react-spectrum/s2": "^1.8.2",
     "@tailwindcss/postcss": "^4.2.1",
-    "@tailwindcss/vite": "^4.3.4",
     "@types/mdast": "^4.0.4",
     "@types/node": "^25.3.5",
     "@types/react": "^19.2.14",

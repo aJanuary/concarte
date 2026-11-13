@@ -6,11 +6,10 @@
     <title>ConCarte editor</title>
     <!--
       Inline so it precedes every stylesheet: the first declaration of a layer
-      fixes its precedence. Tailwind's reset (base) must sit below Spectrum's
-      styles (_), and Tailwind utilities above them.
+      fixes its precedence. Our base styles must sit below Spectrum's (_).
     -->
     <style>
-      @layer theme, base, _, components, utilities;
+      @layer base, _;
     </style>
   </head>
   <body>
