@@ -1,14 +1,16 @@
 import {
   ActionButton,
+  AlertDialog,
   Badge,
   Button as S2Button,
+  DialogContainer,
   ProgressCircle,
   Switch,
   TextField as S2TextField,
 } from "@react-spectrum/s2";
 import FolderOpen from "@react-spectrum/s2/icons/FolderOpen";
 import { style } from "@react-spectrum/s2/style" with { type: "macro" };
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 /**
  * Saves edits now rather than when focus leaves the field. Fields that change
@@ -114,14 +116,12 @@ export function Button({
   children,
   onClick,
   disabled,
-  danger,
   title,
   label,
 }: {
   children: ReactNode;
   onClick: () => void;
   disabled?: boolean;
-  danger?: boolean;
   title?: string;
   /** Accessible name for buttons whose content is only an icon. */
   label?: string;
@@ -137,8 +137,8 @@ export function Button({
     </ActionButton>
   ) : (
     <S2Button
-      variant={danger ? "negative" : "secondary"}
-      fillStyle={danger ? "fill" : "outline"}
+      variant="secondary"
+      fillStyle="outline"
       size="S"
       isDisabled={disabled}
       onPress={onClick}
@@ -170,6 +170,42 @@ export function Loading() {
     >
       <ProgressCircle aria-label="Loading" isIndeterminate />
     </div>
+  );
+}
+
+/**
+ * A remove button. With `confirm`, it asks first in a dialog whose action is
+ * the destructive (red) one; the button itself stays secondary.
+ */
+export function RemoveButton({
+  children,
+  onRemove,
+  confirm,
+}: {
+  children: ReactNode;
+  onRemove: () => void;
+  confirm?: { title: string; message: ReactNode; action: string };
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button onClick={() => (confirm ? setOpen(true) : onRemove())}>
+        {children}
+      </Button>
+      <DialogContainer onDismiss={() => setOpen(false)}>
+        {open && confirm && (
+          <AlertDialog
+            title={confirm.title}
+            variant="destructive"
+            primaryActionLabel={confirm.action}
+            cancelLabel="Cancel"
+            onPrimaryAction={onRemove}
+          >
+            {confirm.message}
+          </AlertDialog>
+        )}
+      </DialogContainer>
+    </>
   );
 }
 

@@ -3,7 +3,14 @@ import { Button as S2Button, FileTrigger } from "@react-spectrum/s2";
 import { useCallback, useEffect, useState } from "react";
 import { SSE_ASSET_CHANGED, type FaviconResponse } from "../../shared/api";
 import { useServerEvents } from "../events";
-import { Button, errorText, helpText, mutedText, Section } from "./widgets";
+import {
+  Button,
+  errorText,
+  helpText,
+  mutedText,
+  RemoveButton,
+  Section,
+} from "./widgets";
 
 const FAVICON_ASSET = "favicon.ico";
 
@@ -112,16 +119,16 @@ export function FaviconSection() {
           </S2Button>
         </FileTrigger>
         {hasFavicon && (
-          <Button
-            danger
-            onClick={() => {
-              if (window.confirm("Remove the favicon? This can't be undone.")) {
-                void request({ method: "DELETE" });
-              }
+          <RemoveButton
+            onRemove={() => void request({ method: "DELETE" })}
+            confirm={{
+              title: "Remove the favicon?",
+              message: "The file is deleted, so this can't be undone.",
+              action: "Remove",
             }}
           >
             Remove
-          </Button>
+          </RemoveButton>
         )}
       </div>
       <p className={style({ marginTop: 4 }) + " " + helpText}>

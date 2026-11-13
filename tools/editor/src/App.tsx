@@ -597,7 +597,6 @@ function Editor({
           </p>
           {room && (
             <Button
-              danger
               onClick={() => {
                 apply(removeRoom(map.src, effective.key));
                 select({ kind: "map", mapSrc: map.src });

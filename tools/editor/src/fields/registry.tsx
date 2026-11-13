@@ -202,7 +202,6 @@ export const configFields: Registry<Config> = {
             />
             <div className={style({ marginTop: 12 })}>
               <Button
-                danger
                 onClick={() =>
                   onChange(attributions.filter((_, i) => i !== index))
                 }
@@ -324,7 +323,6 @@ export const mapFields: Registry<MapConfig> = {
             )}
             <div className={style({ marginTop: 12 })}>
               <Button
-                danger
                 onClick={() => onChange(overlays.filter((_, i) => i !== index))}
               >
                 Remove overlay
@@ -414,9 +412,7 @@ export const roomFields: Registry<Room> = {
             <p className={style({ marginTop: 8 }) + " " + errorText}>{error}</p>
           )}
           <div className={style({ marginTop: 12 })}>
-            <Button danger onClick={() => onChange(undefined)}>
-              Remove link
-            </Button>
+            <Button onClick={() => onChange(undefined)}>Remove link</Button>
           </div>
         </div>
       ) : (

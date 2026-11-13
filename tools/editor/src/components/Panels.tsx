@@ -21,6 +21,7 @@ import {
   helpText,
   mutedText,
   panelHeading,
+  RemoveButton,
   Section,
   sectionStyle,
   warningText,
@@ -132,23 +133,23 @@ export function MapPanel({
         </div>
       </Section>
       <div className={sectionStyle}>
-        <Button
-          danger
-          onClick={() => {
-            const rooms = map.rooms.length;
-            if (
-              rooms === 0 ||
-              window.confirm(
-                `Remove map "${map.label}" and its ${rooms} room${rooms === 1 ? "" : "s"}?`,
-              )
-            ) {
-              apply(ops.removeMap(map.src));
-              onRemoved();
-            }
+        <RemoveButton
+          onRemove={() => {
+            apply(ops.removeMap(map.src));
+            onRemoved();
           }}
+          confirm={
+            map.rooms.length === 0
+              ? undefined
+              : {
+                  title: `Remove map "${map.label}"?`,
+                  message: `Its ${map.rooms.length} room${map.rooms.length === 1 ? "" : "s"} will be removed too.`,
+                  action: "Remove map",
+                }
+          }
         >
           Remove map
-        </Button>
+        </RemoveButton>
       </div>
     </div>
   );
@@ -325,18 +326,6 @@ export function NodePanel({
   const errorFor = (field: Issue["field"]) =>
     issues.find((i) => i.ref === id && i.field === field)?.message;
 
-  const removeRoom = () => {
-    if (
-      !room ||
-      !ops.roomHasData(room) ||
-      window.confirm(
-        `Remove room "${room.label || room.id}"? The shape stays on the map, but its room details are lost.`,
-      )
-    ) {
-      apply(ops.removeRoom(map.src, id));
-    }
-  };
-
   return (
     <div>
       <Heading>
@@ -376,9 +365,21 @@ export function NodePanel({
             },
           )}
           <div className={sectionStyle}>
-            <Button danger onClick={removeRoom}>
+            <RemoveButton
+              onRemove={() => apply(ops.removeRoom(map.src, id))}
+              confirm={
+                room && ops.roomHasData(room)
+                  ? {
+                      title: `Remove room "${room.label || room.id}"?`,
+                      message:
+                        "The shape stays on the map, but its room details are lost.",
+                      action: "Remove room",
+                    }
+                  : undefined
+              }
+            >
               Remove room
-            </Button>
+            </RemoveButton>
             <p className={style({ marginTop: 4 }) + " " + helpText}>
               The shape stays on the map. Only its room details, such as the
               label and description, are removed.
