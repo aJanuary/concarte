@@ -4,7 +4,9 @@ import {
   createIcon,
   IconContext,
   Text,
-  ToggleButton,
+  Menu,
+  MenuItem,
+  MenuTrigger,
   Tooltip,
   TooltipTrigger,
   TreeView,
@@ -15,10 +17,10 @@ import {
 import Add from "@react-spectrum/s2/icons/Add";
 import AlertDiamond from "@react-spectrum/s2/icons/AlertDiamond";
 import AlertTriangle from "@react-spectrum/s2/icons/AlertTriangle";
+import Filter from "@react-spectrum/s2/icons/Filter";
 import Folder from "@react-spectrum/s2/icons/Folder";
 import ImageIcon from "@react-spectrum/s2/icons/Image";
 import Refresh from "@react-spectrum/s2/icons/Refresh";
-import ViewGrid from "@react-spectrum/s2/icons/ViewGrid";
 import {
   iconStyle,
   style,
@@ -438,25 +440,38 @@ export function Tree({
           borderColor: "gray-200",
         })}
       >
-        <span title="Show shapes that aren't assigned to a room">
-          <ToggleButton
-            aria-label="Show unassigned"
-            size="S"
-            isSelected={showUnassigned}
-            onChange={setShowUnassigned}
-          >
-            <ViewGrid />
-          </ToggleButton>
-        </span>
-        <span title="Add a map">
+        <ActionButton
+          isQuiet
+          size="S"
+          onPress={() => onSelect({ kind: "addMap" })}
+        >
+          <Add />
+          <Text>Add map</Text>
+        </ActionButton>
+        <MenuTrigger>
           <ActionButton
-            aria-label="Add map"
+            aria-label="Filter"
+            isQuiet
             size="S"
-            onPress={() => onSelect({ kind: "addMap" })}
+            styles={style({ marginStart: "auto" })}
           >
-            <Add />
+            <Filter />
           </ActionButton>
-        </span>
+          <Menu
+            aria-label="Shapes to show"
+            selectionMode="single"
+            disallowEmptySelection
+            selectedKeys={[showUnassigned ? "all" : "rooms"]}
+            onSelectionChange={(keys) => {
+              if (keys !== "all") {
+                setShowUnassigned(keys.has("all"));
+              }
+            }}
+          >
+            <MenuItem id="all">All shapes</MenuItem>
+            <MenuItem id="rooms">Rooms only</MenuItem>
+          </Menu>
+        </MenuTrigger>
       </div>
       <div ref={scroller} className={style({ minHeight: 0, flexGrow: 1 })}>
         <TreeView
