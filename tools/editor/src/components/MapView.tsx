@@ -1,5 +1,4 @@
-// Spectrum has no plain up arrow.
-import { ArrowUpIcon } from "@heroicons/react/16/solid";
+import ArrowUpSend from "@react-spectrum/s2/icons/ArrowUpSend";
 import ZoomFitToScreen from "@react-spectrum/s2/icons/ZoomFitToScreen";
 import ZoomIn from "@react-spectrum/s2/icons/ZoomIn";
 import ZoomOut from "@react-spectrum/s2/icons/ZoomOut";
@@ -455,7 +454,7 @@ export function MapView({
           isDisabled={parent === undefined}
           onClick={() => parent && onSelect(parent)}
         >
-          <ArrowUpIcon width={16} height={16} />
+          <ArrowUpSend />
         </HudButton>
       </div>
     </div>

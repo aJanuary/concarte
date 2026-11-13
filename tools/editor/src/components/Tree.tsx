@@ -1,5 +1,3 @@
-// Spectrum has no floor-plan or map icon.
-import { MapIcon as HeroMapIcon } from "@heroicons/react/16/solid";
 import {
   ActionButton,
   ActionButtonGroup,
@@ -18,6 +16,7 @@ import Add from "@react-spectrum/s2/icons/Add";
 import AlertDiamond from "@react-spectrum/s2/icons/AlertDiamond";
 import AlertTriangle from "@react-spectrum/s2/icons/AlertTriangle";
 import Folder from "@react-spectrum/s2/icons/Folder";
+import ImageIcon from "@react-spectrum/s2/icons/Image";
 import Refresh from "@react-spectrum/s2/icons/Refresh";
 import ViewGrid from "@react-spectrum/s2/icons/ViewGrid";
 import {
@@ -36,7 +35,6 @@ import { defaultMapOf } from "../doc/ops";
 import type { Issue } from "../../../../scripts/lib/validate-config";
 import type { Selection } from "./Panels";
 
-const MapIcon = createIcon(HeroMapIcon);
 // Room pins, drawn from Spectrum's Location icon. Both are kept here rather
 // than using Spectrum's own outline so the pair stays matched if the
 // library's pin changes.
@@ -369,7 +367,7 @@ export function Tree({
         hasChildItems
       >
         <TreeViewItemContent>
-          <MapIcon />
+          <ImageIcon />
           <RowText
             label={map.label || map.id || map.src}
             detail={map === defaultMap ? "map · default" : "map"}
