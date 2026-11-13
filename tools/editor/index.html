@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ConCarte editor</title>
+    <!--
+      Inline so it precedes every stylesheet: the first declaration of a layer
+      fixes its precedence. Tailwind's reset (base) must sit below Spectrum's
+      styles (_), and Tailwind utilities above them.
+    -->
+    <style>
+      @layer theme, base, _, components, utilities;
+    </style>
   </head>
   <body>
     <div id="root"></div>
