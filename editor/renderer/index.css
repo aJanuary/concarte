@@ -1,0 +1,53 @@
+/*
+ * In a layer below Spectrum's (see index.html): plain rules would otherwise
+ * override every Spectrum style that sets the same property.
+ */
+@layer base {
+  *,
+  ::before,
+  ::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body,
+  h1,
+  h2,
+  h3,
+  p,
+  ul,
+  pre {
+    margin: 0;
+  }
+
+  /* Spectrum's style macro can't target the markdown's own elements. */
+  .markdown-preview > * + * {
+    margin-top: 0.75em;
+  }
+  .markdown-preview h1,
+  .markdown-preview h2,
+  .markdown-preview h3 {
+    font-size: inherit;
+    font-weight: bold;
+  }
+  .markdown-preview ul,
+  .markdown-preview ol {
+    padding-inline-start: 1.5em;
+  }
+}
+
+.cm-editor {
+  height: 100%;
+}
+.cm-scroller {
+  font-family: inherit;
+  line-height: inherit;
+}
+.cm-editor.cm-focused {
+  outline: none;
+}
