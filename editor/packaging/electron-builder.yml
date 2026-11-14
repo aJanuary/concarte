@@ -1,0 +1,23 @@
+appId: dev.concarte.editor
+productName: ConCarte Editor
+# The site is copied out of the app and built, so its files must stay real
+# files rather than sit inside an archive.
+asar: false
+npmRebuild: false
+files:
+  - "**/*"
+  - "!**/*.map"
+linux:
+  icon: icon.png
+  target: AppImage
+  category: Utility
+mac:
+  icon: icon.png
+  target: dmg
+  category: public.app-category.productivity
+win:
+  icon: icon.png
+  target: nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true

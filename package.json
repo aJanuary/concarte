@@ -10,6 +10,7 @@
     "generate": "pnpm --filter @concarte/site generate",
     "editor:build": "pnpm --filter @concarte/editor build",
     "editor:app": "pnpm --filter @concarte/editor app",
+    "editor:package": "pnpm --filter @concarte/editor package",
     "typecheck": "tsc --noEmit && pnpm -r typecheck",
     "lint": "eslint .",
     "test": "vitest run",

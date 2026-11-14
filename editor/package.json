@@ -5,6 +5,7 @@
   "scripts": {
     "build": "tsx scripts/build-editor-app.ts",
     "app": "pnpm build && electron ../build/editor/main.mjs",
+    "package": "tsx scripts/package-editor.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -29,6 +30,7 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "electron": "^45.3.2",
+    "electron-builder": "^26.18.0",
     "esbuild": "^0.28.2",
     "linkedom": "^0.18.15",
     "tsx": "^4.23.15",
