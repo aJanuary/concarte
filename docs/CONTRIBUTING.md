@@ -24,7 +24,9 @@ including:
 
 ## Contributing code
 
-If you would like to contribute code to the project, please follow these steps:
+If you would like to contribute code to the project, see
+[DEVELOPMENT.md](./DEVELOPMENT.md) for how to run and iterate on each part, and
+follow these steps:
 
 1. Fork the project on GitHub
 2. Create a new branch
@@ -37,3 +39,18 @@ Run `pnpm run format` to format your code before submitting a pull request.
 
 We rebase all pull requests before merging, so please make sure your branch is
 up to date with the main branch, and your commits are clean and atomic.
+
+## Releasing the editor
+
+Releases follow [semantic versioning](https://semver.org/). To cut one, from an
+up to date `main`:
+
+```bash
+pnpm version patch          # or minor, major
+git push --follow-tags
+```
+
+`pnpm version` bumps `package.json`, commits, and tags the commit `v<version>`.
+Pushing the tag runs the `Package editor` workflow, which builds the installers
+and publishes them as a GitHub release. The workflow fails if the tag and the
+`package.json` version differ.

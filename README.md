@@ -17,15 +17,6 @@ It is designed for use at small to medium sized conventions.
 - **No dependencies**: The map does not depend on any third-party services.
 - **No ads**: The map does not show ads.
 
-### Roadmap
-
-We don't have an official roadmap, as we are a small team working on this
-as a side project. However, we would like to add the following features:
-
-- **Responsive**: The map works on desktop and mobile devices.
-- **Accessible**: The map is accessible to screen readers and keyboard users.
-- **Offline support**: The map works offline after the first visit.
-
 ## Conventions using ConCarte
 
 - [LAcon V (Worldcon 2026)](https://map.lacon.org/)
@@ -39,47 +30,64 @@ as a side project. However, we would like to add the following features:
 - [Octocon 2024](https://map.octocon.com/)
 - [Gaelcon 36](https://gaelcon.lostcarpark.com/)
 
-## Building
+## Making a map
 
-### Setup
+Each convention's map is described by an _event_: a folder holding a
+`concarte.json` and an `assets/` folder with the map images. You edit it with
+the ConCarte editor, a desktop app for Linux (AppImage), macOS (dmg) and
+Windows (installer). Download the installer for your system from the
+[releases page](https://github.com/aJanuary/concarte/releases). The installers
+are unsigned, so macOS and Windows warn about an unidentified developer the
+first time you open it.
 
-Install dependencies using [pnpm](https://pnpm.io/):
+1. **New event** picks an empty folder and writes a minimal event into it. To
+   edit an existing event, use **Open event** and pick its folder.
+2. **Add map** (in the structure panel) copies an SVG into the event's
+   `assets/` folder. Room boundaries are shapes in the SVG with an `id`
+   attribute.
+3. Select shapes or groups in the map or the tree to make them rooms, and edit
+   the event, maps, overlays and rooms in the panel. Changes save
+   automatically to `concarte.json`.
+4. **Preview** runs the site locally and opens it in your browser, updating as
+   you edit.
+5. **Build** produces the static site in `<event>/dist/`.
 
-```bash
-pnpm install
+Build needs no Node or pnpm on the machine, but the site loads its fonts from
+Google, so it needs a network connection.
+
+Saving rewrites the whole of `concarte.json`: comments are not preserved and
+rooms are ordered as their elements appear in the SVG. A room inside a room
+group is therefore drawn above it and wins clicks on its own area.
+
+`--event <folder>` opens a folder when the app launches.
+
+### The event folder
+
+```
+<event>/
+  concarte.json   # see core/config.types.ts for documentation of the options
+  assets/         # maps, overlays and favicon.ico
+  dist/           # the built site
 ```
 
-### Development
+`examples/demo` is a working example. The editor is the usual way to change
+`concarte.json`, but it is plain JSON and can be edited by hand. Paths in it
+such as `"src": "/ground.svg"` are relative to the event's `assets/` directory.
+Maps and overlays must be SVGs; each room names the `id` of its shape.
 
-Run the development server:
+## Hosting
 
-```bash
-pnpm dev
-```
+The built site is static pages that any static file server can host. It does
+require the URLs to be rewritten to remove the `.html` extension.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the
-result.
-
-### Production
-
-Run the production build:
-
-```bash
-pnpm build
-```
-
-The output will be in the `out` directory. This can be hosted on any static file
-server. It does require the URLs to be rewritten to remove the `.html`
-extension.
-
-#### Example nginx config
+### Example nginx config
 
 ```nginx
 server {
   listen 80;
   server_name example.com;
 
-  root /var/www/out;
+  root /var/www/dist;
 
   location / {
     try_files $uri $uri.html $uri/ =404;
@@ -92,32 +100,9 @@ server {
 }
 ```
 
-## Configuring
-
-Everything specific to a convention lives in its own folder, which can be
-anywhere on your machine:
-
-```
-<event>/
-  concarte.json   # see core/config.types.ts for documentation of the options
-  assets/         # maps, overlays and favicon.ico
-```
-
-`examples/demo` is a working example. To create your own, copy it somewhere
-outside the repository and select it with the `CONCARTE_EVENT_DIR` environment
-variable:
-
-```bash
-CONCARTE_EVENT_DIR=/absolute/path/to/event pnpm dev
-CONCARTE_EVENT_DIR=/absolute/path/to/event pnpm build
-```
-
-Paths in `concarte.json` such as `"src": "/ground.svg"` are relative to the
-event's `assets/` folder. `site/public/`, `site/generated/` and
-`site/app/favicon.ico` are generated from the event, so don't edit them
-directly. Only the assets the config refers to are published.
-
 ## Contributing
 
 We welcome contributions to the project.
-See [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for more information.
+See [CONTRIBUTING.md](./docs/CONTRIBUTING.md) for more information, and
+[DEVELOPMENT.md](./docs/DEVELOPMENT.md) for how to run the project from a
+checkout.
