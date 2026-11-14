@@ -1,12 +1,10 @@
 import { existsSync } from "fs";
 import { join } from "path";
 import { pathToFileURL } from "url";
-import type { Config } from "../../app/config.types";
-
-const root = process.cwd();
+import type { Config } from "@concarte/core";
 
 export const eventName = process.env.CONCARTE_EVENT || "default";
-export const eventDir = join(root, "events", eventName);
+export const eventDir = join(process.cwd(), "..", "events", eventName);
 export const assetsDir = join(eventDir, "assets");
 
 export async function loadEventConfig(): Promise<Config> {

@@ -4,7 +4,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
 import Fuse from "fuse.js";
-import { Map, Room, Config } from "./config.types";
+import type { Map, Room, Config } from "@concarte/core";
 import { useTranslations } from "next-intl";
 
 interface RoomSelectProps {

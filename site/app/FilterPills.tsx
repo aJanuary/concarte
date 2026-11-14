@@ -1,5 +1,5 @@
 import React from "react";
-import { Map, Room, Config } from "./config.types";
+import type { Map, Room, Config } from "@concarte/core";
 
 interface FilterPillsProps {
   config: Config;

@@ -1,5 +1,5 @@
 import React from "react";
-import { Map as MapConfig } from "./config.types";
+import type { Map as MapConfig } from "@concarte/core";
 
 interface OverlayPillsProps {
   selectedMap: MapConfig;

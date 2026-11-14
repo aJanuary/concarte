@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { resolveConfig } from "./resolve-config";
-import { Config } from "../../app/config.types";
+import { resolveConfig } from "./resolve-config.ts";
+import { Config } from "./config.types.ts";
 
 function baseConfig(area: Config["maps"][0]["rooms"][0]["area"]): Config {
   return {
@@ -8,14 +8,14 @@ function baseConfig(area: Config["maps"][0]["rooms"][0]["area"]): Config {
     locale: "en",
     description: "",
     theme: {
-      background: "#fff",
-      "control-background": "#fff",
-      "highlight-background": "#fff",
-      border: "#fff",
-      "primary-text": "#000",
-      "secondary-text": "#000",
-      accent: "#000",
-      disabled: "#000",
+      background: "#ffffff",
+      "control-background": "#ffffff",
+      "highlight-background": "#ffffff",
+      border: "#ffffff",
+      "primary-text": "#000000",
+      "secondary-text": "#000000",
+      accent: "#000000",
+      disabled: "#000000",
     },
     maps: [
       {

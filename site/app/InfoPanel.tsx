@@ -5,9 +5,9 @@ import {
 } from "@heroicons/react/24/solid";
 import Markdown from "react-markdown";
 import type { Components } from "react-markdown";
-import { Room } from "./config.types";
+import type { Room } from "@concarte/core";
 import { useTranslations } from "next-intl";
-import { dedent } from "./text-utils";
+import { dedent } from "@concarte/core";
 import Link from "next/link";
 
 interface InfoPanelProps {

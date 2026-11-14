@@ -8,7 +8,7 @@ import FilterPills from "./FilterPills";
 import OverlayPills from "./OverlayPills";
 import InfoPanel from "./InfoPanel";
 import config from "@/generated/config";
-import { Map as MapConfig, Room } from "./config.types";
+import type { Map as MapConfig, Room } from "@concarte/core";
 
 // localStorage-backed stores using useSyncExternalStore. Defined at module
 // level for stable subscribe/getSnapshot references. Snapshots are cached so

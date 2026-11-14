@@ -26,7 +26,8 @@ export type Config = {
   attributions?: string[];
 
   /**
-   * The colors to use for the theme.
+   * The colors to use for the theme, each as a six-digit hex code such as
+   * `#1a2b3c`.
    */
   theme: {
     /**
@@ -185,7 +186,7 @@ export type Room = {
    * - A list of points in the form [x, y]
    * - An SVG path string (e.g., "M 0 0 L 100 100 L 100 0 Z")
    * - A reference to an object in the map's SVG, by its `id` attribute.
-   *   Resolved at build time (see scripts/generate-config.ts) into a plain
+   *   Resolved at build time (see resolve-config.ts) into a plain
    *   path string, with the referenced object's own transform and all of
    *   its ancestors' transforms baked in. Supports `<path>`, `<rect>`,
    *   `<circle>`, `<ellipse>`, `<polygon>`, `<polyline>`, and `<g>` elements
