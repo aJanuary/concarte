@@ -94,30 +94,28 @@ server {
 
 ## Configuring
 
-Everything specific to a convention lives in its own directory under
-`events/`:
+Everything specific to a convention lives in its own folder, which can be
+anywhere on your machine:
 
 ```
-events/<name>/
-  config.ts   # see core/config.types.ts for documentation of the options
-  assets/     # maps, overlays and favicon.ico
+<event>/
+  concarte.json   # see core/config.types.ts for documentation of the options
+  assets/         # maps, overlays and favicon.ico
 ```
 
-`events/default` is a working example. To create your own, copy it to
-`events/<name>` and select it with the `CONCARTE_EVENT` environment variable
-(it defaults to `default`):
+`examples/demo` is a working example. To create your own, copy it somewhere
+outside the repository and select it with the `CONCARTE_EVENT_DIR` environment
+variable:
 
 ```bash
-CONCARTE_EVENT=<name> pnpm dev
-CONCARTE_EVENT=<name> pnpm build
+CONCARTE_EVENT_DIR=/absolute/path/to/event pnpm dev
+CONCARTE_EVENT_DIR=/absolute/path/to/event pnpm build
 ```
 
-Paths in `config.ts` such as `src: "/ground.svg"` are relative to the event's
-`assets/` directory. The `public/` directory and `site/app/favicon.ico` are generated
-from it, so don't edit them directly.
-
-If you keep your event in a fork, leaving `default` untouched keeps merging
-upstream changes conflict-free.
+Paths in `concarte.json` such as `"src": "/ground.svg"` are relative to the
+event's `assets/` folder. `site/public/`, `site/generated/` and
+`site/app/favicon.ico` are generated from the event, so don't edit them
+directly. Only the assets the config refers to are published.
 
 ## Contributing
 

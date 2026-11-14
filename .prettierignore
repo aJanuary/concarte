@@ -1,2 +1,5 @@
 # Additional files to ignore beyond .gitignore
 pnpm-lock.yaml
+
+# Written by the editor, whose formatting differs from prettier's
+examples/**/concarte.json
