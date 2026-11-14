@@ -32,8 +32,10 @@ import {
 import { createEditorService } from "./service/editor-service.ts";
 import { createEvent } from "./service/new-event.ts";
 import { readSettings, updateSettings } from "./settings.ts";
+import { createSiteCopy } from "./site-copy.ts";
 
-// The bundle is built into build/editor/ of the repository.
+// The bundle sits at the root of the packaged app, beside the site's files,
+// and in build/editor/ of the repository during development.
 const bundleDir = dirname(fileURLToPath(import.meta.url));
 const recentsFile = join(app.getPath("userData"), "recents.json");
 const settingsFile = join(app.getPath("userData"), "settings.json");
@@ -52,12 +54,24 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 
-// The repository's own site is built in place.
-const siteRoot = join(bundleDir, "..", "..", "site");
+// In development the repository's own site is built in place.
+const siteCopy = app.isPackaged
+  ? createSiteCopy({
+      bundleDir,
+      userData: app.getPath("userData"),
+      version: app.getVersion(),
+    })
+  : undefined;
+const siteRoot = siteCopy?.root ?? join(bundleDir, "..", "..", "site");
 
 const service = createEditorService({
-  messagesDir: join(siteRoot, "app", "messages"),
-  build: { siteRoot, nodePath: process.execPath },
+  // Read from the bundle: the site copy is only made by the first Build.
+  messagesDir: join(siteCopy ? bundleDir : siteRoot, "app", "messages"),
+  build: {
+    siteRoot,
+    nodePath: process.execPath,
+    prepare: siteCopy?.prepare,
+  },
   openUrl: (url) => void shell.openExternal(url),
   reveal: (path) => void shell.openPath(path),
   showFile: (path) => shell.showItemInFolder(path),
