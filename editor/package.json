@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "tsx scripts/build-editor-app.ts",
+    "app": "pnpm build && electron ../build/editor/main.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -10,6 +12,10 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
-    "typescript": "^6.0.3"
+    "electron": "^45.3.2",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.8"
   }
 }

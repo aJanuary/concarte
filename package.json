@@ -8,6 +8,8 @@
     "build": "pnpm --filter @concarte/site build",
     "start": "pnpm --filter @concarte/site start",
     "generate": "pnpm --filter @concarte/site generate",
+    "editor:build": "pnpm --filter @concarte/editor build",
+    "editor:app": "pnpm --filter @concarte/editor app",
     "typecheck": "tsc --noEmit && pnpm -r typecheck",
     "lint": "eslint .",
     "test": "vitest run",
