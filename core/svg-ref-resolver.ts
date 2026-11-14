@@ -1,5 +1,4 @@
 import { SVGPathData, SVGPathDataTransformer } from "svg-pathdata";
-import { DOMParser } from "linkedom";
 
 /**
  * A 2D affine transform matrix, in the same [a, b, c, d, e, f] order as the
@@ -13,9 +12,9 @@ export type Matrix = [number, number, number, number, number, number];
 
 /**
  * The minimal subset of the DOM `Element`/`Document` interfaces this module
- * needs. Defined structurally rather than typed against `linkedom`'s (or
- * `lib.dom`'s) `Element`/`Document` directly, since the two don't line up
- * exactly and this module only ever touches a handful of members.
+ * needs. Defined structurally so that both a browser's document and
+ * `linkedom`'s satisfy it: the editor resolves areas in the browser with the
+ * same code the build runs under Node.
  */
 interface SvgNode {
   tagName: string;
@@ -246,10 +245,6 @@ function ancestorMatrix(element: SvgNode): Matrix {
   return matrices.reduce(multiplyMatrices, IDENTITY_MATRIX);
 }
 
-export function parseSvg(svgSource: string): SvgDocument {
-  return new DOMParser().parseFromString(svgSource, "image/svg+xml");
-}
-
 /**
  * Resolves the SVG element identified by `id` in `document` into a plain
  * SVG path `d` string, in the root `<svg>`'s coordinate space, with the
@@ -269,9 +264,4 @@ export function resolveAreaRefIn(document: SvgDocument, id: string): string {
   }
 
   return shapes.map((shape) => bakeMatrix(shape.d, shape.matrix)).join(" ");
-}
-
-/** Convenience wrapper for `resolveAreaRefIn` when the document hasn't already been parsed. */
-export function resolveAreaRef(svgSource: string, id: string): string {
-  return resolveAreaRefIn(parseSvg(svgSource), id);
 }

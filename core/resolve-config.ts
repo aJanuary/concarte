@@ -1,5 +1,6 @@
-import { Config, Room } from "../../app/config.types";
-import { parseSvg, resolveAreaRefIn, SvgDocument } from "./svg-ref-resolver";
+import type { Config, Room } from "./config.types.ts";
+import { parseSvg } from "./parse-svg.ts";
+import { resolveAreaRefIn, type SvgDocument } from "./svg-ref-resolver.ts";
 
 function isRef(area: Room["area"]): area is { ref: string } {
   return !Array.isArray(area) && typeof area === "object";

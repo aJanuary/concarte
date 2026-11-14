@@ -1,4 +1,4 @@
-import { Map, Config } from "./config.types";
+import type { Map, Config } from "@concarte/core";
 import { MapIcon } from "@heroicons/react/24/outline";
 
 export default function MapSelect({

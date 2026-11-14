@@ -99,7 +99,7 @@ Everything specific to a convention lives in its own directory under
 
 ```
 events/<name>/
-  config.ts   # see app/config.types.ts for documentation of the options
+  config.ts   # see core/config.types.ts for documentation of the options
   assets/     # maps, overlays and favicon.ico
 ```
 
@@ -113,7 +113,7 @@ CONCARTE_EVENT=<name> pnpm build
 ```
 
 Paths in `config.ts` such as `src: "/ground.png"` are relative to the event's
-`assets/` directory. The `public/` directory and `app/favicon.ico` are generated
+`assets/` directory. The `public/` directory and `site/app/favicon.ico` are generated
 from it, so don't edit them directly.
 
 If you keep your event in a fork, leaving `default` untouched keeps merging

@@ -16,7 +16,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Config, Map as MapConfig, Room } from "./config.types";
+import type { Config, Map as MapConfig, Room } from "@concarte/core";
 import { parseSVGPath } from "./svg-utils";
 
 type StringMap<V> = globalThis.Map<string, V>;

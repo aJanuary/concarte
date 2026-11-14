@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { parseSvg } from "./parse-svg.ts";
 import {
-  resolveAreaRef,
+  resolveAreaRefIn,
   parseTransform,
   multiplyMatrices,
-} from "./svg-ref-resolver";
+} from "./svg-ref-resolver.ts";
+
+const resolveAreaRef = (source: string, id: string) =>
+  resolveAreaRefIn(parseSvg(source), id);
 
 function svg(body: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${body}</svg>`;

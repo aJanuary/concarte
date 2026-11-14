@@ -1,4 +1,4 @@
-import { Config } from "../../app/config.types";
+import type { Config } from "../../core/config.types.ts";
 
 const config: Config = {
   eventName: "DemoCon",

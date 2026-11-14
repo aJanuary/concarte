@@ -1,0 +1,20 @@
+{
+  "name": "@concarte/core",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./node": "./node.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "linkedom": "^0.18.15",
+    "svg-pathdata": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^6.0.3"
+  }
+}
