@@ -1,9 +1,9 @@
 import React from "react";
-import type { Map, Room, Config } from "@concarte/core";
+import type { ResolvedConfig, ResolvedMap, Room } from "@concarte/core";
 
 interface FilterPillsProps {
-  config: Config;
-  selectedMap: Map;
+  config: ResolvedConfig;
+  selectedMap: ResolvedMap;
   activePill: string | null;
   onPillSelected?: (pill: string | null, rooms: Room[]) => void;
 }

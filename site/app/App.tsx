@@ -8,7 +8,7 @@ import FilterPills from "./FilterPills";
 import OverlayPills from "./OverlayPills";
 import InfoPanel from "./InfoPanel";
 import config from "@/generated/config";
-import type { Map as MapConfig, Room } from "@concarte/core";
+import type { ResolvedMap, Room } from "@concarte/core";
 
 // localStorage-backed stores using useSyncExternalStore. Defined at module
 // level for stable subscribe/getSnapshot references. Snapshots are cached so
@@ -86,7 +86,7 @@ export default function App({
     config.maps.find((m) => m.id === config.defaultMap) ||
     config.maps[0];
   const room = map.rooms.find((room) => room.id === roomId);
-  const [selectedMap, setSelectedMap] = useState<MapConfig>(map);
+  const [selectedMap, setSelectedMap] = useState<ResolvedMap>(map);
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>(room);
   const [focusedRoom, setFocusedRoom] = useState<Room | undefined>(undefined);
   const [highlightedRooms, setHighlightedRooms] = useState<Room[]>([]);
@@ -109,7 +109,7 @@ export default function App({
     }
   }, [mapId, selectedMap.id]);
 
-  const onRoomSelected = (map: MapConfig, room?: Room) => {
+  const onRoomSelected = (map: ResolvedMap, room?: Room) => {
     setHighlightedRooms([]);
     setActivePill(null);
     setSelectedMap(map);
@@ -122,7 +122,7 @@ export default function App({
     }
   };
 
-  const onMapSelected = (map: MapConfig) => {
+  const onMapSelected = (map: ResolvedMap) => {
     setFocusedRoom(undefined);
     onRoomSelected(map, undefined);
   };
@@ -132,7 +132,7 @@ export default function App({
     onRoomSelected(selectedMap, room);
   };
 
-  const onRoomSelectedFromDropdown = (map: MapConfig, room?: Room) => {
+  const onRoomSelectedFromDropdown = (map: ResolvedMap, room?: Room) => {
     setFocusedRoom(room);
     onRoomSelected(map, room);
   };

@@ -16,8 +16,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import type { Config, Map as MapConfig, Room } from "@concarte/core";
-import { parseSVGPath } from "./svg-utils";
+import type { ResolvedConfig, ResolvedMap, Room } from "@concarte/core";
 
 type StringMap<V> = globalThis.Map<string, V>;
 
@@ -30,8 +29,8 @@ const SEARCH_BAR_HEIGHT = 64;
 const MAP_EXTENT_STORAGE_VERSION = 2;
 
 interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
-  config: Config;
-  selectedMap: MapConfig;
+  config: ResolvedConfig;
+  selectedMap: ResolvedMap;
   selectedRoom?: Room;
   focusedRoom?: Room;
   highlightedRooms?: Room[];
@@ -48,58 +47,34 @@ interface MapImage {
 }
 
 async function loadMapImage(src: string): Promise<MapImage> {
-  const isSvg = src.toLowerCase().endsWith(".svg");
+  // Fetch the SVG to read its viewBox dimensions, which define the coordinate space
+  const response = await fetch(src);
+  const text = await response.text();
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(text, "image/svg+xml");
+  const svgEl = doc.documentElement;
+  const viewBox = svgEl.getAttribute("viewBox");
 
-  if (isSvg) {
-    // Fetch the SVG to read its viewBox dimensions, which define the coordinate space
-    const response = await fetch(src);
-    const text = await response.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(text, "image/svg+xml");
-    const svgEl = doc.documentElement;
-    const viewBox = svgEl.getAttribute("viewBox");
-
-    let width: number;
-    let height: number;
-    if (viewBox) {
-      const parts = viewBox.split(/\s+|,/).map(Number);
-      width = parts[2];
-      height = parts[3];
-    } else {
-      // Fall back to width/height attributes
-      width = parseFloat(svgEl.getAttribute("width") || "0");
-      height = parseFloat(svgEl.getAttribute("height") || "0");
-    }
-
-    // Create a blob URL so the image element uses the original SVG
-    const blob = new Blob([text], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    img.src = url;
-    await img.decode();
-
-    return { img, width, height };
+  let width: number;
+  let height: number;
+  if (viewBox) {
+    const parts = viewBox.split(/\s+|,/).map(Number);
+    width = parts[2];
+    height = parts[3];
   } else {
-    const img = new Image();
-    img.src = src;
-    await img.decode();
-    return { img, width: img.naturalWidth, height: img.naturalHeight };
+    // Fall back to width/height attributes
+    width = parseFloat(svgEl.getAttribute("width") || "0");
+    height = parseFloat(svgEl.getAttribute("height") || "0");
   }
-}
 
-function parseArea(area: Room["area"]): [number, number][][] {
-  if (Array.isArray(area)) {
-    return [area];
-  }
-  if (typeof area !== "string") {
-    // `{ ref }` areas are resolved into plain path strings by
-    // `pnpm generate:config`; this should be unreachable for anything
-    // imported from `generated/config`.
-    throw new Error(
-      `Unresolved area reference for room: ${JSON.stringify(area)}`,
-    );
-  }
-  return parseSVGPath(area);
+  // Create a blob URL so the image element uses the original SVG
+  const blob = new Blob([text], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+
+  return { img, width, height };
 }
 
 export default function Map({
@@ -194,85 +169,66 @@ export default function Map({
           extent: extent,
         });
 
-        const isSvg = selectedMap.src.toLowerCase().endsWith(".svg");
         const imageLayers: ImageLayer<any>[] = [];
-        if (isSvg) {
-          // Low-res layer: a pre-rasterized static image that's always
-          // visible, providing instant feedback during pan/zoom.
-          const lowResCanvas = document.createElement("canvas");
-          lowResCanvas.width = width * 2;
-          lowResCanvas.height = height * 2;
-          const lowResCtx = lowResCanvas.getContext("2d")!;
-          lowResCtx.drawImage(
-            img,
-            0,
-            0,
-            lowResCanvas.width,
-            lowResCanvas.height,
-          );
-          const lowResUrl = lowResCanvas.toDataURL();
+        // Low-res layer: a pre-rasterized static image that's always
+        // visible, providing instant feedback during pan/zoom.
+        const lowResCanvas = document.createElement("canvas");
+        lowResCanvas.width = width * 2;
+        lowResCanvas.height = height * 2;
+        const lowResCtx = lowResCanvas.getContext("2d")!;
+        lowResCtx.drawImage(img, 0, 0, lowResCanvas.width, lowResCanvas.height);
+        const lowResUrl = lowResCanvas.toDataURL();
 
-          imageLayers.push(
-            new ImageLayer({
-              source: new Static({
-                url: lowResUrl,
-                projection: projection,
-                imageExtent: extent,
-              }),
+        imageLayers.push(
+          new ImageLayer({
+            source: new Static({
+              url: lowResUrl,
+              projection: projection,
+              imageExtent: extent,
             }),
-          );
+          }),
+        );
 
-          // Hi-res layer: rasterizes the SVG at full fidelity for the
-          // current viewport. Renders on top of the low-res layer.
-          imageLayers.push(
-            new ImageLayer({
-              source: new ImageCanvasSource({
-                canvasFunction: (
-                  canvasExtent,
-                  _resolution,
-                  _pixelRatio,
-                  size,
-                ) => {
-                  const canvas = document.createElement("canvas");
-                  const canvasWidth = size[0];
-                  const canvasHeight = size[1];
-                  canvas.width = canvasWidth;
-                  canvas.height = canvasHeight;
-                  const ctx = canvas.getContext("2d")!;
+        // Hi-res layer: rasterizes the SVG at full fidelity for the
+        // current viewport. Renders on top of the low-res layer.
+        imageLayers.push(
+          new ImageLayer({
+            source: new ImageCanvasSource({
+              canvasFunction: (
+                canvasExtent,
+                _resolution,
+                _pixelRatio,
+                size,
+              ) => {
+                const canvas = document.createElement("canvas");
+                const canvasWidth = size[0];
+                const canvasHeight = size[1];
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                const ctx = canvas.getContext("2d")!;
 
-                  // Fill with background color to prevent the low-res
-                  // layer from bleeding through transparent areas.
-                  ctx.fillStyle = config.theme.background;
-                  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                // Fill with background color to prevent the low-res
+                // layer from bleeding through transparent areas.
+                ctx.fillStyle = config.theme.background;
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
-                  const imageXScale =
-                    canvasWidth / (canvasExtent[2] - canvasExtent[0]);
-                  const imageYScale =
-                    canvasHeight / (canvasExtent[3] - canvasExtent[1]);
-                  const drawX = (0 - canvasExtent[0]) * imageXScale;
-                  const drawY = (canvasExtent[3] - height) * imageYScale;
-                  const drawWidth = width * imageXScale;
-                  const drawHeight = height * imageYScale;
+                const imageXScale =
+                  canvasWidth / (canvasExtent[2] - canvasExtent[0]);
+                const imageYScale =
+                  canvasHeight / (canvasExtent[3] - canvasExtent[1]);
+                const drawX = (0 - canvasExtent[0]) * imageXScale;
+                const drawY = (canvasExtent[3] - height) * imageYScale;
+                const drawWidth = width * imageXScale;
+                const drawHeight = height * imageYScale;
 
-                  ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-                  return canvas;
-                },
-                projection: projection,
-                ratio: 2,
-              }),
+                ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+                return canvas;
+              },
+              projection: projection,
+              ratio: 2,
             }),
-          );
-        } else {
-          imageLayers.push(
-            new ImageLayer({
-              source: new Static({
-                url: selectedMap.src,
-                projection: projection,
-                imageExtent: extent,
-              }),
-            }),
-          );
-        }
+          }),
+        );
 
         // Build overlay layers (hidden by default)
         const newOverlayLayersMap: StringMap<ImageLayer<any>[]> =
@@ -282,70 +238,54 @@ export default function Map({
           overlay: { id: string; src: string };
           mapImage: MapImage;
         }[]) {
-          const overlayIsSvg = overlay.src.toLowerCase().endsWith(".svg");
           const overlayLayers: ImageLayer<any>[] = [];
-          if (overlayIsSvg) {
-            const overlayImg = mapImage.img;
-            const overlayWidth = mapImage.width;
-            const overlayHeight = mapImage.height;
+          const overlayImg = mapImage.img;
+          const overlayWidth = mapImage.width;
+          const overlayHeight = mapImage.height;
 
-            overlayLayers.push(
-              new ImageLayer({
-                visible: false,
-                source: new ImageCanvasSource({
-                  canvasFunction: (
-                    canvasExtent,
-                    _resolution,
-                    _pixelRatio,
-                    size,
-                  ) => {
-                    const canvas = document.createElement("canvas");
-                    canvas.width = size[0];
-                    canvas.height = size[1];
-                    const ctx = canvas.getContext("2d")!;
-                    const imageXScale =
-                      size[0] / (canvasExtent[2] - canvasExtent[0]);
-                    const imageYScale =
-                      size[1] / (canvasExtent[3] - canvasExtent[1]);
-                    const drawX = (0 - canvasExtent[0]) * imageXScale;
-                    const drawY =
-                      (canvasExtent[3] - overlayHeight) * imageYScale;
-                    const drawWidth = overlayWidth * imageXScale;
-                    const drawHeight = overlayHeight * imageYScale;
-                    ctx.drawImage(
-                      overlayImg,
-                      drawX,
-                      drawY,
-                      drawWidth,
-                      drawHeight,
-                    );
-                    return canvas;
-                  },
-                  projection: projection,
-                  ratio: 2,
-                }),
+          overlayLayers.push(
+            new ImageLayer({
+              visible: false,
+              source: new ImageCanvasSource({
+                canvasFunction: (
+                  canvasExtent,
+                  _resolution,
+                  _pixelRatio,
+                  size,
+                ) => {
+                  const canvas = document.createElement("canvas");
+                  canvas.width = size[0];
+                  canvas.height = size[1];
+                  const ctx = canvas.getContext("2d")!;
+                  const imageXScale =
+                    size[0] / (canvasExtent[2] - canvasExtent[0]);
+                  const imageYScale =
+                    size[1] / (canvasExtent[3] - canvasExtent[1]);
+                  const drawX = (0 - canvasExtent[0]) * imageXScale;
+                  const drawY = (canvasExtent[3] - overlayHeight) * imageYScale;
+                  const drawWidth = overlayWidth * imageXScale;
+                  const drawHeight = overlayHeight * imageYScale;
+                  ctx.drawImage(
+                    overlayImg,
+                    drawX,
+                    drawY,
+                    drawWidth,
+                    drawHeight,
+                  );
+                  return canvas;
+                },
+                projection: projection,
+                ratio: 2,
               }),
-            );
-          } else {
-            overlayLayers.push(
-              new ImageLayer({
-                visible: false,
-                source: new Static({
-                  url: overlay.src,
-                  projection: projection,
-                  imageExtent: extent,
-                }),
-              }),
-            );
-          }
+            }),
+          );
           newOverlayLayersMap.set(overlay.id, overlayLayers);
           allOverlayLayers.push(...overlayLayers);
         }
         overlayLayersRef.current = newOverlayLayersMap;
 
         const markers = selectedMap.rooms.map((room) => {
-          const rings = parseArea(room.area);
-          const polygons = rings.map((ring) => [
+          const polygons = room.area.map((ring) => [
             ring.map((coord) => [coord[0], height - coord[1]]),
           ]);
           return new Feature({

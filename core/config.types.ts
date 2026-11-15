@@ -102,8 +102,8 @@ export interface Overlay {
   /** Label shown on the toggle pill. */
   label: string;
   /**
-   * Path to the image (raster or SVG). Must match the coordinate space of the
-   * map it is listed under.
+   * Path of the overlay's SVG. Its viewBox must match that of the map it is
+   * listed under.
    */
   src: string;
 }
@@ -120,8 +120,8 @@ export type Map = {
   label: string;
 
   /**
-   * Path of the map image.
-   * Should be as high resolution as possible.
+   * Path of the map's SVG. Its viewBox sets the map's co-ordinate space, and
+   * rooms' shapes are looked up in it.
    */
   src: string;
 
@@ -180,19 +180,12 @@ export type Room = {
   searchable?: boolean;
 
   /**
-   * Area of the room on the map.
+   * The `id` of the element in the map's SVG that outlines the room.
    *
-   * Can be either:
-   * - A list of points in the form [x, y]
-   * - An SVG path string (e.g., "M 0 0 L 100 100 L 100 0 Z")
-   * - A reference to an object in the map's SVG, by its `id` attribute.
-   *   Resolved at build time (see resolve-config.ts) into a plain
-   *   path string, with the referenced object's own transform and all of
-   *   its ancestors' transforms baked in. Supports `<path>`, `<rect>`,
-   *   `<circle>`, `<ellipse>`, `<polygon>`, `<polyline>`, and `<g>` elements
-   *   (a group's descendants each become a sub-path of the area).
-   *
-   * In the image co-ordinates; the origin is the top left corner of the image.
+   * Supports `<path>`, `<rect>`, `<circle>`, `<ellipse>`, `<polygon>`,
+   * `<polyline>`, and `<g>` elements (each of a group's descendants becomes
+   * part of the room). The element's own transform and its ancestors'
+   * transforms are applied.
    */
-  area: [number, number][] | string | { ref: string };
+  shape: string;
 };

@@ -1,5 +1,5 @@
 import { DOMParser } from "linkedom";
-import type { SvgDocument } from "./svg-ref-resolver.ts";
+import type { SvgDocument } from "./shape-resolver.ts";
 
 /** Parses SVG source under Node, where there is no DOM. */
 export function parseSvg(svgSource: string): SvgDocument {

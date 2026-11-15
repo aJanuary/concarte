@@ -1,4 +1,4 @@
-import type { Map, Config } from "@concarte/core";
+import type { ResolvedConfig, ResolvedMap } from "@concarte/core";
 import { MapIcon } from "@heroicons/react/24/outline";
 
 export default function MapSelect({
@@ -6,9 +6,9 @@ export default function MapSelect({
   selectedMap,
   onMapSelected,
 }: {
-  config: Config;
-  selectedMap: Map;
-  onMapSelected: (map: Map) => void;
+  config: ResolvedConfig;
+  selectedMap: ResolvedMap;
+  onMapSelected: (map: ResolvedMap) => void;
 }) {
   return (
     <div className="relative">
