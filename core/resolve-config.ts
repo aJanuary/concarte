@@ -1,24 +1,24 @@
-import type { Config, Room } from "./config.types.ts";
+import type { Config, Map, Room } from "./config.types.ts";
 import { parseSvg } from "./parse-svg.ts";
-import { resolveAreaRefIn, type SvgDocument } from "./svg-ref-resolver.ts";
+import { resolveShape, type Ring, type SvgDocument } from "./shape-resolver.ts";
 
-function isRef(area: Room["area"]): area is { ref: string } {
-  return !Array.isArray(area) && typeof area === "object";
-}
+/** A room with its shape resolved into the outline the site draws. */
+export type ResolvedRoom = Room & { area: Ring[] };
+export type ResolvedMap = Omit<Map, "rooms"> & { rooms: ResolvedRoom[] };
+export type ResolvedConfig = Omit<Config, "maps"> & { maps: ResolvedMap[] };
 
 /**
- * Returns a copy of `config` with every room's `{ ref }` area resolved into
- * a plain SVG path string, by reading the room's map's SVG (via `readSvg`,
- * a function from map `src` to file contents) and looking up the referenced
- * element.
+ * Returns a copy of `config` with every room's shape resolved into its
+ * `area`, by reading the room's map's SVG (via `readSvg`, a function from
+ * map `src` to file contents) and looking up the element.
  *
- * Throws, naming the offending map/room/id, if a reference can't be resolved.
+ * Throws, naming the offending map/room/id, if a shape can't be resolved.
  */
 export function resolveConfig(
   config: Config,
   readSvg: (src: string) => string,
-): Config {
-  const documentCache = new Map<string, SvgDocument>();
+): ResolvedConfig {
+  const documentCache = new globalThis.Map<string, SvgDocument>();
   const getDocument = (src: string): SvgDocument => {
     let document = documentCache.get(src);
     if (document === undefined) {
@@ -33,21 +33,16 @@ export function resolveConfig(
     maps: config.maps.map((map) => ({
       ...map,
       rooms: map.rooms.map((room) => {
-        const { area } = room;
-        if (!isRef(area)) {
-          return room;
-        }
-
         try {
           return {
             ...room,
-            area: resolveAreaRefIn(getDocument(map.src), area.ref),
+            area: resolveShape(getDocument(map.src), room.shape),
           };
         } catch (error) {
           const message =
             error instanceof Error ? error.message : String(error);
           throw new Error(
-            `Failed to resolve area for room "${room.id}" on map "${map.id}" (${map.src}): ${message}`,
+            `Failed to resolve the shape of room "${room.id}" on map "${map.id}" (${map.src}): ${message}`,
           );
         }
       }),

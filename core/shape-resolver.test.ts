@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { parseSvg } from "./parse-svg.ts";
 import {
-  resolveAreaRefIn,
+  resolveShape,
   parseTransform,
   multiplyMatrices,
-} from "./svg-ref-resolver.ts";
+} from "./shape-resolver.ts";
 
-const resolveAreaRef = (source: string, id: string) =>
-  resolveAreaRefIn(parseSvg(source), id);
+const resolve = (source: string, id: string) =>
+  resolveShape(parseSvg(source), id);
 
 function svg(body: string): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">${body}</svg>`;
@@ -52,17 +52,31 @@ describe("parseTransform", () => {
   });
 });
 
-describe("resolveAreaRef", () => {
+describe("resolveShape", () => {
   it("resolves a bare path with no ancestor transforms", () => {
     const doc = svg(`<path id="room" d="M 0 0 L 10 0 L 10 10 Z" />`);
-    expect(resolveAreaRef(doc, "room")).toBe("M0 0L10 0L10 10z");
+    expect(resolve(doc, "room")).toEqual([
+      [
+        [0, 0],
+        [10, 0],
+        [10, 10],
+        [0, 0],
+      ],
+    ]);
   });
 
   it("bakes in the element's own transform", () => {
     const doc = svg(
       `<path id="room" d="M 0 0 L 10 0 L 10 10 Z" transform="translate(5,5)" />`,
     );
-    expect(resolveAreaRef(doc, "room")).toBe("M5 5L15 5L15 15z");
+    expect(resolve(doc, "room")).toEqual([
+      [
+        [5, 5],
+        [15, 5],
+        [15, 15],
+        [5, 5],
+      ],
+    ]);
   });
 
   it("bakes in ancestor group transforms, outer applied after inner", () => {
@@ -74,35 +88,68 @@ describe("resolveAreaRef", () => {
       </g>
     `);
     // scale(2,2) first -> (0,0) (20,0) (20,20); then translate(100,0) -> (100,0) (120,0) (120,20)
-    expect(resolveAreaRef(doc, "room")).toBe("M100 0L120 0L120 20z");
+    expect(resolve(doc, "room")).toEqual([
+      [
+        [100, 0],
+        [120, 0],
+        [120, 20],
+        [100, 0],
+      ],
+    ]);
   });
 
   it("does not apply the root <svg>'s own attributes as a transform", () => {
     const doc = svg(`<path id="room" d="M 0 0 L 10 0 L 10 10 Z" />`);
-    expect(resolveAreaRef(doc, "room")).toBe("M0 0L10 0L10 10z");
+    expect(resolve(doc, "room")).toEqual([
+      [
+        [0, 0],
+        [10, 0],
+        [10, 10],
+        [0, 0],
+      ],
+    ]);
   });
 
   it("converts a rect", () => {
     const doc = svg(`<rect id="room" x="1" y="2" width="10" height="20" />`);
-    expect(resolveAreaRef(doc, "room")).toBe("M1 2H11V22H1z");
+    expect(resolve(doc, "room")).toEqual([
+      [
+        [1, 2],
+        [11, 2],
+        [11, 22],
+        [1, 22],
+        [1, 2],
+      ],
+    ]);
   });
 
   it("rejects a rect with rounded corners", () => {
     const doc = svg(
       `<rect id="room" x="0" y="0" width="10" height="10" rx="2" />`,
     );
-    expect(() => resolveAreaRef(doc, "room")).toThrow(/rounded corners/);
+    expect(() => resolve(doc, "room")).toThrow(/rounded corners/);
   });
 
   it("converts a polygon and closes it", () => {
     const doc = svg(`<polygon id="room" points="0,0 10,0 10,10" />`);
-    expect(resolveAreaRef(doc, "room")).toBe("M0 0L10 0L10 10z");
+    expect(resolve(doc, "room")).toEqual([
+      [
+        [0, 0],
+        [10, 0],
+        [10, 10],
+        [0, 0],
+      ],
+    ]);
   });
 
-  it("converts a circle to two arcs", () => {
-    const doc = svg(`<circle id="room" cx="5" cy="5" r="5" />`);
-    const d = resolveAreaRef(doc, "room");
-    expect(d).toMatch(/^M0 5A5 5/);
+  it("flattens a circle into points on its circumference", () => {
+    const doc = svg(`<circle id="room" cx="50" cy="50" r="40" />`);
+    const [ring, ...others] = resolve(doc, "room");
+    expect(others).toEqual([]);
+    expect(ring.length).toBeGreaterThan(16);
+    for (const [x, y] of ring) {
+      expect(Math.hypot(x - 50, y - 50)).toBeCloseTo(40, 0);
+    }
   });
 
   it("expands a <g> into one sub-path per descendant shape", () => {
@@ -112,14 +159,25 @@ describe("resolveAreaRef", () => {
         <path d="M 5 5 L 6 5 L 6 6 Z" transform="translate(1,0)" />
       </g>
     `);
-    expect(resolveAreaRef(doc, "room")).toBe("M0 0L1 0L1 1z M6 5L7 5L7 6z");
+    expect(resolve(doc, "room")).toEqual([
+      [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 0],
+      ],
+      [
+        [6, 5],
+        [7, 5],
+        [7, 6],
+        [6, 5],
+      ],
+    ]);
   });
 
   it("throws a descriptive error when the id is missing", () => {
     const doc = svg(`<path id="other" d="M 0 0 Z" />`);
-    expect(() => resolveAreaRef(doc, "room")).toThrow(
-      /no element with id "room"/,
-    );
+    expect(() => resolve(doc, "room")).toThrow(/no element with id "room"/);
   });
 
   it("throws a descriptive error when the id is duplicated", () => {
@@ -127,18 +185,16 @@ describe("resolveAreaRef", () => {
       <path id="room" d="M 0 0 Z" />
       <path id="room" d="M 1 1 Z" />
     `);
-    expect(() => resolveAreaRef(doc, "room")).toThrow(/not unique/);
+    expect(() => resolve(doc, "room")).toThrow(/not unique/);
   });
 
   it("throws a descriptive error for unsupported elements", () => {
     const doc = svg(`<text id="room">hi</text>`);
-    expect(() => resolveAreaRef(doc, "room")).toThrow(
-      /Unsupported SVG element/,
-    );
+    expect(() => resolve(doc, "room")).toThrow(/Unsupported SVG element/);
   });
 
   it("throws a descriptive error for an empty group", () => {
     const doc = svg(`<g id="room"></g>`);
-    expect(() => resolveAreaRef(doc, "room")).toThrow(/empty <g>/);
+    expect(() => resolve(doc, "room")).toThrow(/empty <g>/);
   });
 });

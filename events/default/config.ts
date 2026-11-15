@@ -57,7 +57,7 @@ const config: Config = {
 
           ♿ Wheelchair spaces are at the front and rear of the room.
           `,
-          area: { ref: "main-hall" },
+          shape: "main-hall",
         },
         {
           id: "green-room",
@@ -68,7 +68,7 @@ const config: Config = {
 
           Free tea, coffee and snacks are available for programme participants.
           `,
-          area: { ref: "green-room" },
+          shape: "green-room",
         },
         {
           id: "workshop-1",
@@ -79,7 +79,7 @@ const config: Config = {
 
           Capacity 40, with tables.
           `,
-          area: { ref: "workshop-1" },
+          shape: "workshop-1",
         },
         {
           id: "workshop-2",
@@ -88,7 +88,7 @@ const config: Config = {
           description: `
           Hands-on sessions. Capacity 40, with tables.
           `,
-          area: { ref: "workshop-2" },
+          shape: "workshop-2",
         },
         {
           id: "workshop-3",
@@ -97,7 +97,7 @@ const config: Config = {
           description: `
           Hands-on sessions. Capacity 50, with tables.
           `,
-          area: { ref: "workshop-3" },
+          shape: "workshop-3",
         },
         {
           id: "dealers",
@@ -110,7 +110,7 @@ const config: Config = {
           🕗 Saturday 10am - 6pm \\
           🕗 Sunday 10am - 4pm
           `,
-          area: { ref: "dealers" },
+          shape: "dealers",
         },
         {
           id: "stairs-ground",
@@ -121,7 +121,7 @@ const config: Config = {
 
           ♿ Not step-free. Use the [lifts](/map/ground/room/lifts) instead.
           `,
-          area: { ref: "stairs-ground" },
+          shape: "stairs-ground",
         },
         {
           id: "toilets-ground",
@@ -132,7 +132,7 @@ const config: Config = {
 
           The convention's policy is that people are welcome to use whichever toilets they feel most comfortable in.
           `,
-          area: { ref: "toilets-ground" },
+          shape: "toilets-ground",
         },
         {
           id: "accessible-toilet-ground",
@@ -143,7 +143,7 @@ const config: Config = {
 
           ♿ The door opens outwards and is step-free.
           `,
-          area: { ref: "accessible-toilet-ground" },
+          shape: "accessible-toilet-ground",
         },
         {
           id: "lifts",
@@ -154,7 +154,7 @@ const config: Config = {
 
           ♿ Both lifts are wheelchair accessible.
           `,
-          area: { ref: "lifts" },
+          shape: "lifts",
         },
         {
           id: "info-desk",
@@ -167,7 +167,7 @@ const config: Config = {
           🕗 Saturday 9am - 10pm \\
           🕗 Sunday 9am - 6pm
           `,
-          area: { ref: "info-desk" },
+          shape: "info-desk",
         },
         {
           id: "cloakroom",
@@ -176,7 +176,7 @@ const config: Config = {
           description: `
           Free, staffed coat and bag storage.
           `,
-          area: { ref: "cloakroom" },
+          shape: "cloakroom",
         },
         {
           id: "lobby",
@@ -185,7 +185,7 @@ const config: Config = {
           description: `
           Seating and charging points. The [Registration Desk](/map/ground/room/registration) is just inside the main entrance.
           `,
-          area: { ref: "lobby" },
+          shape: "lobby",
         },
         {
           id: "registration",
@@ -200,7 +200,7 @@ const config: Config = {
           🕗 Friday 8am - 6pm \\
           🕗 Saturday 8am - 12pm
           `,
-          area: { ref: "registration" },
+          shape: "registration",
         },
         {
           id: "main-entrance",
@@ -209,7 +209,7 @@ const config: Config = {
           description: `
           Automatic doors, step-free from the pavement.
           `,
-          area: { ref: "main-entrance" },
+          shape: "main-entrance",
         },
         {
           id: "cafe",
@@ -225,7 +225,7 @@ const config: Config = {
           Clicking this room on the map opens the menu in a new tab.
           `,
           link: { href: "https://example.com/menu", title: "View the menu" },
-          area: { ref: "cafe" },
+          shape: "cafe",
         },
         {
           id: "terrace",
@@ -234,7 +234,7 @@ const config: Config = {
           description: `
           Outdoor seating for the [Café](/map/ground/room/cafe), weather permitting.
           `,
-          area: { ref: "terrace" },
+          shape: "terrace",
         },
       ],
     },
@@ -259,7 +259,7 @@ const config: Config = {
 
           ♿ Reached by lift only.
           `,
-          area: { ref: "gallery" },
+          shape: "gallery",
         },
         {
           id: "sky-bar",
@@ -273,7 +273,7 @@ const config: Config = {
           🕗 Friday - Saturday 5pm - 1am \\
           🕗 Sunday 5pm - 11pm
           `,
-          area: { ref: "sky-bar" },
+          shape: "sky-bar",
         },
         {
           id: "panel-a",
@@ -282,7 +282,7 @@ const config: Config = {
           description: `
           Panels and talks. Capacity 80, theatre-style.
           `,
-          area: { ref: "panel-a" },
+          shape: "panel-a",
         },
         {
           id: "panel-b",
@@ -291,7 +291,7 @@ const config: Config = {
           description: `
           Panels and talks. Capacity 80, theatre-style.
           `,
-          area: { ref: "panel-b" },
+          shape: "panel-b",
         },
         {
           id: "panel-c",
@@ -300,7 +300,7 @@ const config: Config = {
           description: `
           Panels and talks. Capacity 100, theatre-style.
           `,
-          area: { ref: "panel-c" },
+          shape: "panel-c",
         },
         {
           id: "games-room",
@@ -311,7 +311,7 @@ const config: Config = {
 
           🕗 Open 10am - midnight
           `,
-          area: { ref: "games-room" },
+          shape: "games-room",
         },
         {
           id: "stairs-first",
@@ -320,7 +320,7 @@ const config: Config = {
           description: `
           Stairs down to the ground floor.
           `,
-          area: { ref: "stairs-first" },
+          shape: "stairs-first",
         },
         {
           id: "toilets-first",
@@ -329,7 +329,7 @@ const config: Config = {
           description: `
           Toilets with cubicles and urinals.
           `,
-          area: { ref: "toilets-first" },
+          shape: "toilets-first",
         },
         {
           id: "accessible-toilet-first",
@@ -338,7 +338,7 @@ const config: Config = {
           description: `
           Wide cubicle with support rails.
           `,
-          area: { ref: "accessible-toilet-first" },
+          shape: "accessible-toilet-first",
         },
         {
           id: "lifts-first",
@@ -349,7 +349,7 @@ const config: Config = {
 
           ♿ Both lifts are wheelchair accessible.
           `,
-          area: { ref: "lifts-first" },
+          shape: "lifts-first",
         },
         {
           id: "quiet-room",
@@ -358,7 +358,7 @@ const config: Config = {
           description: `
           A calm space away from noise and crowds. Please keep conversation to a whisper.
           `,
-          area: { ref: "quiet-room" },
+          shape: "quiet-room",
         },
         {
           id: "mezzanine-lounge",
@@ -367,7 +367,7 @@ const config: Config = {
           description: `
           Comfortable seating overlooking the [Lobby](/map/ground/room/lobby).
           `,
-          area: { ref: "mezzanine-lounge" },
+          shape: "mezzanine-lounge",
         },
         {
           id: "atrium",
@@ -378,7 +378,7 @@ const config: Config = {
           Not searchable, because there is nothing to find here.
           `,
           searchable: false,
-          area: { ref: "atrium" },
+          shape: "atrium",
         },
         {
           id: "art-show",
@@ -391,7 +391,7 @@ const config: Config = {
           🕗 Saturday 10am - 6pm \\
           🕗 Sunday 10am - 3pm (collection of purchased works)
           `,
-          area: { ref: "art-show" },
+          shape: "art-show",
         },
         {
           id: "ops",
@@ -400,7 +400,7 @@ const config: Config = {
           description: `
           The convention's control room. Come here to volunteer, or to report a problem.
           `,
-          area: { ref: "ops" },
+          shape: "ops",
         },
       ],
     },

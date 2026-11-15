@@ -13,7 +13,7 @@ export type Matrix = [number, number, number, number, number, number];
 /**
  * The minimal subset of the DOM `Element`/`Document` interfaces this module
  * needs. Defined structurally so that both a browser's document and
- * `linkedom`'s satisfy it: the editor resolves areas in the browser with the
+ * `linkedom`'s satisfy it: the editor resolves shapes in the browser with the
  * same code the build runs under Node.
  */
 interface SvgNode {
@@ -213,14 +213,6 @@ function collectShapes(element: SvgNode, inheritedMatrix: Matrix): Shape[] {
   return [{ d: shapeToPathD(element), matrix: combined }];
 }
 
-/** Bakes `matrix` into `d`, producing an absolute path string with no transform left implicit. */
-function bakeMatrix(d: string, matrix: Matrix): string {
-  return new SVGPathData(d)
-    .transform(SVGPathDataTransformer.MATRIX(...matrix))
-    .toAbs()
-    .encode();
-}
-
 function findById(document: SvgDocument, id: string): SvgNode {
   const matches = Array.from(document.querySelectorAll(`[id="${id}"]`));
 
@@ -245,15 +237,119 @@ function ancestorMatrix(element: SvgNode): Matrix {
   return matrices.reduce(multiplyMatrices, IDENTITY_MATRIX);
 }
 
+/** A closed outline, as [x, y] points in the map SVG's coordinate space. */
+export type Ring = [number, number][];
+
+// In SVG units; at the zoom levels a map is viewed at, well under a pixel.
+const CURVE_TOLERANCE = 1.0;
+
 /**
- * Resolves the SVG element identified by `id` in `document` into a plain
- * SVG path `d` string, in the root `<svg>`'s coordinate space, with the
- * element's own transform and all of its ancestors' transforms baked in.
+ * Adaptively samples a cubic bézier, subdividing more where it bends more.
+ * Returns the points after the start point, ending at the end point.
+ */
+function sampleCubic(
+  p0x: number,
+  p0y: number,
+  p1x: number,
+  p1y: number,
+  p2x: number,
+  p2y: number,
+  p3x: number,
+  p3y: number,
+  depth = 0,
+): [number, number][] {
+  // Distance of the control points from the chord, squared and scaled.
+  const ux = 3 * p1x - 2 * p0x - p3x;
+  const uy = 3 * p1y - 2 * p0y - p3y;
+  const vx = 3 * p2x - 2 * p3x - p0x;
+  const vy = 3 * p2y - 2 * p3y - p0y;
+  const flatness = Math.max(ux * ux + uy * uy, vx * vx + vy * vy);
+  if (depth >= 12 || flatness < CURVE_TOLERANCE) {
+    return [[p3x, p3y]];
+  }
+
+  // de Casteljau split at t = 0.5
+  const p01x = (p0x + p1x) / 2;
+  const p01y = (p0y + p1y) / 2;
+  const p12x = (p1x + p2x) / 2;
+  const p12y = (p1y + p2y) / 2;
+  const p23x = (p2x + p3x) / 2;
+  const p23y = (p2y + p3y) / 2;
+  const p012x = (p01x + p12x) / 2;
+  const p012y = (p01y + p12y) / 2;
+  const p123x = (p12x + p23x) / 2;
+  const p123y = (p12y + p23y) / 2;
+  const midx = (p012x + p123x) / 2;
+  const midy = (p012y + p123y) / 2;
+
+  return [
+    ...sampleCubic(p0x, p0y, p01x, p01y, p012x, p012y, midx, midy, depth + 1),
+    ...sampleCubic(midx, midy, p123x, p123y, p23x, p23y, p3x, p3y, depth + 1),
+  ];
+}
+
+/**
+ * Turns path `d`, transformed by `matrix`, into rings: one per sub-path,
+ * with curves flattened into points.
+ */
+function toRings(d: string, matrix: Matrix): Ring[] {
+  const commands = new SVGPathData(d)
+    .transform(SVGPathDataTransformer.MATRIX(...matrix))
+    .toAbs()
+    .transform(SVGPathDataTransformer.QT_TO_C())
+    .transform(SVGPathDataTransformer.A_TO_C())
+    .normalizeHVZ().commands;
+
+  const rings: Ring[] = [];
+  let ring: Ring = [];
+  let x = 0;
+  let y = 0;
+  for (const command of commands) {
+    switch (command.type) {
+      case SVGPathData.MOVE_TO:
+        if (ring.length > 0) {
+          rings.push(ring);
+        }
+        ring = [[command.x, command.y]];
+        break;
+      case SVGPathData.LINE_TO:
+        ring.push([command.x, command.y]);
+        break;
+      case SVGPathData.CURVE_TO:
+        ring.push(
+          ...sampleCubic(
+            x,
+            y,
+            command.x1,
+            command.y1,
+            command.x2,
+            command.y2,
+            command.x,
+            command.y,
+          ),
+        );
+        break;
+    }
+    if ("x" in command && "y" in command) {
+      x = command.x;
+      y = command.y;
+    }
+  }
+  if (ring.length > 0) {
+    rings.push(ring);
+  }
+  return rings;
+}
+
+/**
+ * Resolves the SVG element identified by `id` in `document` into rings in
+ * the root `<svg>`'s coordinate space, with the element's own transform and
+ * all of its ancestors' transforms applied.
  *
  * Supports `<path>`, `<rect>`, `<circle>`, `<ellipse>`, `<polygon>`,
- * `<polyline>`, and `<g>` (whose descendants each become a sub-path).
+ * `<polyline>`, and `<g>` (whose descendants each become one or more rings).
  */
-export function resolveAreaRefIn(document: SvgDocument, id: string): string {
+export function resolveShape(document: SvgDocument, id: string): Ring[] {
   const element = findById(document, id);
 
   const shapes = collectShapes(element, ancestorMatrix(element));
@@ -263,5 +359,5 @@ export function resolveAreaRefIn(document: SvgDocument, id: string): string {
     );
   }
 
-  return shapes.map((shape) => bakeMatrix(shape.d, shape.matrix)).join(" ");
+  return shapes.flatMap((shape) => toRings(shape.d, shape.matrix));
 }

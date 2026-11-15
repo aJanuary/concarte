@@ -112,7 +112,7 @@ CONCARTE_EVENT=<name> pnpm dev
 CONCARTE_EVENT=<name> pnpm build
 ```
 
-Paths in `config.ts` such as `src: "/ground.png"` are relative to the event's
+Paths in `config.ts` such as `src: "/ground.svg"` are relative to the event's
 `assets/` directory. The `public/` directory and `site/app/favicon.ico` are generated
 from it, so don't edit them directly.
 

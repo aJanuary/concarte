@@ -4,15 +4,15 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/solid";
 import Fuse from "fuse.js";
-import type { Map, Room, Config } from "@concarte/core";
+import type { ResolvedConfig, ResolvedMap, Room } from "@concarte/core";
 import { useTranslations } from "next-intl";
 
 interface RoomSelectProps {
-  config: Config;
-  onRoomSelected?: (map: Map, room: Room) => void;
+  config: ResolvedConfig;
+  onRoomSelected?: (map: ResolvedMap, room: Room) => void;
 }
 
-type RoomWithMap = Room & { map: Map; mapLabel: string };
+type RoomWithMap = Room & { map: ResolvedMap; mapLabel: string };
 
 export default function RoomSelect({
   config,
