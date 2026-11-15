@@ -1,7 +1,6 @@
 import { useTranslations } from "next-intl";
 import config from "@/generated/config";
 import Markdown from "react-markdown";
-import { dedent } from "@concarte/core";
 import Link from "next/link";
 import type { Components } from "react-markdown";
 
@@ -48,9 +47,7 @@ export default function About() {
         <Link href="/">← {t("back")}</Link>
       </p>
       <h1>{t("title")}</h1>
-      <Markdown components={markdownComponents}>
-        {dedent(config.description)}
-      </Markdown>
+      <Markdown components={markdownComponents}>{config.description}</Markdown>
       <p className="border-border border-t-2 pt-4">
         {t.rich("powered-by", {
           GitHubLink: () => (

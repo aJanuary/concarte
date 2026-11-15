@@ -5,7 +5,6 @@ import {
   type MapConfig,
   type Room,
 } from "../../shared/schema.ts";
-import { tidyText } from "../../shared/text.ts";
 
 // Each tidy function lists every key of its type, in the order the file is
 // written. Complete makes leaving out a newly added optional key a compile
@@ -16,7 +15,7 @@ function tidyList(list: string[] | undefined): string[] | undefined {
 }
 
 function tidyRoom(room: Room): Complete<Room> {
-  const description = room.description ? tidyText(room.description) : "";
+  const description = room.description?.trim() ?? "";
   return {
     id: room.id,
     label: room.label,
@@ -47,7 +46,7 @@ export function normalizeConfig(config: Config): Complete<Config> {
   return {
     eventName: config.eventName,
     locale: config.locale,
-    description: tidyText(config.description),
+    description: config.description.trim(),
     attributions: tidyList(config.attributions?.filter((a) => a.trim() !== "")),
     theme: Object.fromEntries(
       THEME_KEYS.map((key) => [key, config.theme[key]]),

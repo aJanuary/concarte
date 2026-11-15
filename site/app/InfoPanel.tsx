@@ -7,7 +7,6 @@ import Markdown from "react-markdown";
 import type { Components } from "react-markdown";
 import type { Room } from "@concarte/core";
 import { useTranslations } from "next-intl";
-import { dedent } from "@concarte/core";
 import Link from "next/link";
 
 interface InfoPanelProps {
@@ -110,7 +109,7 @@ export default function InfoPanel({
                 },
               }}
             >
-              {dedent(room.description)}
+              {room.description}
             </Markdown>
             {room.link && (
               <p>

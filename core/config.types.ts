@@ -13,8 +13,6 @@ export type Config = {
    * Description of the event. Displayed in the about page.
    *
    * Supports markdown.
-   *
-   * Will be trimmed and dedented before being displayed.
    */
   description: string;
 
@@ -158,8 +156,6 @@ export type Room = {
    * Description of the room. Appears in the info panel.
    *
    * Supports markdown.
-   *
-   * Will be trimmed and dedented before being displayed.
    */
   description?: string;
 
