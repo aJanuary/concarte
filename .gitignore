@@ -38,4 +38,3 @@ next-env.d.ts
 # generated files
 /site/generated
 /site/public
-/site/app/favicon.ico

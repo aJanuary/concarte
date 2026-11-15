@@ -68,8 +68,23 @@ describe("generators", () => {
       ].join("\n"),
     );
     expect(existsSync(join(siteRoot, "public/ground.svg"))).toBe(true);
+    expect(existsSync(join(siteRoot, "public/favicon.ico"))).toBe(true);
+    expect(existsSync(join(siteRoot, "app/favicon.ico"))).toBe(false);
+    expect(
+      readFileSync(join(siteRoot, "generated/assets.ts"), "utf8"),
+    ).toContain('favicon: string | null = "/favicon.ico"');
+  });
+
+  it("drop a previous event's favicon when the event has none", async () => {
+    const siteRoot = emptySite();
+    generateAssets({ eventDir: demo, siteRoot });
+    const eventDir = await demoCopy((config) => config);
+    rmSync(join(eventDir, "assets/favicon.ico"));
+    generateAssets({ eventDir, siteRoot });
     expect(existsSync(join(siteRoot, "public/favicon.ico"))).toBe(false);
-    expect(existsSync(join(siteRoot, "app/favicon.ico"))).toBe(true);
+    expect(
+      readFileSync(join(siteRoot, "generated/assets.ts"), "utf8"),
+    ).toContain("favicon: string | null = null");
   });
 
   it("refuse theme keys that would reach the theme CSS", async () => {
