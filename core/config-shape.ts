@@ -1,4 +1,5 @@
 import type { Config } from "./config.types.ts";
+import { migrateConfig } from "./migrate-config.ts";
 
 type Check = (value: unknown, path: string, problems: string[]) => void;
 
@@ -130,11 +131,14 @@ export function configShapeProblems(value: unknown): string[] {
 export type ParsedConfig =
   { ok: true; config: Config } | { ok: false; errors: string[] };
 
-/** Reads the text of a config file, refusing anything that isn't a `Config`. */
+/**
+ * Reads the text of a config file, refusing anything that isn't a `Config`.
+ * Older formats are brought up to date first.
+ */
 export function parseConfig(source: string): ParsedConfig {
   let value: unknown;
   try {
-    value = JSON.parse(source);
+    value = migrateConfig(JSON.parse(source));
   } catch (error) {
     return {
       ok: false,

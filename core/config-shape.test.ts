@@ -12,6 +12,45 @@ describe("parseConfig", () => {
     expect(parseConfig(demo)).toMatchObject({ ok: true });
   });
 
+  it("reads a room's area ref as its shape", () => {
+    const old = JSON.parse(demo);
+    const room = old.maps[0].rooms[0];
+    old.maps[0].rooms[0] = {
+      id: room.id,
+      label: room.label,
+      area: { ref: room.shape },
+      searchable: false,
+    };
+    const parsed = parseConfig(JSON.stringify(old));
+    expect(parsed.ok).toBe(true);
+    const migrated = parsed.ok ? parsed.config.maps[0].rooms[0] : undefined;
+    expect(migrated).toEqual({
+      id: room.id,
+      label: room.label,
+      shape: room.shape,
+      searchable: false,
+    });
+    expect(Object.keys(migrated ?? {})).toEqual([
+      "id",
+      "label",
+      "shape",
+      "searchable",
+    ]);
+  });
+
+  it("leaves areas that were never refs to be reported", () => {
+    const old = JSON.parse(demo);
+    delete old.maps[0].rooms[0].shape;
+    old.maps[0].rooms[0].area = "M 0 0 L 1 1 Z";
+    expect(parseConfig(JSON.stringify(old))).toEqual({
+      ok: false,
+      errors: [
+        "maps[0].rooms[0].shape must be text",
+        "maps[0].rooms[0].area is not a known setting",
+      ],
+    });
+  });
+
   it("reports text that is not JSON", () => {
     const parsed = parseConfig("{ eventName: ");
     expect(parsed.ok).toBe(false);
