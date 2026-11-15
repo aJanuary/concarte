@@ -8,7 +8,6 @@ import { Link, Tab, TabList, TabPanel, Tabs } from "@react-spectrum/s2";
 import { color, style } from "@react-spectrum/s2/style" with { type: "macro" };
 import { useEffect, useId, useRef } from "react";
 import Markdown from "react-markdown";
-import { tidyText } from "../../../../shared/text";
 
 const external = Annotation.define<boolean>();
 
@@ -55,7 +54,7 @@ function CodeMirror({
     const editor = new EditorView({
       parent: host.current!,
       state: EditorState.create({
-        doc: tidyText(latest.current),
+        doc: latest.current.trim(),
         extensions: [
           basicSetup,
           markdown(),
@@ -85,9 +84,9 @@ function CodeMirror({
       return;
     }
     const shown = editor.state.doc.toString();
-    if (shown !== value && shown !== tidyText(value)) {
+    if (shown !== value && shown !== value.trim()) {
       editor.dispatch({
-        changes: { from: 0, to: shown.length, insert: tidyText(value) },
+        changes: { from: 0, to: shown.length, insert: value.trim() },
         annotations: external.of(true),
       });
     }
@@ -179,7 +178,7 @@ export function MarkdownField({
                 ),
               }}
             >
-              {tidyText(value)}
+              {value.trim()}
             </Markdown>
           </div>
         </TabPanel>

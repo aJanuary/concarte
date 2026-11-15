@@ -14,5 +14,4 @@ export type {
   ResolvedRoom,
 } from "./resolve-config.ts";
 export { resolveShape, type Ring, type SvgDocument } from "./shape-resolver.ts";
-export { dedent } from "./text.ts";
 export { validateConfig, type Issue } from "./validate-config.ts";
