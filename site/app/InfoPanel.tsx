@@ -131,9 +131,9 @@ export default function InfoPanel({
   return (
     <div className="pointer-events-none absolute right-0 bottom-0 left-0 text-right">
       <div className="border-border bg-control-background m-2 inline-block rounded border opacity-75 shadow-lg hover:opacity-100">
-        <a href="/about" className="pointer-events-auto inline-block p-2">
+        <Link href="/about" className="pointer-events-auto inline-block p-2">
           {t("about.title")}
-        </a>
+        </Link>
       </div>
       {panel}
     </div>

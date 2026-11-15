@@ -144,6 +144,12 @@ export function createEventStore(options: EventStoreOptions) {
       .map((issue) => issue.message);
   }
 
+  /** The base path of the config on disk, or undefined if it can't be read. */
+  function basePath(): string | undefined {
+    const loaded = loadConfig();
+    return loaded.ok ? loaded.config.basePath : undefined;
+  }
+
   async function save(body: SaveRequest): Promise<SaveResponse> {
     const source = serializeConfig(body.config);
     // No await between this check and the write, so only another process
@@ -226,6 +232,7 @@ export function createEventStore(options: EventStoreOptions) {
     assetsDir,
     load,
     validate,
+    basePath,
     save,
     resolveAsset,
     importSvg,

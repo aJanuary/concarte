@@ -77,7 +77,7 @@ function killTree(child: ChildProcess) {
 export function createDevRunner(options: DevRunnerOptions) {
   const { siteRoot } = options;
   let children: ChildProcess[] = [];
-  let running: { eventDir: string; url: string } | undefined;
+  let running: { eventDir: string; basePath: string; url: string } | undefined;
   let starting: Promise<DevStart> | undefined;
   let log = "";
 
@@ -118,12 +118,13 @@ export function createDevRunner(options: DevRunnerOptions) {
     throw new Error("The dev server didn't start in time");
   }
 
-  async function launch(eventDir: string): Promise<DevStart> {
+  async function launch(eventDir: string, basePath: string): Promise<DevStart> {
     log = "";
     try {
       await options.prepare?.(append);
       const port = await freePort();
-      const url = `http://127.0.0.1:${port}/`;
+      // Next redirects `/base/` to `/base`, so only the root ends with `/`.
+      const url = `http://127.0.0.1:${port}${basePath || "/"}`;
       const plan = (options.commands ?? defaultCommands)(
         siteRoot,
         eventDir,
@@ -149,7 +150,7 @@ export function createDevRunner(options: DevRunnerOptions) {
         }
       });
       await waitForServer(url, exited);
-      running = { eventDir, url };
+      running = { eventDir, basePath, url };
       return { ok: true, url };
     } catch (e) {
       // Stack frames would crowd out the message naming what went wrong.
@@ -167,16 +168,24 @@ export function createDevRunner(options: DevRunnerOptions) {
     }
   }
 
-  /** Starts the dev server unless it's already serving this event. */
-  async function start(eventDir: string): Promise<DevStart> {
-    if (running && running.eventDir === eventDir) {
+  /**
+   * Starts the dev server unless it's already serving this event at this base
+   * path. The site reads the base path from the event when it starts; it is
+   * passed here so the server is restarted when it changes.
+   */
+  async function start(eventDir: string, basePath = ""): Promise<DevStart> {
+    if (
+      running &&
+      running.eventDir === eventDir &&
+      running.basePath === basePath
+    ) {
       return { ok: true, url: running.url };
     }
     if (starting) {
       return starting;
     }
     await stop();
-    starting = launch(eventDir).finally(() => {
+    starting = launch(eventDir, basePath).finally(() => {
       starting = undefined;
     });
     return starting;

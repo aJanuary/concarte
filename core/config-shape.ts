@@ -108,6 +108,7 @@ export const THEME_KEYS = [
 const config = object({
   eventName: string,
   locale: string,
+  basePath: optional(string),
   description: string,
   attributions: optional(list(string)),
   theme: object(Object.fromEntries(THEME_KEYS.map((key) => [key, hexColor]))),

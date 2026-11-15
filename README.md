@@ -100,6 +100,39 @@ server {
 }
 ```
 
+### Hosting under a subpath
+
+To serve the map somewhere other than the root of a domain, such as
+`https://example.com/myevent/`, set **Base path** in the event settings (the
+`basePath` field in `concarte.json`) to `/myevent` and rebuild. Every page,
+asset and link in the built site then starts with `/myevent`, including links
+in markdown that start with `/`.
+
+The built site must then be served at that path. One way with nginx is to put
+the contents of `dist/` in a folder named after the base path:
+
+```nginx
+server {
+  listen 80;
+  server_name example.com;
+
+  # The contents of dist/ are in /var/www/myevent
+  root /var/www;
+  # Redirect /myevent to /myevent/ without naming a host, which the site's own
+  # navigation can't follow if it differs from the page's
+  absolute_redirect off;
+
+  location /myevent {
+    try_files $uri $uri.html $uri/ =404;
+  }
+
+  error_page 404 /myevent/404.html;
+  location = /myevent/404.html {
+    internal;
+  }
+}
+```
+
 ## Contributing
 
 We welcome contributions to the project.

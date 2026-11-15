@@ -6,7 +6,7 @@ export type Issue = {
   message: string;
   mapSrc?: string;
   shape?: string;
-  field?: "id" | "label" | "link" | "shape" | "src";
+  field?: "basePath" | "id" | "label" | "link" | "shape" | "src";
 };
 
 // Resolving applies transforms and flattens curves, and the editor validates on
@@ -33,6 +33,8 @@ function shapeProblem(document: SvgDocument, id: string): string | null {
   return problem;
 }
 
+const BASE_PATH = /^(\/[A-Za-z0-9._~-]+)+$/;
+
 /**
  * Finds problems in a config. `documents` holds the parsed SVG of each map by
  * `src`; checks that need an SVG are skipped for maps without one.
@@ -46,6 +48,17 @@ export function validateConfig(
     issues.push({ ...issue, severity: "error" });
   const warning = (issue: Omit<Issue, "severity">) =>
     issues.push({ ...issue, severity: "warning" });
+
+  if (
+    config.basePath !== undefined &&
+    config.basePath !== "" &&
+    !BASE_PATH.test(config.basePath)
+  ) {
+    error({
+      message: `The base path "${config.basePath}" must start with "/", not end with "/", and use only letters, digits, ".", "_", "~" and "-" between the slashes`,
+      field: "basePath",
+    });
+  }
 
   if (
     config.defaultMap !== undefined &&

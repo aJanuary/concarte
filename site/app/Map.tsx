@@ -16,7 +16,13 @@ import React, {
   useRef,
   useState,
 } from "react";
-import type { ResolvedConfig, ResolvedMap, Room } from "@concarte/core";
+import {
+  assetPath,
+  type ResolvedConfig,
+  type ResolvedMap,
+  type Room,
+} from "@concarte/core";
+import { withBasePath } from "./base-path";
 
 type StringMap<V> = globalThis.Map<string, V>;
 
@@ -48,7 +54,7 @@ interface MapImage {
 
 async function loadMapImage(src: string): Promise<MapImage> {
   // Fetch the SVG to read its viewBox dimensions, which define the coordinate space
-  const response = await fetch(src);
+  const response = await fetch(withBasePath(`/${assetPath(src)}`));
   const text = await response.text();
   const parser = new DOMParser();
   const doc = parser.parseFromString(text, "image/svg+xml");

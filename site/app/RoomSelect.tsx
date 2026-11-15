@@ -5,6 +5,7 @@ import {
 } from "@heroicons/react/24/solid";
 import Fuse from "fuse.js";
 import type { ResolvedConfig, ResolvedMap, Room } from "@concarte/core";
+import { withBasePath } from "./base-path";
 import { useTranslations } from "next-intl";
 
 interface RoomSelectProps {
@@ -113,7 +114,7 @@ export default function RoomSelect({
             <li key={`${room.map.id}-${room.id}`}>
               <a
                 className="border-border hover:bg-highlight-background block cursor-pointer border-b-2 p-2"
-                href={`/room/${room.id}`}
+                href={withBasePath(`/map/${room.map.id}/room/${room.id}`)}
                 tabIndex={i + 3}
                 onClick={(e) => {
                   e.preventDefault();

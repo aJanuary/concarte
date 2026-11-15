@@ -28,6 +28,7 @@ import {
 } from "../../../shared/schema";
 import { TextField } from "../../ui/controls";
 import { errorText, fieldStack, fieldStyle, helpText } from "../../ui/styles";
+import { BasePathField } from "./fields/BasePathField";
 import { ColorField } from "./fields/ColorField";
 import { CommittingPicker, Toggle } from "./fields/committing";
 import { MarkdownField } from "./fields/MarkdownField";
@@ -218,6 +219,9 @@ export const configFields: Registry<Config> = {
         </PickerItem>
       ))}
     </CommittingPicker>
+  ),
+  basePath: ({ value, onChange, error }) => (
+    <BasePathField value={value} onChange={onChange} error={error} />
   ),
   description: ({ value, onChange }) => (
     <MarkdownField label="Description" value={value} onChange={onChange} />

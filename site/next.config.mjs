@@ -1,10 +1,33 @@
+import { readFileSync } from "fs";
+import { join, resolve } from "path";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./app/i18n/request.ts");
 
+// Read here rather than from generated files because Next needs it before
+// anything is compiled. `pnpm generate` has already validated the config.
+function eventBasePath() {
+  const eventDir = process.env.CONCARTE_EVENT_DIR;
+  if (!eventDir) {
+    return "";
+  }
+  try {
+    const config = JSON.parse(
+      readFileSync(join(resolve(eventDir), "concarte.json"), "utf8"),
+    );
+    return config.basePath ?? "";
+  } catch {
+    return "";
+  }
+}
+
+const basePath = eventBasePath();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "export",
+  basePath,
+  env: { NEXT_PUBLIC_BASE_PATH: basePath },
   // Shipped as TypeScript source rather than built.
   transpilePackages: ["@concarte/core"],
   experimental: {

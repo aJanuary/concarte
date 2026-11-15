@@ -46,6 +46,7 @@ export function normalizeConfig(config: Config): Complete<Config> {
   return {
     eventName: config.eventName,
     locale: config.locale,
+    basePath: config.basePath || undefined,
     description: config.description.trim(),
     attributions: tidyList(config.attributions?.filter((a) => a.trim() !== "")),
     theme: Object.fromEntries(
