@@ -2,6 +2,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import config from "@/generated/config";
 import { favicon } from "@/generated/assets";
+import { withBasePath } from "./base-path";
 import { getLocale, getMessages } from "next-intl/server";
 import {
   createTranslator,
@@ -20,7 +21,7 @@ export async function generateMetadata() {
   return {
     title: t("title", { eventName: config.eventName }),
     description: t("description", { eventName: config.eventName }),
-    ...(favicon && { icons: { icon: favicon } }),
+    ...(favicon && { icons: { icon: withBasePath(favicon) } }),
   };
 }
 

@@ -39,6 +39,19 @@ describe("dev runner", () => {
     }
   });
 
+  it("opens at the base path, restarting when it changes", async () => {
+    const runner = await setup(LISTEN);
+    const root = await runner.start("/event");
+    const based = await runner.start("/event", "/map");
+    expect(based.ok && based.url).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/map$/);
+    expect(based).not.toEqual(root);
+    if (root.ok) {
+      expect(root.url).toMatch(/\/$/);
+      await expect(fetch(root.url)).rejects.toThrow();
+    }
+    expect(await runner.start("/event", "/map")).toEqual(based);
+  });
+
   it("reports a server that exits", async () => {
     const runner = await setup(`console.log("boom"); process.exit(1);`);
     const result = await runner.start("/event");

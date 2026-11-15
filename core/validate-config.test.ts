@@ -38,6 +38,22 @@ describe("validateConfig", () => {
     ]);
   });
 
+  it.each(["", "/map", "/maps/2026", "/a.b_c~d-e"])(
+    "accepts the base path %j",
+    (basePath) => {
+      expect(messages({ ...config([]), basePath } as Config)).toEqual([]);
+    },
+  );
+
+  it.each(["map", "/map/", "/", "//map", "/my map", "/map?x"])(
+    "reports the base path %j",
+    (basePath) => {
+      expect(
+        validateConfig({ ...config([]), basePath } as Config),
+      ).toMatchObject([{ severity: "error", field: "basePath" }]);
+    },
+  );
+
   it("reports shapes the build can't resolve, only when the SVG is known", () => {
     const c = config([
       { id: "a", label: "A", shape: "gone" },

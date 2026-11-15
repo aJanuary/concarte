@@ -27,12 +27,17 @@ const patchKey = (scope: string, patch: object) =>
   `${scope}:${Object.keys(patch).join(",")}`;
 
 function EventPanel({ ctx }: { ctx: FieldContext }) {
-  const { doc, apply } = useSession();
+  const { doc, apply, issues } = useSession();
   const { fields, sections } = renderRegistry(
     configFields,
     doc,
     (patch) => apply(ops.updateEvent(patch), patchKey("event", patch)),
     ctx,
+    {
+      basePath: issues.find(
+        (i) => i.severity === "error" && i.field === "basePath",
+      )?.message,
+    },
   );
   return (
     <PropertiesPanel

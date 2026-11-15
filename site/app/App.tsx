@@ -7,6 +7,7 @@ import MapSelect from "./MapSelect";
 import FilterPills from "./FilterPills";
 import OverlayPills from "./OverlayPills";
 import InfoPanel from "./InfoPanel";
+import { withBasePath } from "./base-path";
 import config from "@/generated/config";
 import type { ResolvedMap, Room } from "@concarte/core";
 
@@ -105,7 +106,11 @@ export default function App({
 
   useEffect(() => {
     if (!mapId) {
-      window.history.replaceState(null, "", `/map/${selectedMap.id}`);
+      window.history.replaceState(
+        null,
+        "",
+        withBasePath(`/map/${selectedMap.id}`),
+      );
     }
   }, [mapId, selectedMap.id]);
 
@@ -115,9 +120,13 @@ export default function App({
     setSelectedMap(map);
     if (!room) {
       setSelectedRoom(undefined);
-      window.history.replaceState(null, "", `/map/${map.id}`);
+      window.history.replaceState(null, "", withBasePath(`/map/${map.id}`));
     } else {
-      history.replaceState(null, "", `/map/${map.id}/room/${room.id}`);
+      history.replaceState(
+        null,
+        "",
+        withBasePath(`/map/${map.id}/room/${room.id}`),
+      );
       setSelectedRoom(room);
     }
   };
@@ -191,7 +200,11 @@ export default function App({
             setActivePill(pill);
             setHighlightedRooms(rooms);
             setSelectedRoom(undefined);
-            window.history.replaceState(null, "", `/map/${selectedMap.id}`);
+            window.history.replaceState(
+              null,
+              "",
+              withBasePath(`/map/${selectedMap.id}`),
+            );
           }}
         />
       </div>

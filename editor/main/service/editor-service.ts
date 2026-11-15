@@ -138,7 +138,7 @@ export function createEditorService(host: Host) {
     if (errors.length > 0) {
       return { ok: false, reason: "invalid", errors };
     }
-    const result = await dev.start(store.eventDir);
+    const result = await dev.start(store.eventDir, store.basePath());
     if (!result.ok) {
       return { ok: false, reason: "failed", error: result.error };
     }
