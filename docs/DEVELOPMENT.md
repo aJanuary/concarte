@@ -43,8 +43,8 @@ can edit the config in the editor and the site's code side by side and see
 both update.
 
 To run the site without the editor, the same dev server is available directly.
-It regenerates `site/public/`, `site/generated/` and `site/app/favicon.ico`
-from the event whenever the event's files change, so don't edit those.
+It regenerates `site/public/` and `site/generated/` from the event whenever
+the event's files change, so don't edit those.
 
 ```bash
 CONCARTE_EVENT_DIR=/absolute/path/to/event pnpm dev
