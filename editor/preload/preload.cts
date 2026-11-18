@@ -17,6 +17,13 @@ function listen<T>(channel: string) {
 // One named method per channel, rather than a generic invoke: the page must
 // not be able to send arbitrary messages to the main process.
 const bridge: Bridge = {
+  runtime: {
+    electron: process.versions.electron,
+    chrome: process.versions.chrome,
+    node: process.versions.node,
+    platform: process.platform,
+    arch: process.arch,
+  },
   session: () => invoke(IPC.session),
   event: {
     create: () => invoke(IPC.newEvent),

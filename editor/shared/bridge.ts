@@ -61,6 +61,14 @@ type Listen<T = void> = (callback: (data: T) => void) => () => void;
 
 /** What the preload script exposes to the page as `window.concarte`. */
 export type Bridge = {
+  /** What the editor is running on, for the About tab. */
+  runtime: {
+    electron: string;
+    chrome: string;
+    node: string;
+    platform: string;
+    arch: string;
+  };
   session(): Promise<SessionResponse>;
   event: {
     /** Asks for an empty folder and creates an event in it. */
