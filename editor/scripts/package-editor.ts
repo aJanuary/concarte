@@ -146,7 +146,7 @@ const lockedPackages = (file: string) =>
   new Set(
     [
       ...readFileSync(file, "utf8").matchAll(
-        /^ {2}'?([^\s'][^\n]*?)'?:\n {4}resolution:/gm,
+        /^ {2}'?([^\s'][^\r\n]*?)'?:\r?\n {4}resolution:/gm,
       ),
     ].map((match) => match[1]),
   );
