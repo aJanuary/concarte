@@ -1,5 +1,4 @@
 import {
-  cpSync,
   existsSync,
   mkdirSync,
   readdirSync,
@@ -8,9 +7,16 @@ import {
   writeFileSync,
 } from "fs";
 import { join } from "path";
+import { extract } from "tar";
+
+/**
+ * The site and its node_modules as one file: installers and macOS handle tens
+ * of thousands of small files slowly.
+ */
+export const SITE_ARCHIVE = "site.tar.gz";
 
 export type SiteCopyOptions = {
-  /** The app's bundle, which holds the site's files beside the editor's. */
+  /** The app's bundle, which holds the site's archive beside the editor. */
   bundleDir: string;
   /** The per-user folder the copy is kept in. */
   userData: string;
@@ -40,10 +46,7 @@ export function createSiteCopy({
     log("Preparing the build tools. This only happens once...\n");
     rmSync(root, { recursive: true, force: true });
     mkdirSync(root, { recursive: true });
-    cpSync(bundleDir, root, {
-      recursive: true,
-      filter: (source) => source !== join(bundleDir, "ui"),
-    });
+    await extract({ file: join(bundleDir, SITE_ARCHIVE), cwd: root });
     writeFileSync(marker, buildId);
     for (const entry of readdirSync(userData)) {
       if (entry.startsWith("site-") && join(userData, entry) !== root) {

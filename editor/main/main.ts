@@ -34,7 +34,7 @@ import { createEvent } from "./service/new-event.ts";
 import { readSettings, updateSettings } from "./settings.ts";
 import { createSiteCopy } from "./site-copy.ts";
 
-// The bundle sits at the root of the packaged app, beside the site's files,
+// The bundle sits at the root of the packaged app, beside the site's archive,
 // and in build/editor/ of the repository during development.
 const bundleDir = dirname(fileURLToPath(import.meta.url));
 const recentsFile = join(app.getPath("userData"), "recents.json");

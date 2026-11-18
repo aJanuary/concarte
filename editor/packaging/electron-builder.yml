@@ -1,7 +1,7 @@
 appId: dev.concarte.editor
 productName: ConCarte Editor
-# The site is copied out of the app and built, so its files must stay real
-# files rather than sit inside an archive.
+# The app is a handful of files beside the site's own archive, so packing them
+# into another gains nothing.
 asar: false
 npmRebuild: false
 files:
