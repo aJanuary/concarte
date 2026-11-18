@@ -2,6 +2,11 @@
   "name": "@concarte/core",
   "private": true,
   "type": "module",
+  "files": [
+    "*.ts",
+    "tsconfig.json",
+    "!*.test.ts"
+  ],
   "exports": {
     ".": "./index.ts",
     "./node": "./node.ts"

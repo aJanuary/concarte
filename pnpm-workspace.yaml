@@ -6,3 +6,8 @@ packages:
 overrides:
   "minimatch@>=7.0.0 <11.0.1": ^11.0.1
   "postcss-selector-parser@<6.1.5": ^6.1.5
+
+# Lets `pnpm deploy` install the site's dependencies for the packaged editor
+# straight from the lockfile. Core stays symlinked into the site while its
+# dependencies match, so development is unaffected.
+injectWorkspacePackages: true

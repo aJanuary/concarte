@@ -2,6 +2,14 @@
   "name": "@concarte/site",
   "private": true,
   "type": "module",
+  "files": [
+    "app",
+    "scripts",
+    "next.config.mjs",
+    "postcss.config.mjs",
+    "tsconfig.json",
+    "!**/*.test.ts"
+  ],
   "scripts": {
     "dev": "pnpm generate && concurrently -k -n generate,next \"pnpm generate:watch\" \"next dev\"",
     "build": "pnpm generate && next build",
