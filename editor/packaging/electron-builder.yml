@@ -15,6 +15,10 @@ mac:
   icon: icon.png
   target: dmg
   category: public.app-category.productivity
+  # Ad-hoc signed: without a Developer ID the build is otherwise unsigned, and
+  # Apple Silicon reports an unsigned download as damaged rather than offering
+  # to open it.
+  identity: "-"
 win:
   icon: icon.png
   target: nsis
