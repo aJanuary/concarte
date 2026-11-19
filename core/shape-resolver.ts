@@ -203,21 +203,27 @@ function shapeToPathD(element: SvgNode): string {
 
     case "polygon":
     case "polyline": {
-      const points = (element.getAttribute("points") ?? "")
-        .trim()
-        .split(/\s+/)
-        .filter((p) => p.length > 0);
-      if (points.length === 0) {
+      const id = element.getAttribute("id");
+      const raw = element.getAttribute("points") ?? "";
+      const coordinates = parseArgs(raw);
+      if (coordinates.length === 0) {
+        throw new Error(`<${tag} id="${id}"> has no points`);
+      }
+      if (coordinates.some((c) => !Number.isFinite(c))) {
         throw new Error(
-          `<${tag} id="${element.getAttribute("id")}"> has no points`,
+          `<${tag} id="${id}"> has points="${raw}"; every coordinate must be a number`,
         );
       }
-      const [first, ...rest] = points;
-      const [fx, fy] = first.split(",");
-      const d = [`M ${fx} ${fy}`];
-      for (const point of rest) {
-        const [x, y] = point.split(",");
-        d.push(`L ${x} ${y}`);
+      if (coordinates.length % 2 !== 0) {
+        throw new Error(
+          `<${tag} id="${id}"> has an odd number of coordinates in points="${raw}"`,
+        );
+      }
+      const d: string[] = [];
+      for (let i = 0; i < coordinates.length; i += 2) {
+        d.push(
+          `${i === 0 ? "M" : "L"} ${coordinates[i]} ${coordinates[i + 1]}`,
+        );
       }
       d.push("Z");
       return d.join(" ");

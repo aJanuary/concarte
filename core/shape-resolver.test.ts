@@ -260,6 +260,41 @@ describe("resolveShape", () => {
     ]);
   });
 
+  describe("polygon points separators", () => {
+    const triangle = [
+      [
+        [0, 0],
+        [10, 0],
+        [10, 10],
+        [0, 0],
+      ],
+    ];
+
+    it.each([
+      ["whitespace only", "0 0 10 0 10 10"],
+      ["comma and space within a pair", "0, 0 10, 0 10, 10"],
+      ["commas only", "0,0,10,0,10,10"],
+      ["newlines and tabs", "0,0\n\t10,0\n\t10,10"],
+    ])("accepts %s", (_, points) => {
+      const doc = svg(`<polygon id="room" points="${points}" />`);
+      expect(resolve(doc, "room")).toEqual(triangle);
+    });
+
+    it("rejects an odd number of coordinates", () => {
+      const doc = svg(`<polygon id="room" points="0,0 10,0 10" />`);
+      expect(() => resolve(doc, "room")).toThrow(
+        /<polygon id="room"> has an odd number of coordinates/,
+      );
+    });
+
+    it("rejects a non-numeric coordinate", () => {
+      const doc = svg(`<polygon id="room" points="0,0 10,0 10,ten" />`);
+      expect(() => resolve(doc, "room")).toThrow(
+        /<polygon id="room"> has points="0,0 10,0 10,ten"/,
+      );
+    });
+  });
+
   it("flattens a circle into points on its circumference", () => {
     const doc = svg(`<circle id="room" cx="50" cy="50" r="40" />`);
     const [ring, ...others] = resolve(doc, "room");
