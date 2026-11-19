@@ -48,6 +48,8 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
 
 interface MapImage {
   img: HTMLImageElement;
+  minX: number;
+  minY: number;
   width: number;
   height: number;
 }
@@ -61,10 +63,17 @@ async function loadMapImage(src: string): Promise<MapImage> {
   const svgEl = doc.documentElement;
   const viewBox = svgEl.getAttribute("viewBox");
 
+  let minX = 0;
+  let minY = 0;
   let width: number;
   let height: number;
   if (viewBox) {
-    const parts = viewBox.split(/\s+|,/).map(Number);
+    const parts = viewBox
+      .trim()
+      .split(/[\s,]+/)
+      .map(Number);
+    minX = parts[0];
+    minY = parts[1];
     width = parts[2];
     height = parts[3];
   } else {
@@ -80,7 +89,7 @@ async function loadMapImage(src: string): Promise<MapImage> {
   img.src = url;
   await img.decode();
 
-  return { img, width, height };
+  return { img, minX, minY, width, height };
 }
 
 export default function Map({
@@ -163,7 +172,7 @@ export default function Map({
     );
 
     Promise.all([loadMapImage(selectedMap.src), ...overlayPromises]).then(
-      ([{ img, width, height }, ...overlayResults]) => {
+      ([{ img, minX, minY, width, height }, ...overlayResults]) => {
         if (disposed) {
           return;
         }
@@ -290,9 +299,11 @@ export default function Map({
         }
         overlayLayersRef.current = newOverlayLayersMap;
 
+        // Room shapes are in the SVG's user units, whose origin is the
+        // viewBox's min corner rather than the image's top-left.
         const markers = selectedMap.rooms.map((room) => {
           const polygons = room.area.map((ring) => [
-            ring.map((coord) => [coord[0], height - coord[1]]),
+            ring.map((coord) => [coord[0] - minX, height - (coord[1] - minY)]),
           ]);
           return new Feature({
             geometry: new MultiPolygon(polygons),
