@@ -120,6 +120,59 @@ function ellipseD(cx: number, cy: number, rx: number, ry: number): string {
   return `M ${cx - rx} ${cy} A ${rx} ${ry} 0 1 0 ${cx + rx} ${cy} A ${rx} ${ry} 0 1 0 ${cx - rx} ${cy} Z`;
 }
 
+/** A `<rect>` corner radius attribute; `undefined` when absent or `auto`. */
+function cornerRadius(element: SvgNode, name: "rx" | "ry"): number | undefined {
+  const raw = element.getAttribute(name)?.trim();
+  if (raw === undefined || raw === "" || raw === "auto") {
+    return undefined;
+  }
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0) {
+    throw new Error(
+      `<rect id="${element.getAttribute("id")}"> has ${name}="${raw}"; corner radii must be a non-negative number`,
+    );
+  }
+  return value;
+}
+
+/** Follows the SVG 2 rules for resolving `rx`/`ry` into the drawn radii. */
+function rectD(element: SvgNode): string {
+  const x = attr(element, "x");
+  const y = attr(element, "y");
+  const width = attr(element, "width");
+  const height = attr(element, "height");
+
+  const rxAttr = cornerRadius(element, "rx");
+  const ryAttr = cornerRadius(element, "ry");
+  const rx = Math.min(rxAttr ?? ryAttr ?? 0, width / 2);
+  const ry = Math.min(ryAttr ?? rxAttr ?? 0, height / 2);
+
+  if (rx === 0 || ry === 0) {
+    return `M ${x} ${y} H ${x + width} V ${y + height} H ${x} Z`;
+  }
+
+  const arc = (endX: number, endY: number) =>
+    `A ${rx} ${ry} 0 0 1 ${endX} ${endY}`;
+  // A capped radius leaves no straight edge between corners; drawing the
+  // zero-length edge anyway would repeat a point in the ring.
+  const hasHorizontalEdge = rx < width / 2;
+  const hasVerticalEdge = ry < height / 2;
+  return [
+    `M ${x + rx} ${y}`,
+    hasHorizontalEdge ? `H ${x + width - rx}` : "",
+    arc(x + width, y + ry),
+    hasVerticalEdge ? `V ${y + height - ry}` : "",
+    arc(x + width - rx, y + height),
+    hasHorizontalEdge ? `H ${x + rx}` : "",
+    arc(x, y + height - ry),
+    hasVerticalEdge ? `V ${y + ry}` : "",
+    arc(x + rx, y),
+    "Z",
+  ]
+    .filter((command) => command !== "")
+    .join(" ");
+}
+
 /**
  * Converts a basic SVG shape element into an equivalent path `d` string, in
  * the element's own local coordinate space (i.e. before its `transform`
@@ -132,18 +185,8 @@ function shapeToPathD(element: SvgNode): string {
     case "path":
       return element.getAttribute("d") ?? "";
 
-    case "rect": {
-      if (attr(element, "rx") !== 0 || attr(element, "ry") !== 0) {
-        throw new Error(
-          `<rect id="${element.getAttribute("id")}"> has rounded corners (rx/ry), which is not supported`,
-        );
-      }
-      const x = attr(element, "x");
-      const y = attr(element, "y");
-      const width = attr(element, "width");
-      const height = attr(element, "height");
-      return `M ${x} ${y} H ${x + width} V ${y + height} H ${x} Z`;
-    }
+    case "rect":
+      return rectD(element);
 
     case "circle": {
       const r = attr(element, "r");

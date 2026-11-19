@@ -123,11 +123,129 @@ describe("resolveShape", () => {
     ]);
   });
 
-  it("rejects a rect with rounded corners", () => {
-    const doc = svg(
-      `<rect id="room" x="0" y="0" width="10" height="10" rx="2" />`,
-    );
-    expect(() => resolve(doc, "room")).toThrow(/rounded corners/);
+  describe("rect with rounded corners", () => {
+    const rect = (attrs: string) =>
+      resolve(svg(`<rect id="room" ${attrs} />`), "room");
+
+    /**
+     * Asserts the ring traces a `width`×`height` rect at the origin whose
+     * corners are elliptical arcs of radii `rx`, `ry`.
+     */
+    function expectRoundedRect(
+      rings: [number, number][][],
+      width: number,
+      height: number,
+      rx: number,
+      ry: number,
+    ) {
+      expect(rings).toHaveLength(1);
+      const [ring] = rings;
+      for (const [cx, cy] of [
+        [rx, ry],
+        [width - rx, ry],
+        [width - rx, height - ry],
+        [rx, height - ry],
+      ]) {
+        const tangents = [
+          [cx, cy < height / 2 ? 0 : height],
+          [cx < width / 2 ? 0 : width, cy],
+        ];
+        for (const tangent of tangents) {
+          expect(ring).toContainEqual(tangent);
+        }
+      }
+      for (const [x, y] of ring) {
+        const inCornerX = x < rx || x > width - rx;
+        const inCornerY = y < ry || y > height - ry;
+        if (inCornerX && inCornerY) {
+          const cx = x < rx ? rx : width - rx;
+          const cy = y < ry ? ry : height - ry;
+          const distance = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2;
+          expect(distance).toBeCloseTo(1, 1);
+        } else {
+          const onEdge = x === 0 || x === width || y === 0 || y === height;
+          expect(onEdge).toBe(true);
+        }
+      }
+      // The arcs are flattened into several points, not just their ends.
+      expect(ring.length).toBeGreaterThan(12);
+    }
+
+    it("follows elliptical corner arcs", () => {
+      expectRoundedRect(
+        rect(`width="100" height="60" rx="20" ry="10"`),
+        100,
+        60,
+        20,
+        10,
+      );
+    });
+
+    it("uses rx for ry when only rx is given", () => {
+      expectRoundedRect(
+        rect(`width="100" height="60" rx="15"`),
+        100,
+        60,
+        15,
+        15,
+      );
+    });
+
+    it("uses ry for rx when only ry is given", () => {
+      expectRoundedRect(
+        rect(`width="100" height="60" ry="15"`),
+        100,
+        60,
+        15,
+        15,
+      );
+    });
+
+    it("treats ry=auto as missing", () => {
+      expectRoundedRect(
+        rect(`width="100" height="60" rx="15" ry="auto"`),
+        100,
+        60,
+        15,
+        15,
+      );
+    });
+
+    it("caps each radius at half the rect's size on that axis", () => {
+      expectRoundedRect(
+        rect(`width="40" height="100" rx="999"`),
+        40,
+        100,
+        20,
+        50,
+      );
+    });
+
+    it("draws square corners when either radius is zero", () => {
+      const square = [
+        [
+          [0, 0],
+          [10, 0],
+          [10, 10],
+          [0, 10],
+          [0, 0],
+        ],
+      ];
+      expect(rect(`width="10" height="10" rx="0"`)).toEqual(square);
+      expect(rect(`width="10" height="10" rx="0" ry="5"`)).toEqual(square);
+    });
+
+    it("rejects a negative radius", () => {
+      expect(() => rect(`width="10" height="10" rx="-2"`)).toThrow(
+        /<rect id="room"> has rx="-2"/,
+      );
+    });
+
+    it("rejects a percentage radius", () => {
+      expect(() => rect(`width="10" height="10" ry="10%"`)).toThrow(
+        /<rect id="room"> has ry="10%"/,
+      );
+    });
   });
 
   it("converts a polygon and closes it", () => {
