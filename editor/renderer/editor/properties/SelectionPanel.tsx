@@ -28,15 +28,16 @@ const patchKey = (scope: string, patch: object) =>
 
 function EventPanel({ ctx }: { ctx: FieldContext }) {
   const { doc, apply, issues } = useSession();
+  const errorFor = (field: Issue["field"]) =>
+    issues.find((i) => i.severity === "error" && i.field === field)?.message;
   const { fields, sections } = renderRegistry(
     configFields,
     doc,
     (patch) => apply(ops.updateEvent(patch), patchKey("event", patch)),
     ctx,
     {
-      basePath: issues.find(
-        (i) => i.severity === "error" && i.field === "basePath",
-      )?.message,
+      basePath: errorFor("basePath"),
+      page: errorFor("page"),
     },
   );
   return (
@@ -221,8 +222,11 @@ function MissingNodePanel({ map, id }: { map: MapConfig; id: string }) {
 
 /** The properties of whatever is selected. */
 export function SelectionPanel() {
-  const { doc, locales, selection, svgs, issues } = useSession();
-  const ctx = useMemo(() => fieldContext(doc, locales), [doc, locales]);
+  const { doc, locales, pageMessages, selection, svgs, issues } = useSession();
+  const ctx = useMemo(
+    () => fieldContext(doc, locales, pageMessages),
+    [doc, locales, pageMessages],
+  );
 
   if (selection.kind === "event") {
     return <EventPanel ctx={ctx} />;

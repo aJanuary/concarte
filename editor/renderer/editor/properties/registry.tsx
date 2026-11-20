@@ -16,12 +16,14 @@ import { style } from "@react-spectrum/s2/style" with { type: "macro" };
 import { useState, type ReactNode } from "react";
 
 type Key = string | number;
+import type { PageMessages } from "../../../shared/api";
 import {
   assetPath,
   srcFromAsset,
   type Config,
   type MapConfig,
   type Overlay,
+  type PageSettings,
   type Room,
   type RoomLink,
   type Theme,
@@ -79,9 +81,29 @@ export type FieldContext = {
   locales: string[];
   aliasSuggestions: string[];
   filterSuggestions: string[];
+  /** The page title and description the site uses when the event sets none. */
+  pageDefaults: PageSettings | undefined;
 };
 
-export function fieldContext(doc: Config, locales: string[]): FieldContext {
+function pageDefaults(
+  doc: Config,
+  messages: PageMessages,
+): PageSettings | undefined {
+  // The site can't build without a translation for its locale, but English
+  // still gives something sensible to start from until there is one.
+  const page = messages[doc.locale] ?? messages.en;
+  const fill = (message: string) =>
+    message.replaceAll("{eventName}", doc.eventName);
+  return (
+    page && { title: fill(page.title), description: fill(page.description) }
+  );
+}
+
+export function fieldContext(
+  doc: Config,
+  locales: string[],
+  pageMessages: PageMessages,
+): FieldContext {
   const aliases = new Set<string>();
   const labels = new Set<string>();
   for (const map of doc.maps) {
@@ -96,6 +118,7 @@ export function fieldContext(doc: Config, locales: string[]): FieldContext {
     locales,
     aliasSuggestions: [...aliases, ...(doc.filters ?? [])].sort(),
     filterSuggestions: [...aliases, ...labels].sort(),
+    pageDefaults: pageDefaults(doc, pageMessages),
   };
 }
 
@@ -240,6 +263,10 @@ export const configFields: Registry<Config> = {
   description: ({ value, onChange }) => (
     <MarkdownField label="Description" value={value} onChange={onChange} />
   ),
+  page: {
+    section: "Search and sharing",
+    render: (props) => <PageSection {...props} />,
+  },
   filters: ({ value, onChange, ctx }) => (
     <StringListField
       label="Filters"
@@ -260,6 +287,77 @@ export const configFields: Registry<Config> = {
   defaultMap: { managedBy: "the map panel" },
   maps: { managedBy: "the tree" },
 };
+
+const pageFields: Registry<PageSettings> = {
+  title: ({ value, onChange, autoFocus }) => (
+    <TextField
+      label="Page title"
+      value={value}
+      onChange={onChange}
+      autoFocus={autoFocus}
+    />
+  ),
+  description: ({ value, onChange }) => (
+    <TextField label="Page description" value={value} onChange={onChange} />
+  ),
+};
+
+function PageSection({
+  value,
+  onChange,
+  ctx,
+  error,
+}: FieldProps<Config, "page">) {
+  // Only settings added in this session take focus, not ones that mount when
+  // the panel opens.
+  const [justAdded, setJustAdded] = useState(false);
+  const defaults = ctx.pageDefaults;
+  return (
+    <>
+      <p className={helpText}>
+        Shown in browser tabs, search results and link previews.
+      </p>
+      {value ? (
+        <>
+          {
+            renderRegistry(
+              pageFields,
+              value,
+              (patch) => onChange({ ...value, ...patch }),
+              ctx,
+              {},
+              justAdded ? "title" : undefined,
+            ).fields
+          }
+          {error && (
+            <p role="alert" className={errorText}>
+              {error}
+            </p>
+          )}
+          <ActionButton
+            onPress={() => {
+              setJustAdded(false);
+              onChange(undefined);
+            }}
+            styles={style({ alignSelf: "start" })}
+          >
+            <Text>Use defaults</Text>
+          </ActionButton>
+        </>
+      ) : (
+        <ActionButton
+          onPress={() => {
+            setJustAdded(true);
+            onChange(defaults ?? { title: "", description: "" });
+          }}
+          styles={style({ alignSelf: "start" })}
+        >
+          <Text>Customize title and description</Text>
+        </ActionButton>
+      )}
+    </>
+  );
+}
 
 function ThemeSection({ value, onChange, ctx }: FieldProps<Config, "theme">) {
   const { issues } = useSession();

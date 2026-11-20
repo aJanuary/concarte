@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { Bridge, MenuAction, NativeResult } from "../../shared/bridge";
+import type { PageMessages } from "../../shared/api";
 import type { Config } from "../../shared/schema";
 
 /** The main process, as the preload script exposes it. */
@@ -11,6 +12,7 @@ export type LoadedEvent = {
   config: Config;
   mtime: number;
   locales: string[];
+  pageMessages: PageMessages;
 };
 
 /** The URL an asset of the open event is served from. */

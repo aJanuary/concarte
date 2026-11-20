@@ -4,12 +4,7 @@ import config from "@/generated/config";
 import { favicon } from "@/generated/assets";
 import { withBasePath } from "./base-path";
 import { getLocale, getMessages } from "next-intl/server";
-import {
-  createTranslator,
-  IntlConfig,
-  NextIntlClientProvider,
-  useTranslations,
-} from "next-intl";
+import { createTranslator, NextIntlClientProvider } from "next-intl";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,8 +14,10 @@ export async function generateMetadata() {
   const t = createTranslator({ locale, messages, namespace: "page" });
 
   return {
-    title: t("title", { eventName: config.eventName }),
-    description: t("description", { eventName: config.eventName }),
+    title: config.page?.title ?? t("title", { eventName: config.eventName }),
+    description:
+      config.page?.description ??
+      t("description", { eventName: config.eventName }),
     ...(favicon && { icons: { icon: withBasePath(favicon) } }),
   };
 }

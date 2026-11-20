@@ -19,6 +19,7 @@ import {
 import type {
   FaviconResponse,
   LoadResponse,
+  PageMessages,
   SaveRequest,
   SaveResponse,
 } from "../../shared/api.ts";
@@ -50,6 +51,27 @@ function listLocales(dir: string): string[] {
         .map((file) => file.slice(0, -".json".length))
         .sort()
     : [];
+}
+
+/** Locales whose file lacks the page messages, or isn't JSON, are left out. */
+function readPageMessages(dir: string, locales: string[]): PageMessages {
+  const messages: PageMessages = {};
+  for (const locale of locales) {
+    try {
+      const page = JSON.parse(
+        readFileSync(join(dir, `${locale}.json`), "utf8"),
+      ).page;
+      if (
+        typeof page?.title === "string" &&
+        typeof page?.description === "string"
+      ) {
+        messages[locale] = { title: page.title, description: page.description };
+      }
+    } catch {
+      // Left out, as documented above.
+    }
+  }
+  return messages;
 }
 
 export function createEventStore(options: EventStoreOptions) {
@@ -84,9 +106,11 @@ export function createEventStore(options: EventStoreOptions) {
   }
 
   async function load(): Promise<LoadResponse> {
+    const locales = listLocales(messagesDir);
     const base = {
       eventDir,
-      locales: listLocales(messagesDir),
+      locales,
+      pageMessages: readPageMessages(messagesDir, locales),
     };
     if (!existsSync(configPath)) {
       return {

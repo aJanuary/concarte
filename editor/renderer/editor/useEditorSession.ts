@@ -78,6 +78,7 @@ export function useEditorSession(
       svgs,
       issues,
       locales: loaded.locales,
+      pageMessages: loaded.pageMessages,
       selection,
       select,
       activeMap,

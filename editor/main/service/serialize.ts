@@ -48,6 +48,9 @@ export function normalizeConfig(config: Config): Complete<Config> {
     locale: config.locale,
     basePath: config.basePath || undefined,
     description: config.description.trim(),
+    page: config.page
+      ? { title: config.page.title, description: config.page.description }
+      : undefined,
     attributions: tidyList(config.attributions?.filter((a) => a.trim() !== "")),
     theme: Object.fromEntries(
       THEME_KEYS.map((key) => [key, config.theme[key]]),

@@ -56,6 +56,26 @@ describe("createEvent", () => {
 });
 
 describe("load", () => {
+  it("reads each locale's default page title and description", async () => {
+    const dir = await tempDir();
+    await createEvent(dir);
+    const messagesDir = join(dir, "messages");
+    await mkdir(messagesDir);
+    const page = {
+      title: "{eventName} map",
+      description: "About {eventName}",
+    };
+    await writeFile(join(messagesDir, "en.json"), JSON.stringify({ page }));
+    await writeFile(join(messagesDir, "fr.json"), JSON.stringify({}));
+    await writeFile(join(messagesDir, "de.json"), "{ nope");
+    const store = createEventStore({ eventDir: dir, messagesDir });
+    expect(await store.load()).toMatchObject({
+      locales: ["de", "en", "fr"],
+      pageMessages: { en: page },
+    });
+    expect(Object.keys((await store.load()).pageMessages)).toEqual(["en"]);
+  });
+
   it("reports a config that is not valid JSON", async () => {
     const dir = await tempDir();
     await writeFile(join(dir, "concarte.json"), "{ nope");

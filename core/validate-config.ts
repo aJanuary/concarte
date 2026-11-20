@@ -8,7 +8,7 @@ export type Issue = {
   message: string;
   mapSrc?: string;
   shape?: string;
-  field?: "basePath" | "id" | "label" | "link" | "shape" | "src";
+  field?: "basePath" | "id" | "label" | "link" | "page" | "shape" | "src";
   /** The theme colour the issue is with. */
   themeKey?: keyof Config["theme"];
 };
@@ -61,6 +61,16 @@ export function validateConfig(
     error({
       message: `The base path "${config.basePath}" must start with "/", not end with "/", and use only letters, digits, ".", "_", "~" and "-" between the slashes`,
       field: "basePath",
+    });
+  }
+
+  if (
+    config.page &&
+    (config.page.title.trim() === "" || config.page.description.trim() === "")
+  ) {
+    error({
+      message: "The page title and description can't be empty",
+      field: "page",
     });
   }
 

@@ -1,10 +1,18 @@
 import type { Config } from "./schema.ts";
 
+/** The site's default page title and description, with an `{eventName}`
+ * placeholder, keyed by locale. */
+export type PageMessages = Record<
+  string,
+  { title: string; description: string }
+>;
+
 export type LoadResponse = {
   eventDir: string;
   mtime: number;
   errors: string[];
   locales: string[];
+  pageMessages: PageMessages;
   config: Config | null;
 };
 

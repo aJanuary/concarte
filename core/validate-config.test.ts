@@ -88,6 +88,20 @@ describe("validateConfig", () => {
     },
   );
 
+  it("accepts a page title and description", () => {
+    const page = { title: "DemoCon Hotel B map", description: "Hotel B" };
+    expect(messages({ ...config([]), page } as Config)).toEqual([]);
+  });
+
+  it.each([
+    { title: "", description: "Hotel B" },
+    { title: "DemoCon Hotel B map", description: " " },
+  ])("reports an empty page title or description: %j", (page) => {
+    expect(validateConfig({ ...config([]), page } as Config)).toMatchObject([
+      { severity: "error", field: "page" },
+    ]);
+  });
+
   it("reports shapes the build can't resolve, only when the SVG is known", () => {
     const c = config([
       { id: "a", label: "A", shape: "gone" },

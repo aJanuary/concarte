@@ -103,6 +103,7 @@ const config = object({
   locale: string,
   basePath: optional(string),
   description: string,
+  page: optional(object({ title: string, description: string })),
   attributions: optional(list(string)),
   // Whether each is a colour is left to validateConfig, so a file with a
   // mistyped colour still opens in the editor to be fixed.

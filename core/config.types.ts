@@ -27,6 +27,16 @@ export type Config = {
   description: string;
 
   /**
+   * The page title and description shown in browser tabs, search results and
+   * link previews. Leave out to use the site's translated defaults, such as
+   * "<eventName> venue map", which suit a map of the whole venue.
+   */
+  page?: {
+    title: string;
+    description: string;
+  };
+
+  /**
    * Attributions for any graphics or other resources that need attribution.
    *
    * Supports markdown.

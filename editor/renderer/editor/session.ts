@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import type { Issue } from "@concarte/core";
+import type { PageMessages } from "../../shared/api";
 import type { Config, MapConfig } from "../../shared/schema";
 import type { Apply } from "../document/ops";
 import type { Svgs } from "../svg/useSvgs";
@@ -22,6 +23,8 @@ export type EditorSession = {
   issues: Issue[];
   /** Locales the site has translations for. */
   locales: string[];
+  /** The site's default page title and description for each locale. */
+  pageMessages: PageMessages;
   /** Always on a map the document still has. */
   selection: Selection;
   select: (selection: Selection) => void;
