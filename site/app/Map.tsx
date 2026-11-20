@@ -144,19 +144,16 @@ export default function Map({
     [config.theme.accent],
   );
 
+  // Invisible, but the fill is what makes the room hit-detectable for clicks
+  // and the pointer cursor; any outline comes from the map's own SVG.
   const unselectedStyle = useMemo(
     () =>
       new Style({
-        stroke: new Stroke({
-          color: config.theme.accent,
-          width: 2,
-          lineDash: [0.1, 5],
-        }),
         fill: new Fill({
           color: "rgba(0, 0, 0, 0)",
         }),
       }),
-    [config.theme.accent],
+    [],
   );
 
   useEffect(() => {

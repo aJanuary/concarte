@@ -70,7 +70,8 @@ export type Config = {
     "secondary-text": string;
 
     /**
-     * Accent color used for links and room borders.
+     * Accent color used for links, active filters, and the outline of selected
+     * rooms.
      */
     accent: string;
 

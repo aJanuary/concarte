@@ -189,7 +189,10 @@ const themeFields: Registry<Theme> = {
   ),
   "primary-text": colorField("Primary text", "Most of the text."),
   "secondary-text": colorField("Secondary text", "Such as aliases."),
-  accent: colorField("Accent", "Links and room borders."),
+  accent: colorField(
+    "Accent",
+    "Links, active filters, and the outline of selected rooms.",
+  ),
   disabled: colorField("Disabled", "Disabled buttons."),
 };
 
