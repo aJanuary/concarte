@@ -73,15 +73,47 @@ describe("validateConfig", () => {
   });
 
   it.each([
-    "",
-    "/map",
-    "/maps/2026/",
-    "/a.b_c~d-e",
     "https://example.com",
     "https://example.com/",
     "http://example.com:8080/maps/2026",
   ])("accepts the site address %j", (url) => {
     expect(messages({ ...config([]), url } as Config)).toEqual([]);
+  });
+
+  it.each([undefined, "", "/map"])(
+    "accepts the site address %j without preview images",
+    (url) => {
+      expect(messages({ ...config([]), url } as Config)).toEqual([]);
+    },
+  );
+
+  it.each([
+    [undefined, "https://example.com"],
+    ["", "https://example.com"],
+    ["/map/", "https://example.com/map"],
+  ])(
+    "reports preview images with the site address %j, suggesting %s",
+    (url, suggestion) => {
+      expect(
+        validateConfig({ ...config([]), url, previewImages: true } as Config),
+      ).toEqual([
+        {
+          severity: "error",
+          message: `Link preview images need the site's full address, such as ${suggestion}`,
+          field: "url",
+        },
+      ]);
+    },
+  );
+
+  it("accepts preview images with the full site address", () => {
+    expect(
+      messages({
+        ...config([]),
+        url: "https://example.com/map",
+        previewImages: true,
+      } as Config),
+    ).toEqual([]);
   });
 
   it.each([

@@ -6,7 +6,7 @@ import {
   rmSync,
   symlinkSync,
 } from "fs";
-import { cp, writeFile } from "fs/promises";
+import { cp, readFile, writeFile } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 import { fileURLToPath } from "url";
@@ -15,6 +15,7 @@ import { EventError } from "./event.ts";
 import {
   generateAssets,
   generateConfig,
+  generatePreviewImages,
   generateThemeCss,
   generators,
 } from "./generators.ts";
@@ -43,10 +44,10 @@ async function demoCopy(
 }
 
 describe("generators", () => {
-  it("generate a site's files from an event", () => {
+  it("generate a site's files from an event", async () => {
     const siteRoot = emptySite();
     for (const generate of generators) {
-      generate({ eventDir: demo, siteRoot });
+      await generate({ eventDir: demo, siteRoot });
     }
 
     const config = readFileSync(join(siteRoot, "generated/config.ts"), "utf8");
@@ -197,6 +198,91 @@ describe("generators", () => {
     });
     expect(() => generateConfig({ eventDir, siteRoot: emptySite() })).toThrow(
       /Failed to resolve the shape of room "main-hall" on map "ground"/,
+    );
+  });
+});
+
+describe("generatePreviewImages", () => {
+  // Two rooms on one map keep the rendering quick.
+  const small = (previewImages: boolean) =>
+    demoCopy((config) => {
+      const [map] = config.maps as { rooms: unknown[] }[];
+      return {
+        ...config,
+        url: "https://example.com",
+        previewImages,
+        maps: [{ ...map, rooms: map.rooms.slice(0, 2) }],
+      };
+    });
+
+  async function list(siteRoot: string) {
+    const source = await readFile(
+      join(siteRoot, "generated/preview-images.ts"),
+      "utf8",
+    );
+    const json = (name: string) =>
+      JSON.parse(
+        source.match(new RegExp(`export const ${name}[^=]*= ([^;]*);`))![1],
+      );
+    return { size: json("size"), maps: json("maps"), rooms: json("rooms") };
+  }
+
+  it.each([
+    [false, true, "turned off"],
+    [true, false, "only a build makes"],
+  ])(
+    "list no images when the event asks %j and the build %j",
+    async (inEvent, previewImages, reason) => {
+      const siteRoot = emptySite();
+      const eventDir = await small(inEvent);
+      expect(
+        await generatePreviewImages({ eventDir, siteRoot, previewImages }),
+      ).toContain(reason);
+      expect(await list(siteRoot)).toMatchObject({ maps: {}, rooms: {} });
+      expect(existsSync(join(siteRoot, "public/og"))).toBe(false);
+    },
+  );
+
+  it("render each map and room, named by content", async () => {
+    const siteRoot = emptySite();
+    const eventDir = await small(true);
+    await generatePreviewImages({ eventDir, siteRoot, previewImages: true });
+
+    const { size, maps, rooms } = await list(siteRoot);
+    expect(size).toEqual({ width: 1200, height: 630 });
+    const files = [
+      maps.ground,
+      rooms.ground["main-hall"],
+      rooms.ground["green-room"],
+    ];
+    expect(new Set(files).size).toBe(3);
+    for (const file of files) {
+      expect(file).toMatch(/^\/og\/[0-9a-f]{16}\.png$/);
+      const png = readFileSync(join(siteRoot, "public", file));
+      expect(png.subarray(1, 4).toString()).toBe("PNG");
+      expect(png.readUInt32BE(16)).toBe(1200);
+      expect(png.readUInt32BE(20)).toBe(630);
+    }
+  });
+
+  it("name the map whose image can't be made", async () => {
+    const eventDir = await small(true);
+    const svg = join(eventDir, "assets/ground.svg");
+    await writeFile(
+      svg,
+      (await readFile(svg, "utf8")).replace(
+        / width="1000" height="700" viewBox="0 0 1000 700"/,
+        "",
+      ),
+    );
+    await expect(
+      generatePreviewImages({
+        eventDir,
+        siteRoot: emptySite(),
+        previewImages: true,
+      }),
+    ).rejects.toThrow(
+      /link preview image of map "ground" \(\/ground.svg\): its SVG has no viewBox/,
     );
   });
 });

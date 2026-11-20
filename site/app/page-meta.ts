@@ -1,10 +1,11 @@
 import { parseSiteUrl, type Config, type Map, type Room } from "@concarte/core";
 import type { Nodes } from "mdast";
 import { fromMarkdown } from "mdast-util-from-markdown";
+import type { Metadata } from "next";
 
 /** The `page` messages, as `createTranslator` or `useTranslations` give them. */
 export type PageTranslator = (
-  key: "title" | "description" | "named",
+  key: "title" | "description" | "named" | "map-image" | "room-image",
   values: Record<string, string>,
 ) => string;
 
@@ -35,6 +36,20 @@ export function previewTitle(
   return named(config, t, name);
 }
 
+/**
+ * The alt text of a map's link preview image, or of a room's, which shows the
+ * room outlined on its map.
+ */
+export function previewImageAlt(
+  t: PageTranslator,
+  map: Pick<Map, "label">,
+  room?: Pick<Room, "label">,
+): string {
+  return room
+    ? t("room-image", { room: room.label, map: map.label })
+    : t("map-image", { map: map.label });
+}
+
 /** The event title, with `name` in front of it when there is one. */
 export function named(
   config: Config,
@@ -58,6 +73,55 @@ export function pageUrl(
     return undefined;
   }
   return siteUrl.origin + (siteUrl.basePath + path || "/");
+}
+
+/** A link preview image, `file` being undefined when there is none. */
+export type PreviewImage = {
+  file: string | undefined;
+  width: number;
+  height: number;
+  alt: string;
+};
+
+/**
+ * The link preview metadata of the page at `path` ("" for the home page).
+ * Addresses and the image are left out when the config's `url` doesn't name
+ * the domain, since other sites can't follow a partial address.
+ */
+export function previewMetadata(
+  config: Pick<Config, "url">,
+  {
+    title,
+    description,
+    path,
+    image,
+  }: {
+    title: string;
+    description: string;
+    path: string;
+    image?: PreviewImage;
+  },
+): Metadata {
+  const imageUrl = image?.file && pageUrl(config, image.file);
+  return {
+    openGraph: {
+      title,
+      description,
+      url: pageUrl(config, path),
+      ...(image &&
+        imageUrl && {
+          images: [
+            {
+              url: imageUrl,
+              width: image.width,
+              height: image.height,
+              alt: image.alt,
+            },
+          ],
+        }),
+    },
+    ...(imageUrl && { twitter: { card: "summary_large_image" } }),
+  };
 }
 
 /** The link preview description of a room's page: its own, or else the

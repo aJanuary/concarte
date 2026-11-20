@@ -47,6 +47,7 @@ export function normalizeConfig(config: Config): Complete<Config> {
     eventName: config.eventName,
     locale: config.locale,
     url: config.url || undefined,
+    previewImages: config.previewImages || undefined,
     description: config.description.trim(),
     page: config.page
       ? { title: config.page.title, description: config.page.description }

@@ -20,7 +20,7 @@ export function SiteUrlField({
     <div onBlur={() => setTyped(value ?? "")}>
       <TextField
         label="Site address"
-        hint="Where the site is hosted, such as https://example.com, or https://example.com/myevent when not at the root of its domain. Link previews need it. A change to the path takes effect the next time Preview starts."
+        hint="Where the site is hosted, such as https://example.com, or https://example.com/myevent when not at the root of its domain. Link previews use the full address. A change to the path takes effect the next time Preview starts."
         value={shown}
         onChange={(text) => {
           setTyped(text);

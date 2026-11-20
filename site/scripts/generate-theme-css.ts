@@ -2,4 +2,4 @@
 import { runGenerators } from "./lib/cli.ts";
 import { generateThemeCss } from "./lib/generators.ts";
 
-runGenerators([generateThemeCss]);
+await runGenerators([generateThemeCss]);

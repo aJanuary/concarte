@@ -152,7 +152,10 @@ export type FieldEditor<T, K extends keyof T> = (
 
 export type Managed = { managedBy: string };
 
-/** A field shown as its own section of the panel, after the plain fields. */
+/**
+ * A field shown in a section of the panel, after the plain fields. Fields
+ * naming the same section share it, in the registry's order.
+ */
 export type SectionEditor<T, K extends keyof T> = {
   section: string;
   render: FieldEditor<T, K>;
@@ -193,7 +196,12 @@ export function renderRegistry<T extends object>(
     if (typeof entry === "function") {
       fields.push(editor);
     } else {
-      sections.push({ title: entry.section, content: editor });
+      const shared = sections.find((s) => s.title === entry.section);
+      if (shared) {
+        shared.content = [shared.content, editor];
+      } else {
+        sections.push({ title: entry.section, content: editor });
+      }
     }
   }
   return { fields, sections };
@@ -282,6 +290,17 @@ export const configFields: Registry<Config> = {
   page: {
     section: "Search and sharing",
     render: (props) => <PageSection {...props} />,
+  },
+  previewImages: {
+    section: "Search and sharing",
+    render: ({ value, onChange }) => (
+      <Toggle
+        label="Link preview images"
+        hint="Show a picture of the map, or of the room in its surroundings, when a page is shared. Needs the full site address, and makes Build slower."
+        checked={value === true}
+        onChange={(checked) => onChange(checked || undefined)}
+      />
+    ),
   },
   filters: ({ value, onChange, ctx }) => (
     <StringListField

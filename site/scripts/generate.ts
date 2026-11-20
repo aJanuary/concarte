@@ -5,4 +5,4 @@
 import { runGenerators } from "./lib/cli.ts";
 import { generators } from "./lib/generators.ts";
 
-runGenerators(generators);
+await runGenerators(generators);

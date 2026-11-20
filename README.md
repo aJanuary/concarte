@@ -75,6 +75,17 @@ group is therefore drawn above it and wins clicks on its own area.
 such as `"src": "/ground.svg"` are relative to the event's `assets/` directory.
 Maps and overlays must be SVGs; each room names the `id` of its shape.
 
+## Link previews
+
+When a link to the map is shared in a chat app or on social media, its preview
+shows the page's title and description, which can be changed under **Search
+and sharing** in the event settings. Links to a map or room add its name.
+
+Turning on **Link preview images** in the same section adds a picture: the
+whole map, or the room outlined in its surroundings. It needs the full
+[site address](#hosting), and makes Build slower, since Build renders an image
+for every map and room.
+
 ## Hosting
 
 The built site is static pages that any static file server can host. It does

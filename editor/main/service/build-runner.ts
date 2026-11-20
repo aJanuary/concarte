@@ -33,7 +33,13 @@ const BUILD_INFO = ".concarte-build.json";
 function defaultCommands(siteRoot: string): Command[] {
   const require = createRequire(join(siteRoot, "package.json"));
   return [
-    { args: [require.resolve("tsx/cli"), "scripts/generate.ts"] },
+    {
+      args: [
+        require.resolve("tsx/cli"),
+        "scripts/generate.ts",
+        "--preview-images",
+      ],
+    },
     { args: [require.resolve("next/dist/bin/next"), "build"] },
   ];
 }

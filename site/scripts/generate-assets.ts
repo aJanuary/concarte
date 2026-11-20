@@ -2,4 +2,4 @@
 import { runGenerators } from "./lib/cli.ts";
 import { generateAssets } from "./lib/generators.ts";
 
-runGenerators([generateAssets]);
+await runGenerators([generateAssets]);

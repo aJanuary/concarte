@@ -3,6 +3,8 @@ import type { Config } from "@concarte/core";
 import {
   named,
   pageUrl,
+  previewImageAlt,
+  previewMetadata,
   previewTitle,
   roomPreviewDescription,
   summary,
@@ -13,6 +15,8 @@ const messages = {
   title: "{eventName} venue map",
   description: "Interactive map of the {eventName} venue",
   named: "{name} · {title}",
+  "map-image": "{map} map",
+  "room-image": "{room} highlighted on the {map} map",
 };
 
 const t: PageTranslator = (key, values) =>
@@ -123,4 +127,72 @@ describe("pageUrl", () => {
       expect(pageUrl({ url }, "/about")).toBeUndefined();
     },
   );
+});
+
+describe("previewMetadata", () => {
+  const page = {
+    title: "Main Hall · DemoCon",
+    description: "The big one",
+    path: "/map/m/room/r",
+  };
+  const image = { width: 1200, height: 630, alt: "Main Hall · DemoCon" };
+
+  it("gives the page's address and its image's in full", () => {
+    expect(
+      previewMetadata(
+        { url: "https://example.com/myevent" },
+        { ...page, image: { ...image, file: "/og/abc.png" } },
+      ),
+    ).toEqual({
+      openGraph: {
+        title: page.title,
+        description: page.description,
+        url: "https://example.com/myevent/map/m/room/r",
+        images: [{ url: "https://example.com/myevent/og/abc.png", ...image }],
+      },
+      twitter: { card: "summary_large_image" },
+    });
+  });
+
+  it("leaves out an image that wasn't made", () => {
+    expect(
+      previewMetadata(
+        { url: "https://example.com" },
+        { ...page, image: { ...image, file: undefined } },
+      ),
+    ).toEqual({
+      openGraph: {
+        title: page.title,
+        description: page.description,
+        url: "https://example.com/map/m/room/r",
+      },
+    });
+  });
+
+  it("leaves out addresses without the domain", () => {
+    expect(
+      previewMetadata(
+        { url: "/myevent" },
+        { ...page, image: { ...image, file: "/og/abc.png" } },
+      ),
+    ).toEqual({
+      openGraph: {
+        title: page.title,
+        description: page.description,
+        url: undefined,
+      },
+    });
+  });
+});
+
+describe("previewImageAlt", () => {
+  it("describes a map's image", () => {
+    expect(previewImageAlt(t, map)).toBe("Ground floor map");
+  });
+
+  it("describes a room's image as the room on its map", () => {
+    expect(previewImageAlt(t, map, room)).toBe(
+      "Main Hall highlighted on the Ground floor map",
+    );
+  });
 });

@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "dev": "pnpm generate && concurrently -k -n generate,next \"pnpm generate:watch\" \"next dev\"",
-    "build": "pnpm generate && next build",
+    "build": "pnpm generate --preview-images && next build",
     "start": "next start",
     "generate": "tsx scripts/generate.ts",
     "generate:watch": "tsx watch --include \"$CONCARTE_EVENT_DIR/**/*\" scripts/generate.ts",
@@ -26,13 +26,15 @@
     "@heroicons/react": "^2.2.0",
     "@tailwindcss/typography": "^0.5.20",
     "fuse.js": "^7.5.0",
+    "linkedom": "^0.18.15",
     "mdast-util-from-markdown": "^2.1.0",
     "next": "16.4.6",
     "next-intl": "^4.15.1",
     "ol": "^10.11.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.5",

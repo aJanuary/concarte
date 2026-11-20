@@ -102,6 +102,7 @@ const config = object({
   eventName: string,
   locale: string,
   url: optional(string),
+  previewImages: optional(boolean),
   description: string,
   page: optional(object({ title: string, description: string })),
   attributions: optional(list(string)),

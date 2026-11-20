@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import App from "../../../../App";
 import config from "@/generated/config";
+import { rooms, size } from "@/generated/preview-images";
 import {
-  pageUrl,
+  previewImageAlt,
+  previewMetadata,
   previewTitle,
   roomPreviewDescription,
 } from "../../../../page-meta";
@@ -34,13 +36,16 @@ export async function generateMetadata({
     return {};
   }
   const t = await pageTranslator();
-  return {
-    openGraph: {
-      title: previewTitle(config, t, map, room),
-      description: roomPreviewDescription(config, t, room),
-      url: pageUrl(config, `/map/${map.id}/room/${room.id}`),
+  return previewMetadata(config, {
+    title: previewTitle(config, t, map, room),
+    description: roomPreviewDescription(config, t, room),
+    path: `/map/${map.id}/room/${room.id}`,
+    image: {
+      file: rooms[map.id]?.[room.id],
+      ...size,
+      alt: previewImageAlt(t, map, room),
     },
-  };
+  });
 }
 
 export default async function Room({

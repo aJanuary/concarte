@@ -1,6 +1,12 @@
 import App from "../../App";
 import config from "@/generated/config";
-import { eventDescription, pageUrl, previewTitle } from "../../page-meta";
+import { maps, size } from "@/generated/preview-images";
+import {
+  eventDescription,
+  previewImageAlt,
+  previewMetadata,
+  previewTitle,
+} from "../../page-meta";
 import { pageTranslator } from "../../page-translator";
 
 export function generateStaticParams() {
@@ -20,13 +26,12 @@ export async function generateMetadata({
     return {};
   }
   const t = await pageTranslator();
-  return {
-    openGraph: {
-      title: previewTitle(config, t, map),
-      description: eventDescription(config, t),
-      url: pageUrl(config, `/map/${map.id}`),
-    },
-  };
+  return previewMetadata(config, {
+    title: previewTitle(config, t, map),
+    description: eventDescription(config, t),
+    path: `/map/${map.id}`,
+    image: { file: maps[map.id], ...size, alt: previewImageAlt(t, map) },
+  });
 }
 
 export default async function Map({

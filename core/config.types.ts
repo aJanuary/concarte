@@ -11,15 +11,23 @@ export type Config = {
 
   /**
    * Address the site is served at, such as `https://example.com` or
-   * `https://example.com/myevent` for a site hosted under a path. Link
-   * previews need the full address to show an image. Can instead be only the
-   * path, such as `/myevent`. Leave out to serve from the root of the domain
-   * without link preview images.
+   * `https://example.com/myevent` for a site hosted under a path. Can instead
+   * be only the path, such as `/myevent`, though link previews then lack the
+   * page's address, and `previewImages` needs the full address. Leave out to
+   * serve from the root of the domain.
    *
    * Links in markdown that start with `/` are relative to the path, so
    * `/about` goes to `/myevent/about`.
    */
   url?: string;
+
+  /**
+   * Whether link previews show an image: the whole map, or a room outlined in
+   * its surroundings. Building renders one per map and room, which takes a
+   * while for an event with many rooms. Needs the full `url`. Defaults to
+   * false.
+   */
+  previewImages?: boolean;
 
   /**
    * Description of the event. Displayed in the about page.

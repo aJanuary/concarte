@@ -55,6 +55,11 @@ export function validateConfig(
   const siteUrl = parseSiteUrl(config.url);
   if (!siteUrl.ok) {
     error({ message: siteUrl.problem, field: "url" });
+  } else if (config.previewImages && !siteUrl.origin) {
+    error({
+      message: `Link preview images need the site's full address, such as https://example.com${siteUrl.basePath}`,
+      field: "url",
+    });
   }
 
   if (
