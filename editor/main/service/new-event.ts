@@ -33,6 +33,6 @@ export async function createEvent(dir: string): Promise<NewEventResult> {
   }
   mkdirSync(join(dir, "assets"), { recursive: true });
   writeFileSync(configPath, serializeConfig(minimalConfig(basename(dir))));
-  writeFileSync(join(dir, ".gitignore"), "dist/\ndist.new/\n");
+  writeFileSync(join(dir, ".gitignore"), "dist/\n");
   return { ok: true };
 }

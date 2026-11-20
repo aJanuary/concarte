@@ -4,7 +4,6 @@ import {
   existsSync,
   readdirSync,
   rmSync,
-  renameSync,
   statSync,
   writeFileSync,
   readFileSync,
@@ -119,18 +118,15 @@ export function createBuildRunner(options: BuildRunnerOptions) {
           return;
         }
       }
-      // Copied beside dist/ and renamed, so a failed copy leaves the previous
-      // build intact.
       const dist = join(eventDir, "dist");
-      const next = join(eventDir, "dist.new");
-      rmSync(next, { recursive: true, force: true });
-      cpSync(out, next, { recursive: true });
+      // Retried because Windows sync clients (Google Drive, OneDrive) briefly
+      // hold handles on dist's files, leaving them pending deletion.
+      rmSync(dist, { recursive: true, force: true, maxRetries: 10 });
+      cpSync(out, dist, { recursive: true });
       writeFileSync(
-        join(next, BUILD_INFO),
+        join(dist, BUILD_INFO),
         JSON.stringify({ builtAt: Date.now() }),
       );
-      rmSync(dist, { recursive: true, force: true });
-      renameSync(next, dist);
       append(`\nBuilt ${dist}\n`);
       update({ status: "succeeded" });
     } catch (e) {

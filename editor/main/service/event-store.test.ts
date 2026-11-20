@@ -27,9 +27,7 @@ describe("createEvent", () => {
   it("ignores build output in git", async () => {
     const dir = await tempDir();
     await createEvent(dir);
-    expect(await readFile(join(dir, ".gitignore"), "utf8")).toBe(
-      "dist/\ndist.new/\n",
-    );
+    expect(await readFile(join(dir, ".gitignore"), "utf8")).toBe("dist/\n");
   });
 
   it("refuses a folder with content", async () => {
