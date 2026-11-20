@@ -83,20 +83,36 @@ export type FieldContext = {
   filterSuggestions: string[];
   /** The page title and description the site uses when the event sets none. */
   pageDefaults: PageSettings | undefined;
+  /** The link preview title of the first room's page, to show how rooms are
+   * named. */
+  roomPageTitle: string | undefined;
 };
 
-function pageDefaults(
+function pageContext(
   doc: Config,
   messages: PageMessages,
-): PageSettings | undefined {
+): Pick<FieldContext, "pageDefaults" | "roomPageTitle"> {
   // The site can't build without a translation for its locale, but English
   // still gives something sensible to start from until there is one.
   const page = messages[doc.locale] ?? messages.en;
+  if (!page) {
+    return { pageDefaults: undefined, roomPageTitle: undefined };
+  }
   const fill = (message: string) =>
     message.replaceAll("{eventName}", doc.eventName);
-  return (
-    page && { title: fill(page.title), description: fill(page.description) }
-  );
+  const pageDefaults = {
+    title: fill(page.title),
+    description: fill(page.description),
+  };
+  const room = doc.maps.flatMap((map) => map.rooms).find((r) => r.label);
+  return {
+    pageDefaults,
+    roomPageTitle:
+      room &&
+      page.named
+        .replaceAll("{name}", room.label)
+        .replaceAll("{title}", doc.page?.title ?? pageDefaults.title),
+  };
 }
 
 export function fieldContext(
@@ -118,7 +134,7 @@ export function fieldContext(
     locales,
     aliasSuggestions: [...aliases, ...(doc.filters ?? [])].sort(),
     filterSuggestions: [...aliases, ...labels].sort(),
-    pageDefaults: pageDefaults(doc, pageMessages),
+    ...pageContext(doc, pageMessages),
   };
 }
 
@@ -316,6 +332,8 @@ function PageSection({
     <>
       <p className={helpText}>
         Shown in browser tabs, search results and link previews.
+        {ctx.roomPageTitle &&
+          ` Link previews of map and room pages add their name, as in “${ctx.roomPageTitle}”.`}
       </p>
       {value ? (
         <>

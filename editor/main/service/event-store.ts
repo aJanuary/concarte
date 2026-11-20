@@ -63,9 +63,14 @@ function readPageMessages(dir: string, locales: string[]): PageMessages {
       ).page;
       if (
         typeof page?.title === "string" &&
-        typeof page?.description === "string"
+        typeof page?.description === "string" &&
+        typeof page?.named === "string"
       ) {
-        messages[locale] = { title: page.title, description: page.description };
+        messages[locale] = {
+          title: page.title,
+          description: page.description,
+          named: page.named,
+        };
       }
     } catch {
       // Left out, as documented above.

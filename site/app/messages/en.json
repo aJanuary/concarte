@@ -1,7 +1,8 @@
 {
   "page": {
     "title": "{eventName} venue map",
-    "description": "Interactive map of the {eventName} venue"
+    "description": "Interactive map of the {eventName} venue",
+    "named": "{name} · {title}"
   },
   "room-select": {
     "search-placeholder": "Search for a room..."

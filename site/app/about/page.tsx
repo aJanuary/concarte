@@ -3,6 +3,20 @@ import config from "@/generated/config";
 import Markdown from "react-markdown";
 import Link from "next/link";
 import type { Components } from "react-markdown";
+import { getTranslations } from "next-intl/server";
+import { eventDescription, named } from "../page-meta";
+import { pageTranslator } from "../page-translator";
+
+export async function generateMetadata() {
+  const about = await getTranslations("about");
+  const t = await pageTranslator();
+  return {
+    openGraph: {
+      title: named(config, t, about("title")),
+      description: eventDescription(config, t),
+    },
+  };
+}
 
 export default function About() {
   const t = useTranslations("about");

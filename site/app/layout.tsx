@@ -3,21 +3,22 @@ import "./globals.css";
 import config from "@/generated/config";
 import { favicon } from "@/generated/assets";
 import { withBasePath } from "./base-path";
+import { eventDescription, eventTitle } from "./page-meta";
+import { pageTranslator } from "./page-translator";
 import { getLocale, getMessages } from "next-intl/server";
-import { createTranslator, NextIntlClientProvider } from "next-intl";
+import { NextIntlClientProvider } from "next-intl";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export async function generateMetadata() {
-  const locale = await getLocale();
-  const messages = await getMessages();
-  const t = createTranslator({ locale, messages, namespace: "page" });
-
+  const t = await pageTranslator();
   return {
-    title: config.page?.title ?? t("title", { eventName: config.eventName }),
-    description:
-      config.page?.description ??
-      t("description", { eventName: config.eventName }),
+    title: eventTitle(config, t),
+    description: eventDescription(config, t),
+    openGraph: {
+      title: eventTitle(config, t),
+      description: eventDescription(config, t),
+    },
     ...(favicon && { icons: { icon: withBasePath(favicon) } }),
   };
 }

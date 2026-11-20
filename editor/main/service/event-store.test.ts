@@ -64,6 +64,7 @@ describe("load", () => {
     const page = {
       title: "{eventName} map",
       description: "About {eventName}",
+      named: "{name} - {title}",
     };
     await writeFile(join(messagesDir, "en.json"), JSON.stringify({ page }));
     await writeFile(join(messagesDir, "fr.json"), JSON.stringify({}));

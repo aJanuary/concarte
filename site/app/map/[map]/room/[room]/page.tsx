@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import App from "../../../../App";
 import config from "@/generated/config";
+import { previewTitle, roomPreviewDescription } from "../../../../page-meta";
+import { pageTranslator } from "../../../../page-translator";
 
 // A static export fails on a dynamic route with no pages, which a map whose
 // rooms aren't drawn yet would be; this stands in and renders a 404.
@@ -14,6 +16,26 @@ export async function generateStaticParams() {
     })),
   );
   return params.length > 0 ? params : [PLACEHOLDER];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ map: string; room: string }>;
+}) {
+  const { map: mapId, room: roomId } = await params;
+  const map = config.maps.find((m) => m.id === mapId);
+  const room = map?.rooms.find((r) => r.id === roomId);
+  if (!map || !room) {
+    return {};
+  }
+  const t = await pageTranslator();
+  return {
+    openGraph: {
+      title: previewTitle(config, t, map, room),
+      description: roomPreviewDescription(config, t, room),
+    },
+  };
 }
 
 export default async function Room({

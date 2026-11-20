@@ -1,10 +1,11 @@
 import type { Config } from "./schema.ts";
 
-/** The site's default page title and description, with an `{eventName}`
- * placeholder, keyed by locale. */
+/** The site's `page` messages, keyed by locale: the default title and
+ * description, with an `{eventName}` placeholder, and the pattern map and room
+ * pages put their `{name}` in front of the `{title}` with. */
 export type PageMessages = Record<
   string,
-  { title: string; description: string }
+  { title: string; description: string; named: string }
 >;
 
 export type LoadResponse = {
