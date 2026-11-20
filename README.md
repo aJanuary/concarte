@@ -80,6 +80,10 @@ Maps and overlays must be SVGs; each room names the `id` of its shape.
 The built site is static pages that any static file server can host. It does
 require the URLs to be rewritten to remove the `.html` extension.
 
+Set **Site address** in the event settings (the `url` field in `concarte.json`)
+to the address the site will be served at, such as `https://example.com`, and
+rebuild. Link previews use it to give each page's full address.
+
 ### Example nginx config
 
 ```nginx
@@ -102,14 +106,13 @@ server {
 
 ### Hosting under a subpath
 
-To serve the map somewhere other than the root of a domain, such as
-`https://example.com/myevent/`, set **Base path** in the event settings (the
-`basePath` field in `concarte.json`) to `/myevent` and rebuild. Every page,
-asset and link in the built site then starts with `/myevent`, including links
-in markdown that start with `/`.
+To serve the map somewhere other than the root of a domain, include the path
+in **Site address**, such as `https://example.com/myevent`. Every page, asset
+and link in the built site then starts with `/myevent`, including links in
+markdown that start with `/`.
 
 The built site must then be served at that path. One way with nginx is to put
-the contents of `dist/` in a folder named after the base path:
+the contents of `dist/` in a folder named after the path:
 
 ```nginx
 server {

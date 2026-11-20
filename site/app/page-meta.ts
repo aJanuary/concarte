@@ -1,4 +1,4 @@
-import type { Config, Map, Room } from "@concarte/core";
+import { parseSiteUrl, type Config, type Map, type Room } from "@concarte/core";
 import type { Nodes } from "mdast";
 import { fromMarkdown } from "mdast-util-from-markdown";
 
@@ -43,6 +43,21 @@ export function named(
 ): string {
   const title = eventTitle(config, t);
   return name ? t("named", { name, title }) : title;
+}
+
+/**
+ * The full address of the page at `path` ("" for the home page), or undefined
+ * when the config's `url` doesn't name the domain.
+ */
+export function pageUrl(
+  config: Pick<Config, "url">,
+  path: string,
+): string | undefined {
+  const siteUrl = parseSiteUrl(config.url);
+  if (!siteUrl.ok || !siteUrl.origin) {
+    return undefined;
+  }
+  return siteUrl.origin + (siteUrl.basePath + path || "/");
 }
 
 /** The link preview description of a room's page: its own, or else the

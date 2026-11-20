@@ -1,6 +1,6 @@
 import App from "../../App";
 import config from "@/generated/config";
-import { eventDescription, previewTitle } from "../../page-meta";
+import { eventDescription, pageUrl, previewTitle } from "../../page-meta";
 import { pageTranslator } from "../../page-translator";
 
 export function generateStaticParams() {
@@ -24,6 +24,7 @@ export async function generateMetadata({
     openGraph: {
       title: previewTitle(config, t, map),
       description: eventDescription(config, t),
+      url: pageUrl(config, `/map/${map.id}`),
     },
   };
 }

@@ -2,13 +2,14 @@ import { THEME_KEYS } from "./config-shape.ts";
 import type { Config } from "./config.types.ts";
 import { isHexColor } from "./hex-color.ts";
 import { resolveShape, type SvgDocument } from "./shape-resolver.ts";
+import { parseSiteUrl } from "./site-url.ts";
 
 export type Issue = {
   severity: "error" | "warning";
   message: string;
   mapSrc?: string;
   shape?: string;
-  field?: "basePath" | "id" | "label" | "link" | "page" | "shape" | "src";
+  field?: "url" | "id" | "label" | "link" | "page" | "shape" | "src";
   /** The theme colour the issue is with. */
   themeKey?: keyof Config["theme"];
 };
@@ -37,8 +38,6 @@ function shapeProblem(document: SvgDocument, id: string): string | null {
   return problem;
 }
 
-const BASE_PATH = /^(\/[A-Za-z0-9._~-]+)+$/;
-
 /**
  * Finds problems in a config. `documents` holds the parsed SVG of each map by
  * `src`; checks that need an SVG are skipped for maps without one.
@@ -53,15 +52,9 @@ export function validateConfig(
   const warning = (issue: Omit<Issue, "severity">) =>
     issues.push({ ...issue, severity: "warning" });
 
-  if (
-    config.basePath !== undefined &&
-    config.basePath !== "" &&
-    !BASE_PATH.test(config.basePath)
-  ) {
-    error({
-      message: `The base path "${config.basePath}" must start with "/", not end with "/", and use only letters, digits, ".", "_", "~" and "-" between the slashes`,
-      field: "basePath",
-    });
+  const siteUrl = parseSiteUrl(config.url);
+  if (!siteUrl.ok) {
+    error({ message: siteUrl.problem, field: "url" });
   }
 
   if (

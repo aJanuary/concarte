@@ -46,7 +46,7 @@ export function normalizeConfig(config: Config): Complete<Config> {
   return {
     eventName: config.eventName,
     locale: config.locale,
-    basePath: config.basePath || undefined,
+    url: config.url || undefined,
     description: config.description.trim(),
     page: config.page
       ? { title: config.page.title, description: config.page.description }

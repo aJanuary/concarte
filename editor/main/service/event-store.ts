@@ -27,6 +27,7 @@ import { checkConfig } from "./checks.ts";
 import { parseSvg, realAssetFile } from "@concarte/core/node";
 import {
   parseConfig,
+  parseSiteUrl,
   validateConfig,
   type ParsedConfig,
   type SvgDocument,
@@ -176,7 +177,11 @@ export function createEventStore(options: EventStoreOptions) {
   /** The base path of the config on disk, or undefined if it can't be read. */
   function basePath(): string | undefined {
     const loaded = loadConfig();
-    return loaded.ok ? loaded.config.basePath : undefined;
+    if (!loaded.ok) {
+      return undefined;
+    }
+    const siteUrl = parseSiteUrl(loaded.config.url);
+    return siteUrl.ok ? siteUrl.basePath : undefined;
   }
 
   async function save(body: SaveRequest): Promise<SaveResponse> {

@@ -36,7 +36,7 @@ function EventPanel({ ctx }: { ctx: FieldContext }) {
     (patch) => apply(ops.updateEvent(patch), patchKey("event", patch)),
     ctx,
     {
-      basePath: errorFor("basePath"),
+      url: errorFor("url"),
       page: errorFor("page"),
     },
   );

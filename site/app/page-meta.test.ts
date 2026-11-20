@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Config } from "@concarte/core";
 import {
   named,
+  pageUrl,
   previewTitle,
   roomPreviewDescription,
   summary,
@@ -100,4 +101,26 @@ describe("summary", () => {
     expect(text.length).toBeLessThanOrEqual(201);
     expect(text).toMatch(/word…$/);
   });
+});
+
+describe("pageUrl", () => {
+  it.each([
+    ["https://example.com", "", "https://example.com/"],
+    ["https://example.com", "/about", "https://example.com/about"],
+    ["https://example.com/myevent", "", "https://example.com/myevent"],
+    [
+      "https://example.com/myevent",
+      "/map/m/room/r",
+      "https://example.com/myevent/map/m/room/r",
+    ],
+  ])("puts %j and %j together as %j", (url, path, expected) => {
+    expect(pageUrl({ url }, path)).toBe(expected);
+  });
+
+  it.each([undefined, "/myevent"])(
+    "has no address without the domain: %j",
+    (url) => {
+      expect(pageUrl({ url }, "/about")).toBeUndefined();
+    },
+  );
 });

@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 import App from "../../../../App";
 import config from "@/generated/config";
-import { previewTitle, roomPreviewDescription } from "../../../../page-meta";
+import {
+  pageUrl,
+  previewTitle,
+  roomPreviewDescription,
+} from "../../../../page-meta";
 import { pageTranslator } from "../../../../page-translator";
 
 // A static export fails on a dynamic route with no pages, which a map whose
@@ -34,6 +38,7 @@ export async function generateMetadata({
     openGraph: {
       title: previewTitle(config, t, map, room),
       description: roomPreviewDescription(config, t, room),
+      url: pageUrl(config, `/map/${map.id}/room/${room.id}`),
     },
   };
 }

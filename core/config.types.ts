@@ -10,14 +10,16 @@ export type Config = {
   locale: string;
 
   /**
-   * Path the site is served under, for hosting it somewhere other than the
-   * root of a domain, such as `/myevent` for `https://example.com/myevent/`.
-   * Starts with `/` and has no trailing `/`. Leave out to serve from the root.
+   * Address the site is served at, such as `https://example.com` or
+   * `https://example.com/myevent` for a site hosted under a path. Link
+   * previews need the full address to show an image. Can instead be only the
+   * path, such as `/myevent`. Leave out to serve from the root of the domain
+   * without link preview images.
    *
-   * Links in markdown that start with `/` are relative to this path, so
+   * Links in markdown that start with `/` are relative to the path, so
    * `/about` goes to `/myevent/about`.
    */
-  basePath?: string;
+  url?: string;
 
   /**
    * Description of the event. Displayed in the about page.

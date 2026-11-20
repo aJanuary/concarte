@@ -101,7 +101,7 @@ export const THEME_KEYS = [
 const config = object({
   eventName: string,
   locale: string,
-  basePath: optional(string),
+  url: optional(string),
   description: string,
   page: optional(object({ title: string, description: string })),
   attributions: optional(list(string)),

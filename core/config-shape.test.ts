@@ -12,6 +12,21 @@ describe("parseConfig", () => {
     expect(parseConfig(demo)).toMatchObject({ ok: true });
   });
 
+  it("reads a base path as the site address, in its place", () => {
+    const { eventName, locale, ...rest } = JSON.parse(demo);
+    const parsed = parseConfig(
+      JSON.stringify({ eventName, locale, basePath: "/myevent", ...rest }),
+    );
+    expect(parsed.ok).toBe(true);
+    const config = parsed.ok ? parsed.config : undefined;
+    expect(config?.url).toBe("/myevent");
+    expect(Object.keys(config ?? {}).slice(0, 3)).toEqual([
+      "eventName",
+      "locale",
+      "url",
+    ]);
+  });
+
   it("reads a room's area ref as its shape", () => {
     const old = JSON.parse(demo);
     const room = old.maps[0].rooms[0];

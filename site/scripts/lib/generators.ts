@@ -11,6 +11,7 @@ import {
   ASSETS_DIR,
   assetPath,
   CONFIG_FILE,
+  parseSiteUrl,
   validateConfig,
 } from "@concarte/core";
 import { THEME_KEYS } from "@concarte/core";
@@ -89,7 +90,10 @@ export const favicon: string | null = ${JSON.stringify(favicon)};
   return `Copied ${assetsDir} to public/`;
 };
 
-/** Writes `generated/config.ts`, with every room's shape resolved to its area. */
+/**
+ * Writes `generated/config.ts`, with every room's shape resolved to its area,
+ * and `generated/site.json`, the base path for `next.config.mjs`.
+ */
 export const generateConfig: Generator = ({ eventDir, siteRoot }) => {
   const configPath = join(eventDir, CONFIG_FILE);
   const config = loadEventConfig(eventDir);
@@ -133,7 +137,13 @@ const config: ResolvedConfig = ${JSON.stringify(resolved, null, 2)};
 export default config;
 `,
   );
-  return `Generated generated/config.ts from ${configPath}`;
+  const siteUrl = parseSiteUrl(config.url);
+  writeGenerated(
+    siteRoot,
+    "site.json",
+    JSON.stringify({ basePath: siteUrl.ok ? siteUrl.basePath : "" }) + "\n",
+  );
+  return `Generated generated/config.ts and generated/site.json from ${configPath}`;
 };
 
 /** Writes `generated/theme.css`, the event's colours as Tailwind theme variables. */

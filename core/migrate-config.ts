@@ -40,6 +40,24 @@ function migrateTheme(theme: unknown): unknown {
 }
 
 /**
+ * Renames `basePath`, the format before `url`, as `url`: a path is a valid
+ * `url`, though one without the site's domain. The key takes `basePath`'s
+ * place so a re-saved file diffs cleanly.
+ */
+function migrateBasePath(
+  config: Record<string, unknown>,
+): Record<string, unknown> {
+  if (config.basePath === undefined || config.url !== undefined) {
+    return config;
+  }
+  return Object.fromEntries(
+    Object.entries(config).map(([key, value]) =>
+      key === "basePath" ? ["url", value] : [key, value],
+    ),
+  );
+}
+
+/**
  * Brings a config written in an older format up to date. Takes and returns
  * untrusted JSON: anything it doesn't recognise is passed through for
  * `configShapeProblems` to report.
@@ -49,7 +67,7 @@ export function migrateConfig(value: unknown): unknown {
     return value;
   }
   return {
-    ...value,
+    ...migrateBasePath(value),
     theme: migrateTheme(value.theme),
     maps: value.maps.map((map: unknown) =>
       isObject(map) && Array.isArray(map.rooms)

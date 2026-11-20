@@ -34,14 +34,14 @@ jobs:
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
 
       # Project pages are served under the repository name, which the demo
-      # itself shouldn't hard-code, so the base path is set on a copy.
+      # itself shouldn't hard-code, so the site address is set on a copy.
       - name: Prepare the demo event
         run: |
           cp -r examples/demo "$RUNNER_TEMP/demo"
-          jq --arg basePath "$BASE_PATH" '.basePath = $basePath' \
+          jq --arg url "$SITE_URL" '.url = $url' \
             examples/demo/concarte.json > "$RUNNER_TEMP/demo/concarte.json"
         env:
-          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          SITE_URL: ${{ steps.pages.outputs.base_url }}
 
       - run: pnpm build
         env:

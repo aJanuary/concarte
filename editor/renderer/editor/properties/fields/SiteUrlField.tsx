@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { TextField } from "../../../ui/controls";
-import { normalizeBasePath } from "../base-path";
+import { normalizeSiteUrl } from "../site-url";
 
-export function BasePathField({
+export function SiteUrlField({
   value,
   onChange,
   error,
@@ -15,16 +15,16 @@ export function BasePathField({
   // only while it still means the saved value, so undo and other outside
   // changes replace it.
   const [typed, setTyped] = useState(value ?? "");
-  const shown = normalizeBasePath(typed) === value ? typed : (value ?? "");
+  const shown = normalizeSiteUrl(typed) === value ? typed : (value ?? "");
   return (
     <div onBlur={() => setTyped(value ?? "")}>
       <TextField
-        label="Base path"
-        hint="Where the site is hosted when not at the root of its domain, such as /myevent for example.com/myevent/. Leave empty for the root. Takes effect the next time Preview starts."
+        label="Site address"
+        hint="Where the site is hosted, such as https://example.com, or https://example.com/myevent when not at the root of its domain. Link previews need it. A change to the path takes effect the next time Preview starts."
         value={shown}
         onChange={(text) => {
           setTyped(text);
-          onChange(normalizeBasePath(text));
+          onChange(normalizeSiteUrl(text));
         }}
         error={error}
       />

@@ -173,6 +173,22 @@ describe("generators", () => {
     expect(output).not.toContain(eventDir);
   });
 
+  it.each([
+    [undefined, ""],
+    ["/myevent", "/myevent"],
+    ["https://example.com/myevent/", "/myevent"],
+  ])(
+    "give next.config the base path of the site address %j",
+    async (url, basePath) => {
+      const siteRoot = emptySite();
+      const eventDir = await demoCopy((config) => ({ ...config, url }));
+      generateConfig({ eventDir, siteRoot });
+      expect(
+        JSON.parse(readFileSync(join(siteRoot, "generated/site.json"), "utf8")),
+      ).toEqual({ basePath });
+    },
+  );
+
   it("name the room whose shape can't be resolved", async () => {
     const eventDir = await demoCopy((config) => {
       const maps = config.maps as { rooms: { shape: string }[] }[];

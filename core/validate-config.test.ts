@@ -72,21 +72,33 @@ describe("validateConfig", () => {
     ]);
   });
 
-  it.each(["", "/map", "/maps/2026", "/a.b_c~d-e"])(
-    "accepts the base path %j",
-    (basePath) => {
-      expect(messages({ ...config([]), basePath } as Config)).toEqual([]);
-    },
-  );
+  it.each([
+    "",
+    "/map",
+    "/maps/2026/",
+    "/a.b_c~d-e",
+    "https://example.com",
+    "https://example.com/",
+    "http://example.com:8080/maps/2026",
+  ])("accepts the site address %j", (url) => {
+    expect(messages({ ...config([]), url } as Config)).toEqual([]);
+  });
 
-  it.each(["map", "/map/", "/", "//map", "/my map", "/map?x"])(
-    "reports the base path %j",
-    (basePath) => {
-      expect(
-        validateConfig({ ...config([]), basePath } as Config),
-      ).toMatchObject([{ severity: "error", field: "basePath" }]);
-    },
-  );
+  it.each([
+    "map",
+    "example.com/map",
+    "//map",
+    "/my map",
+    "ftp://example.com",
+    "https://example.com/map?x=1",
+    "https://example.com/#map",
+    "https://user@example.com",
+    "https://example.com//map",
+  ])("reports the site address %j", (url) => {
+    expect(validateConfig({ ...config([]), url } as Config)).toMatchObject([
+      { severity: "error", field: "url" },
+    ]);
+  });
 
   it("accepts a page title and description", () => {
     const page = { title: "DemoCon Hotel B map", description: "Hotel B" };

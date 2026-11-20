@@ -4,7 +4,7 @@ import Markdown from "react-markdown";
 import Link from "next/link";
 import type { Components } from "react-markdown";
 import { getTranslations } from "next-intl/server";
-import { eventDescription, named } from "../page-meta";
+import { eventDescription, named, pageUrl } from "../page-meta";
 import { pageTranslator } from "../page-translator";
 
 export async function generateMetadata() {
@@ -14,6 +14,7 @@ export async function generateMetadata() {
     openGraph: {
       title: named(config, t, about("title")),
       description: eventDescription(config, t),
+      url: pageUrl(config, "/about"),
     },
   };
 }
