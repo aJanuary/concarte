@@ -38,6 +38,32 @@ describe("parseConfig", () => {
     ]);
   });
 
+  it("gives a theme without a highlighted room background a tint of the accent", () => {
+    const old = JSON.parse(demo);
+    delete old.theme["highlighted-room-background"];
+    old.theme.accent = "#1a2b3c80";
+    const parsed = parseConfig(JSON.stringify(old));
+    expect(
+      parsed.ok ? parsed.config.theme["highlighted-room-background"] : parsed,
+    ).toBe("#1a2b3c66");
+  });
+
+  it("falls back to a black tint when the accent isn't a colour", () => {
+    const old = JSON.parse(demo);
+    delete old.theme["highlighted-room-background"];
+    old.theme.accent = "green";
+    const parsed = parseConfig(JSON.stringify(old));
+    expect(
+      parsed.ok ? parsed.config.theme["highlighted-room-background"] : parsed,
+    ).toBe("#00000066");
+  });
+
+  it("opens a config with a theme color that isn't a hex color", () => {
+    const old = JSON.parse(demo);
+    old.theme.accent = "green";
+    expect(parseConfig(JSON.stringify(old))).toMatchObject({ ok: true });
+  });
+
   it("leaves areas that were never refs to be reported", () => {
     const old = JSON.parse(demo);
     delete old.maps[0].rooms[0].shape;
@@ -77,15 +103,13 @@ describe("configShapeProblems", () => {
         theme: {
           ...(valid.theme as object),
           "primary-text": undefined,
-          accent: "red",
-          disabled: "#abc",
+          accent: 7,
         },
         maps,
       }),
     ).toEqual([
-      'theme["primary-text"] must be a hex color like #1a2b3c',
-      "theme.accent must be a hex color like #1a2b3c",
-      "theme.disabled must be a hex color like #1a2b3c",
+      'theme["primary-text"] must be text',
+      "theme.accent must be text",
       "maps[0].src must be the path of an SVG file",
       "maps[0].overlays must be a list",
       "maps[0].rooms[1].label must be text",

@@ -116,32 +116,34 @@ export default function Map({
     onPanRef.current = onPan;
   }, [onPan]);
 
+  const { accent, "highlighted-room-background": highlightedRoomBackground } =
+    config.theme;
   const selectedStyle = useMemo(
     () =>
       new Style({
         stroke: new Stroke({
-          color: config.theme.accent,
+          color: accent,
           width: 4,
         }),
         fill: new Fill({
-          color: "rgba(0, 0, 0, 0)",
+          color: highlightedRoomBackground,
         }),
       }),
-    [config.theme.accent],
+    [accent, highlightedRoomBackground],
   );
 
   const highlightedStyle = useMemo(
     () =>
       new Style({
         stroke: new Stroke({
-          color: config.theme.accent,
+          color: accent,
           width: 3,
         }),
         fill: new Fill({
-          color: "rgba(0, 0, 0, 0)",
+          color: highlightedRoomBackground,
         }),
       }),
-    [config.theme.accent],
+    [accent, highlightedRoomBackground],
   );
 
   // Invisible, but the fill is what makes the room hit-detectable for clicks

@@ -1,4 +1,6 @@
+import { THEME_KEYS } from "./config-shape.ts";
 import type { Config } from "./config.types.ts";
+import { isHexColor } from "./hex-color.ts";
 import { resolveShape, type SvgDocument } from "./shape-resolver.ts";
 
 export type Issue = {
@@ -7,6 +9,8 @@ export type Issue = {
   mapSrc?: string;
   shape?: string;
   field?: "basePath" | "id" | "label" | "link" | "shape" | "src";
+  /** The theme colour the issue is with. */
+  themeKey?: keyof Config["theme"];
 };
 
 // Resolving applies transforms and flattens curves, and the editor validates on
@@ -58,6 +62,16 @@ export function validateConfig(
       message: `The base path "${config.basePath}" must start with "/", not end with "/", and use only letters, digits, ".", "_", "~" and "-" between the slashes`,
       field: "basePath",
     });
+  }
+
+  for (const key of THEME_KEYS) {
+    const color = config.theme[key];
+    if (!isHexColor(color)) {
+      error({
+        message: `The theme color "${key}" must be a hex color like #1a2b3c, or #1a2b3c80 to make it translucent, not "${color}"`,
+        themeKey: key,
+      });
+    }
   }
 
   if (

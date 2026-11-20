@@ -15,6 +15,7 @@ function baseConfig(shape: string): Config {
       "primary-text": "#000000",
       "secondary-text": "#000000",
       accent: "#000000",
+      "highlighted-room-background": "#00000000",
       disabled: "#000000",
     },
     maps: [

@@ -7,6 +7,7 @@ export {
   THEME_KEYS,
   type ParsedConfig,
 } from "./config-shape.ts";
+export { isHexColor, normalizeHexColor } from "./hex-color.ts";
 export { ASSETS_DIR, CONFIG_FILE, assetPath, srcFromAsset } from "./event.ts";
 export type {
   ResolvedConfig,

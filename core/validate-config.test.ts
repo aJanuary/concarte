@@ -3,8 +3,21 @@ import type { Config } from "./config.types.ts";
 import { parseSvg } from "./parse-svg.ts";
 import { validateConfig } from "./validate-config.ts";
 
+const theme: Config["theme"] = {
+  background: "#ffffff",
+  "control-background": "#ffffff",
+  "highlight-background": "#ffffff",
+  border: "#ffffff",
+  "primary-text": "#000000",
+  "secondary-text": "#000000",
+  accent: "#000000",
+  "highlighted-room-background": "#00000000",
+  disabled: "#000000",
+};
+
 function config(rooms: Config["maps"][number]["rooms"]): Config {
   return {
+    theme,
     maps: [{ id: "m", label: "Map", src: "/m.svg", rooms }],
   } as Config;
 }
@@ -31,6 +44,27 @@ describe("validateConfig", () => {
       'error: Room id "a" is used more than once on map "Map"',
     ]);
   });
+
+  it("accepts theme colors with and without alpha", () => {
+    const c = config([]);
+    c.theme = { ...theme, accent: "#1A2b3C", border: "#1a2b3c80" };
+    expect(messages(c)).toEqual([]);
+  });
+
+  it.each(["red", "#abc", "#abcd", "1a2b3c", "#1a2b3c8", "#1a2b3g"])(
+    "reports the theme color %s as an error on its key",
+    (accent) => {
+      const c = config([]);
+      c.theme = { ...theme, accent };
+      expect(validateConfig(c)).toEqual([
+        {
+          severity: "error",
+          message: `The theme color "accent" must be a hex color like #1a2b3c, or #1a2b3c80 to make it translucent, not "${accent}"`,
+          themeKey: "accent",
+        },
+      ]);
+    },
+  );
 
   it("reports a default map that does not exist", () => {
     expect(messages({ ...config([]), defaultMap: "other" } as Config)).toEqual([

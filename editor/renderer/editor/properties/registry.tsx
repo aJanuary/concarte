@@ -35,6 +35,7 @@ import { MarkdownField } from "./fields/MarkdownField";
 import { ShowInExplorerButton } from "./fields/ShowInExplorerButton";
 import { StringListField } from "./fields/StringListField";
 import { useImportSvg } from "../useImportSvg";
+import { useSession } from "../session";
 import type { SectionSpec } from "./PropertiesPanel";
 
 const fieldWithButton = style({
@@ -163,9 +164,15 @@ function colorField<K extends keyof Theme>(
   label: string,
   hint: string,
 ): FieldEditor<Theme, K> {
-  return function ColorEditor({ value, onChange }) {
+  return function ColorEditor({ value, onChange, error }) {
     return (
-      <ColorField label={label} hint={hint} value={value} onChange={onChange} />
+      <ColorField
+        label={label}
+        hint={hint}
+        value={value}
+        onChange={onChange}
+        error={error}
+      />
     );
   };
 }
@@ -192,6 +199,10 @@ const themeFields: Registry<Theme> = {
   accent: colorField(
     "Accent",
     "Links, active filters, and the outline of selected rooms.",
+  ),
+  "highlighted-room-background": colorField(
+    "Highlighted room background",
+    "Fill of selected rooms and rooms matching a search or filter.",
   ),
   disabled: colorField("Disabled", "Disabled buttons."),
 };
@@ -244,17 +255,28 @@ export const configFields: Registry<Config> = {
   },
   theme: {
     section: "Theme",
-    render: ({ value, onChange, ctx }) =>
-      renderRegistry(
-        themeFields,
-        value,
-        (patch) => onChange({ ...value, ...patch }),
-        ctx,
-      ).fields,
+    render: (props) => <ThemeSection {...props} />,
   },
   defaultMap: { managedBy: "the map panel" },
   maps: { managedBy: "the tree" },
 };
+
+function ThemeSection({ value, onChange, ctx }: FieldProps<Config, "theme">) {
+  const { issues } = useSession();
+  const errors: Partial<Record<keyof Theme, string>> = {};
+  for (const issue of issues) {
+    if (issue.severity === "error" && issue.themeKey) {
+      errors[issue.themeKey] ??= issue.message;
+    }
+  }
+  return renderRegistry(
+    themeFields,
+    value,
+    (patch) => onChange({ ...value, ...patch }),
+    ctx,
+    errors,
+  ).fields;
+}
 
 function AttributionsSection({
   value,

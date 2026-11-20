@@ -26,7 +26,11 @@ export function sameSelection(a: Selection, b: Selection): boolean {
 export function selectionForIssue(issue: {
   mapSrc?: string;
   shape?: string;
+  themeKey?: string;
 }): Selection | undefined {
+  if (issue.themeKey) {
+    return { kind: "event" };
+  }
   if (issue.mapSrc && issue.shape) {
     return { kind: "node", mapSrc: issue.mapSrc, key: issue.shape };
   }

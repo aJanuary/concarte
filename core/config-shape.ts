@@ -15,14 +15,6 @@ const boolean: Check = (value, path, problems) => {
   }
 };
 
-// The only form the editor's colour picker reads and writes. Anything looser
-// ends up verbatim in the site's generated CSS.
-const hexColor: Check = (value, path, problems) => {
-  if (typeof value !== "string" || !/^#[0-9a-fA-F]{6}$/.test(value)) {
-    problems.push(`${path} must be a hex color like #1a2b3c`);
-  }
-};
-
 const optional =
   (check: Check): Check =>
   (value, path, problems) => {
@@ -102,6 +94,7 @@ export const THEME_KEYS = [
   "primary-text",
   "secondary-text",
   "accent",
+  "highlighted-room-background",
   "disabled",
 ] as const satisfies readonly (keyof Config["theme"])[];
 
@@ -111,7 +104,9 @@ const config = object({
   basePath: optional(string),
   description: string,
   attributions: optional(list(string)),
-  theme: object(Object.fromEntries(THEME_KEYS.map((key) => [key, hexColor]))),
+  // Whether each is a colour is left to validateConfig, so a file with a
+  // mistyped colour still opens in the editor to be fixed.
+  theme: object(Object.fromEntries(THEME_KEYS.map((key) => [key, string]))),
   filters: optional(list(string)),
   defaultMap: optional(string),
   maps: list(map),

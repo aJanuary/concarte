@@ -34,8 +34,8 @@ export type Config = {
   attributions?: string[];
 
   /**
-   * The colors to use for the theme, each as a six-digit hex code such as
-   * `#1a2b3c`.
+   * The colors to use for the theme, each as a hex code such as `#1a2b3c`, or
+   * with an alpha channel for opacity such as `#1a2b3c80`.
    */
   theme: {
     /**
@@ -74,6 +74,12 @@ export type Config = {
      * rooms.
      */
     accent: string;
+
+    /**
+     * Fill of selected rooms and rooms matching a search or filter. Usually
+     * translucent, so the map shows through.
+     */
+    "highlighted-room-background": string;
 
     /**
      * Disabled button color.

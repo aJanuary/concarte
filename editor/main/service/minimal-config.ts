@@ -9,6 +9,7 @@ const THEME: Config["theme"] = {
   "primary-text": "#2b2b2b",
   "secondary-text": "#64748b",
   accent: "#087232",
+  "highlighted-room-background": "#08723266",
   disabled: "#cbd5e1",
 };
 

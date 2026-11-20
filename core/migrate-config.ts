@@ -1,3 +1,5 @@
+import { isHexColor } from "./hex-color.ts";
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -22,6 +24,22 @@ function migrateRoom(room: unknown): unknown {
 }
 
 /**
+ * Adds `highlighted-room-background`, which themes from before it lack: a
+ * tint of the accent at the opacity the editor fills its selected room with.
+ */
+function migrateTheme(theme: unknown): unknown {
+  if (!isObject(theme) || theme["highlighted-room-background"] !== undefined) {
+    return theme;
+  }
+  const accent = theme.accent;
+  const rgb =
+    typeof accent === "string" && isHexColor(accent)
+      ? accent.slice(0, 7)
+      : "#000000";
+  return { ...theme, "highlighted-room-background": `${rgb}66` };
+}
+
+/**
  * Brings a config written in an older format up to date. Takes and returns
  * untrusted JSON: anything it doesn't recognise is passed through for
  * `configShapeProblems` to report.
@@ -32,6 +50,7 @@ export function migrateConfig(value: unknown): unknown {
   }
   return {
     ...value,
+    theme: migrateTheme(value.theme),
     maps: value.maps.map((map: unknown) =>
       isObject(map) && Array.isArray(map.rooms)
         ? { ...map, rooms: map.rooms.map(migrateRoom) }

@@ -62,6 +62,7 @@ describe("generators", () => {
         "  --color-primary-text: #2b2b2b;",
         "  --color-secondary-text: #64748b;",
         "  --color-accent: #087232;",
+        "  --color-highlighted-room-background: #08723266;",
         "  --color-disabled: #cbd5e1;",
         "}",
         "",
