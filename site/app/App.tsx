@@ -1,6 +1,12 @@
 "use client";
 
-import { useSyncExternalStore, useState, useEffect } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import Map from "./Map";
 import RoomSelect from "./RoomSelect";
 import MapSelect from "./MapSelect";
@@ -8,6 +14,7 @@ import FilterPills from "./FilterPills";
 import OverlayPills from "./OverlayPills";
 import InfoPanel from "./InfoPanel";
 import { withBasePath } from "./base-path";
+import { currentNavigationType, isFreshVisit } from "./room-framing";
 import config from "@/generated/config";
 import type { ResolvedMap, Room } from "@concarte/core";
 
@@ -89,7 +96,16 @@ export default function App({
   const room = map.rooms.find((room) => room.id === roomId);
   const [selectedMap, setSelectedMap] = useState<ResolvedMap>(map);
   const [selectedRoom, setSelectedRoom] = useState<Room | undefined>(room);
-  const [focusedRoom, setFocusedRoom] = useState<Room | undefined>(undefined);
+  // A shared link should land on its room, but a reload or back/forward
+  // should keep the view the visitor left.
+  const [focusedRoom, setFocusedRoom] = useState<Room | undefined>(() =>
+    isFreshVisit(currentNavigationType()) ? room : undefined,
+  );
+  const infoPanelRef = useRef<HTMLDivElement>(null);
+  const getInfoPanelHeight = useCallback(
+    () => infoPanelRef.current?.getBoundingClientRect().height ?? 0,
+    [],
+  );
   const [highlightedRooms, setHighlightedRooms] = useState<Room[]>([]);
   const [activePill, setActivePill] = useState<string | null>(null);
   const activeOverlays = useSyncExternalStore(
@@ -177,6 +193,7 @@ export default function App({
         activeOverlays={activeOverlays}
         onRoomSelected={onRoomSelectedFromMap}
         onPan={onPan}
+        getBottomInset={getInfoPanelHeight}
       />
       <RoomSelect config={config} onRoomSelected={onRoomSelectedFromDropdown} />
       <div className="absolute top-15 left-10 z-40 flex flex-wrap items-center gap-2 px-4 pb-2 pointer-coarse:left-14">
@@ -209,6 +226,7 @@ export default function App({
         />
       </div>
       <InfoPanel
+        panelRef={infoPanelRef}
         room={selectedRoom}
         expanded={infoPanelExpanded}
         focusedRoom={focusedRoom}

@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 interface InfoPanelProps {
+  panelRef?: React.Ref<HTMLDivElement>;
   room?: Room;
   expanded: boolean;
   focusedRoom?: Room;
@@ -18,6 +19,7 @@ interface InfoPanelProps {
 }
 
 export default function InfoPanel({
+  panelRef,
   room,
   expanded,
   focusedRoom,
@@ -51,6 +53,7 @@ export default function InfoPanel({
 
     panel = (
       <div
+        ref={panelRef}
         className={`bg-control-background shadow-top pointer-events-auto relative p-4 text-left ${room.description ? "pt-10" : "pt-6"}`}
       >
         <header

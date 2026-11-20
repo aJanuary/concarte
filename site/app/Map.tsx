@@ -1,5 +1,6 @@
 import { Feature, MapBrowserEvent, Map as olMap, View } from "ol";
 import { MultiPolygon } from "ol/geom";
+import type { Extent } from "ol/extent";
 import { defaults } from "ol/interaction";
 import ImageLayer from "ol/layer/Image.js";
 import VectorLayer from "ol/layer/Vector";
@@ -23,6 +24,7 @@ import {
   type Room,
 } from "@concarte/core";
 import { withBasePath } from "./base-path";
+import { roomFrameResolution } from "./room-framing";
 
 type StringMap<V> = globalThis.Map<string, V>;
 
@@ -44,6 +46,8 @@ interface MapProps extends React.HTMLAttributes<HTMLDivElement> {
   onRoomSelected?: (room?: Room) => void;
   onInfoSelected?: () => void;
   onPan?: () => void;
+  // Pixels covered along the bottom of the map, e.g. by the info panel.
+  getBottomInset?: () => number;
 }
 
 interface MapImage {
@@ -92,6 +96,40 @@ async function loadMapImage(src: string): Promise<MapImage> {
   return { img, minX, minY, width, height };
 }
 
+function frameRoom(
+  map: olMap,
+  room: Feature,
+  bottomInset: number,
+  duration?: number,
+) {
+  const view = map.getView();
+  const roomExtent = room.getGeometry()!.getExtent();
+  const [width, height] = map.getSize() ?? [0, 0];
+  const margin = SEARCH_BAR_HEIGHT / 2;
+  const padding = [SEARCH_BAR_HEIGHT, margin, bottomInset + margin, margin];
+  const [top, right, bottom, left] = padding;
+  const clearSize = [
+    Math.max(1, width - left - right),
+    Math.max(1, height - top - bottom),
+  ];
+  view.fit(roomExtent, {
+    padding,
+    minResolution: roomFrameResolution(
+      roomExtent,
+      view.getProjection().getExtent(),
+      clearSize,
+    ),
+    duration,
+  });
+}
+
+function findRoomFeature(features: Feature[], room?: Room) {
+  if (room == null) {
+    return undefined;
+  }
+  return features.find((f) => (f.get("room") as Room).id === room.id);
+}
+
 export default function Map({
   config,
   selectedMap,
@@ -102,19 +140,26 @@ export default function Map({
   onRoomSelected,
   onInfoSelected,
   onPan,
+  getBottomInset,
   ...divProps
 }: MapProps) {
   const [mapDiv, setMapDiv] = useState<HTMLDivElement | null>(null);
   const [map, setMap] = useState<olMap | null>(null);
   const selectedFeatureRef = useRef<Feature | null>(null);
   const onPanRef = useRef(onPan);
+  const getBottomInsetRef = useRef(getBottomInset);
+  const selectedRoomRef = useRef(selectedRoom);
+  const focusedRoomRef = useRef(focusedRoom);
   const overlayLayersRef = useRef<StringMap<ImageLayer<any>[]>>(
     new globalThis.Map(),
   );
 
   useEffect(() => {
     onPanRef.current = onPan;
-  }, [onPan]);
+    getBottomInsetRef.current = getBottomInset;
+    selectedRoomRef.current = selectedRoom;
+    focusedRoomRef.current = focusedRoom;
+  }, [onPan, getBottomInset, selectedRoom, focusedRoom]);
 
   const { accent, "highlighted-room-background": highlightedRoomBackground } =
     config.theme;
@@ -176,7 +221,7 @@ export default function Map({
           return;
         }
 
-        const extent = [0, 0, width, height];
+        const extent: Extent = [0, 0, width, height];
         const projection = new Projection({
           code: "image",
           units: "pixels",
@@ -330,21 +375,21 @@ export default function Map({
           }),
         });
 
-        if (
+        // A room waiting to be zoomed on starts framed rather than animating
+        // there, since there's no earlier view on this map to animate from.
+        const focused = findRoomFeature(markers, focusedRoomRef.current);
+        const savedExtent =
           typeof localStorage !== "undefined" &&
           localStorage.getItem(
             `map-extent-v${MAP_EXTENT_STORAGE_VERSION}-${selectedMap.id}`,
-          )
-        ) {
-          map
-            .getView()
-            .fit(
-              JSON.parse(
-                localStorage.getItem(
-                  `map-extent-v${MAP_EXTENT_STORAGE_VERSION}-${selectedMap.id}`,
-                )!,
-              ),
-            );
+          );
+        const selected = findRoomFeature(markers, selectedRoomRef.current);
+        if (focused != null) {
+          frameRoom(map, focused, getBottomInsetRef.current?.() ?? 0);
+        } else if (savedExtent) {
+          map.getView().fit(JSON.parse(savedExtent));
+        } else if (selected != null) {
+          frameRoom(map, selected, getBottomInsetRef.current?.() ?? 0);
         } else {
           // Leave room at the top so the map isn't hidden behind the
           // "Search for a room" bar, with a smaller matching buffer on the
@@ -463,27 +508,12 @@ export default function Map({
 
     const layers = map.getLayers().getArray();
     const vectorLayer = layers[layers.length - 1] as VectorLayer;
-    const selected = vectorLayer
-      .getSource()!
-      .getFeatures()
-      .find(
-        (f: { get: (arg0: string) => Room }) =>
-          f.get("room").id === selectedRoom?.id,
-      );
-    setSelectedFeature(selected ?? null);
+    const features = vectorLayer.getSource()!.getFeatures() as Feature[];
+    setSelectedFeature(findRoomFeature(features, selectedRoom) ?? null);
 
-    const focused = vectorLayer
-      .getSource()!
-      .getFeatures()
-      .find(
-        (f: { get: (arg0: string) => Room }) =>
-          f.get("room").id === focusedRoom?.id,
-      );
+    const focused = findRoomFeature(features, focusedRoom);
     if (focused != null) {
-      map.getView().fit(focused.getGeometry().getExtent(), {
-        duration: 100,
-        maxZoom: 3,
-      });
+      frameRoom(map, focused, getBottomInsetRef.current?.() ?? 0, 100);
     }
   }, [map, selectedRoom, focusedRoom, selectedStyle, unselectedStyle]);
 
